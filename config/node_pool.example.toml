@@ -1,0 +1,48 @@
+# host: IP address of the node pool
+# port: RPC port on which the node pool can be reached
+[server]
+host = "127.0.0.1"
+port = 22819
+
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
+[server.log]
+log_file = "/path/to/logs/node-pool.log"
+level_file = "info"
+level_stdout = "info"
+
+# binary: location of the witnet binary
+# number: amount of nodes to start, configuration is defined in [nodes.node-x]
+# sync_sleep: while synchronizing a node, check its synchonization status every 'sync_sleep' seconds
+# no_peers_restart: restart node if we have not found enough peers after 'no_peers_restart' seconds
+# outbound_connections: required amount of outbound connections to synchronize a node, this is a setting in each node's toml file
+# restart_unsynced_timeout: nodes that are rolling back are unsynced, but may recover, allow this for 'restart_unsynced_timeout' seconds
+[nodes]
+binary = "/path/to/witnet/binary"
+number = 2
+sync_sleep = 60
+no_peers_restart = 3600
+outbound_connections = 4
+restart_unsynced_timeout = 360
+
+# type: the node type can either be local or remote, local nodes can be restarted automatically, remotes ones cannot
+# ip: IP address of the node (always required, local nodes will typically listen on 127.0.0.1)
+# port: RPC port of the node (always required)
+# config: specify the toml configuration file of the node (only required for locally running nodes)
+# log_file: redirect the output of the node to the specified file (only required for locally running nodes)
+[nodes.node-1]
+type = "local"
+ip = "127.0.0.1"
+port = 21338
+config = "/path/to/node/config/node-1.toml"
+master_key = "/path/to/node/key/node-1.key"
+log_file = "/path/to/logs/node-1.log"
+
+[nodes.node-2]
+type = "local"
+ip = "127.0.0.1"
+port = 22338
+config = "/path/to/node/config/node-2.toml"
+master_key = "/path/to/node/key/node-2.key"
+log_file = "/path/to/logs/node-2.log"

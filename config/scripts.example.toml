@@ -1,0 +1,4 @@
+[database]
+user = "<user>"
+name = "<database>"
+password = "<password>"

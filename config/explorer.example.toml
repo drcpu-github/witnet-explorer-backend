@@ -1,0 +1,27 @@
+# pending_interval: time between querying how many pending requests there are in the network
+[explorer]
+pending_interval = 60
+
+# user: postgresql database user
+# name: postgresql database name
+# password: postgresql database password
+[explorer.database]
+user = "<user>"
+name = "<database>"
+password = "<password>"
+
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
+[explorer.log]
+log_file = "/path/to/logs/explorer.log"
+level_file = "info"
+level_stdout = "info"
+
+# host: IP address of the node pool
+# port: RPC port on which the node pool can be reached
+# error_retry: timeout before retrying a request that returned an error
+[explorer.node]
+host = "127.0.0.1"
+port = 22819
+error_retry = 60

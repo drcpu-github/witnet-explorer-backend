@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+
+logs
+*.log
+
+gunicorn.workers
+
+venv
+.idea
+
+.env
