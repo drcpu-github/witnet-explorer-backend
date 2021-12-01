@@ -210,9 +210,9 @@ class NodeManager(object):
         else:
             return {"error": "unknown action type"}
 
-    def get_home(self):
+    def get_home(self, key):
         self.logger.info("Get home")
-        return self.home.get_home()
+        return self.home.get_home(key)
 
     def get_reputation_list(self):
         self.logger.info("Get reputation list")

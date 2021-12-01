@@ -120,7 +120,41 @@ def address():
 @api.route("/home")
 @cache.cached(timeout=15)
 def home():
-    return node.get_home()
+    return node.get_home("home")
+
+# Cache the latest data requests for 15 seconds
+@api.route("/supply_info")
+@cache.cached(timeout=15, query_string=True)
+def supply_info():
+    key = request.args.get("key", default="", type=str)
+    if key not in (
+        "blocks_minted",
+        "blocks_minted_reward",
+        "blocks_missing",
+        "blocks_missing_reward",
+        "current_locked_supply",
+        "current_time",
+        "current_unlocked_supply",
+        "epoch",
+        "in_flight_requests",
+        "locked_wits_by_requests",
+        "maximum_supply",
+        "current_supply", # composite key
+        "total_supply", # composite key
+    ):
+        return {"error": "invalid key"}
+
+    home_stats = node.get_home(key)
+    supply_info = home_stats["supply_info"]
+
+    if key == "current_supply":
+        return str(int((supply_info["current_unlocked_supply"] + supply_info["current_locked_supply"]) / 1E9))
+    elif key == "total_supply":
+        return str(int((supply_info["maximum_supply"] - supply_info["blocks_missing_reward"]) / 1E9))
+    elif key in ("blocks_minted", "blocks_missing", "current_time", "epoch", "in_flight_requests"):
+        return str(supply_info[key])
+    else:
+        return str(int(supply_info[key] / 1E9))
 
 # Cache the reputation overview for 5 minutes
 @api.route("/reputation")
