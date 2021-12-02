@@ -32,13 +32,17 @@ class Home(object):
             "num_pending_requests": 0,
         }
         self.supply_info = {
+            "blocks_minted": 0,
             "blocks_minted_reward": 0,
-            "collateral_locked": 0,
+            "blocks_missing": 0,
             "blocks_missing_reward": 0,
-            "current_unlocked_supply": 0,
             "current_locked_supply": 0,
-            "total_supply": 0,
-            "blocks_missing_reward": 0,
+            "current_time": 0,
+            "current_unlocked_supply": 0,
+            "epoch": 0,
+            "in_flight_requests": 0,
+            "locked_wits_by_requests": 0,
+            "maximum_supply": 0,
         }
         self.previous_supply_info = self.supply_info
         self.latest_blocks = []
@@ -258,8 +262,8 @@ class Home(object):
 
         return value_transfers
 
-    def get_home(self):
-        self.logger.info("get_home()")
+    def get_home(self, key):
+        self.logger.info(f"get_home({key})")
 
         if not self.home_queue.empty():
             try:
