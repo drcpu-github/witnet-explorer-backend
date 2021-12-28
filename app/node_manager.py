@@ -71,13 +71,34 @@ class NodeManager(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
+    def sanitize_input(self, input_value, required_type):
+        if required_type == "bool":
+            return input_value in (True, False)
+        elif required_type == "hexadecimal":
+            try:
+                int(input_value, 16)
+                return True
+            except ValueError:
+                return False
+        elif required_type == "alpha":
+            return input_value.isalpha()
+        elif required_type == "alphanumeric":
+            return input_value.isalnum()
+        return False
+
     def get_hash(self, hash_value, simple):
         self.logger.info(f"Get hash {hash_value}")
 
-        try:
-            int(hash_value, 16)
-        except ValueError:
-            return {"error": "not a hexadecimal hash"}
+        if hash_value.startswith("0x"):
+            self.logger.warning(f"Invalid value for hash: {hash_value}")
+            return {"error": "hexadecimal hash should not start with 0x"}
+
+        if not self.sanitize_input(hash_value, "hexadecimal"):
+            self.logger.warning(f"Invalid value for hash: {hash_value}")
+            return {"error": "hash is not a hexadecimal value"}
+        if not self.sanitize_input(simple, "bool"):
+            self.logger.warning(f"Invalid value for simple: {simple}")
+            return {"error": "simple is not a boolean value"}
 
         sql = "SELECT type FROM hashes WHERE hash=%s" % psycopg2.Binary(bytearray.fromhex(hash_value))
         result = self.witnet_database.sql_return_one(sql)
@@ -185,7 +206,17 @@ class NodeManager(object):
 
     def get_address(self, address_value, tab, limit, epoch):
         self.logger.info(f"Fetch address data for {address_value}, {tab}")
+
+        if not self.sanitize_input(address_value, "alphanumeric"):
+            self.logger.warning(f"Invalid value for address: {address_value}")
+            return {"error": "address is not an alphanumeric value"}
+        if not tab in ("details", "value_transfers", "blocks", "data_requests_solved", "data_requests_launched"):
+            self.logger.warning(f"Invalid value for tab: {tab}")
+            return {"error": "tab value is not valid"}
+        # integers are sanitized already by Flask argument parsing
+
         address = Address(address_value, self.db_config, self.node_config, self.consensus_constants, self.logging_queue)
+
         if tab == "details":
             return address.get_details()
         elif tab == "value_transfers":
@@ -196,11 +227,15 @@ class NodeManager(object):
             return address.get_data_requests_solved(limit, epoch)
         elif tab == "data_requests_launched":
             return address.get_data_requests_launched(limit, epoch)
-        else:
-            return {"error": "unknown tab type"}
 
     def get_blockchain(self, action, block):
         self.logger.info(f"Get blockchain {action}, {block}")
+
+        if not self.sanitize_input(action, "alpha"):
+            self.logger.warning(f"Invalid value for action: {action}")
+            return {"error": "action is not an alpha value"}
+        # integers are sanitized already by Flask argument parsing
+
         if action == "init":
             return self.blockchain.get_blockchain_details(action, block, -1, -1)
         elif action == "update":
@@ -212,6 +247,7 @@ class NodeManager(object):
 
     def get_home(self, key):
         self.logger.info("Get home")
+        # key is already sanitized one level above in home() / supply_info()
         return self.home.get_home(key)
 
     def get_reputation_list(self):
@@ -220,6 +256,7 @@ class NodeManager(object):
 
     def get_rich_list(self, start, stop):
         self.logger.info(f"Get rich list from {start} to {stop}")
+        # integers are sanitized already by Flask argument parsing
         return self.rich_list.get_rich_list(start, stop)
 
     def get_network(self):
@@ -232,6 +269,11 @@ class NodeManager(object):
 
     def get_utxos(self, address):
         self.logger.info(f"Get utxos for {address}")
+
+        if not self.sanitize_input(address, "alphanumeric"):
+            self.logger.warning(f"Invalid value for address: {address}")
+            return {"error": "address is not an alphanumeric value"}
+
         utxos = self.witnet_node.get_utxos(address)
         if "result" in utxos:
             return utxos["result"]
