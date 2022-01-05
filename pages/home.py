@@ -102,7 +102,7 @@ class Home(object):
                 try:
                     # Fetch data in a non-blocking way so we can catch possible concurrency problems
                     home_queue.get(False)
-                except Queue.Empty:
+                except Empty:
                     break
 
             home_queue.put(home_stats)

@@ -253,7 +253,7 @@ class Tapi(object):
                     try:
                         # Fetch data in a non-blocking way so we can catch possible concurrency problems
                         tapi_queue.get(False)
-                    except Queue.Empty:
+                    except Empty:
                         break
 
                 tapi_queue.put(tapi_data)

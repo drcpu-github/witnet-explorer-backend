@@ -91,7 +91,7 @@ class RichList(object):
                     try:
                         # Fetch data in a non-blocking way so we can catch possible concurrency problems
                         richlist_queue.get(False)
-                    except Queue.Empty:
+                    except Empty:
                         break
 
                 richlist_queue.put({

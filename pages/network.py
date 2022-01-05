@@ -154,7 +154,7 @@ class Network(object):
                 try:
                     # Fetch data in a non-blocking way so we can catch possible concurrency problems
                     network_queue.get(False)
-                except Queue.Empty:
+                except Empty:
                     break
 
             network_queue.put({

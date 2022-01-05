@@ -16,6 +16,8 @@ from multiprocessing import Lock
 from multiprocessing import Process
 from multiprocessing import Queue
 
+from queue import Empty
+
 from blockchain.witnet_database import WitnetDatabase
 
 from node.consensus_constants import ConsensusConstants
@@ -211,7 +213,7 @@ class BlockExplorer(object):
                     # Fetch data in a non-blocking way so we can catch possible concurrency problems
                     epoch, block_hash = unconfirmed_blocks_queue.get(False)
                     unconfirmed_blocks[epoch] = block_hash
-                except Queue.Empty:
+                except Empty:
                     break
 
             unconfirmed_blocks_str = ", ".join([str(epoch) for epoch in sorted(list(unconfirmed_blocks.keys()))])
