@@ -10,3 +10,9 @@ venv
 .idea
 
 .env
+
+config/api.toml
+config/explorer.toml
+config/node_pool.toml
+config/scripts.toml
+
