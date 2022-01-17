@@ -238,10 +238,14 @@ class NodeManager(object):
 
         if action == "init":
             return self.blockchain.get_blockchain_details(action, block, -1, -1)
-        elif action == "update":
-            return self.blockchain.get_blockchain_details(action, 0, block + 1, -1)
         elif action == "append":
-            return self.blockchain.get_blockchain_details(action, 0, block - 50, block)
+            if block >= 0:
+                return self.blockchain.get_blockchain_details(action, 0, block, -1)
+            else:
+                return self.blockchain.get_blockchain_details(action, block, -1, -1)
+        elif action == "prepend":
+            start = max(0, block - 50)
+            return self.blockchain.get_blockchain_details(action, 0, start, block)
         else:
             return {"error": "unknown action type"}
 

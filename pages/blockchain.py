@@ -28,34 +28,44 @@ class Blockchain(object):
             return 0
 
     # num = -10, start = 0, stop = 0 will return the last 10 blocks
-    # num > 0, start != 0, stop != 0 will return the blocks in the start to stop range
-    # num > 0, start != 0, return num blocks starting at start
+    # start != 0, stop != 0 will return the blocks in the start to stop range
+    # start != 0, return num blocks starting at start until the newest block
     # num > 0, stop != 0, return num blocks starting from stop and going backwards
     def get_blockchain(self, num, start, stop):
-        if num < 0 and start == -1 and stop == -1:
+        if num < 0:
             start_at = 0
             num_blocks = num
-        if start != -1:
+        elif start != -1:
             start_at = start
             if stop != -1:
                 num_blocks = stop - start
             else:
-                num_blocks = 0
+                num_blocks = 1000
+        else:
+            start_at = num - stop
+            num_blocks = num
+
+        info = ""
+        if num_blocks > 1000:
+            info = "Cannot fetch more than 100 blocks in one go"
+
         result = self.witnet_node.get_blockchain(epoch=start_at, num_blocks=num_blocks)
         if type(result) is dict and "error" in result:
-            return {"blockchain": [], "last_updated": int(time.time())}
+            return {"blockchain": [], "last_updated": int(time.time()), "info": result["error"]}
         else:
             result = result["result"]
+
         blockchain = [[block[1], block[0], self.start_time + (block[0] + 1) * self.epoch_period] for block in result]
         blockchain = sorted(blockchain, key=lambda l: l[1], reverse=True)
-        return {"blockchain": blockchain, "last_updated": int(time.time())}
+
+        return {"blockchain": blockchain, "last_updated": int(time.time()), "info": info}
 
     def get_blockchain_details(self, action, num, start, stop):
-        blockchain = self.get_blockchain(num, start, stop)
+        blockchain_data = self.get_blockchain(num, start, stop)
 
         # create dict for easier statistics collection
         blockchain_dict = {}
-        for block in blockchain["blockchain"]:
+        for block in blockchain_data["blockchain"]:
             # if there was a rollback, there will be too many blocks, ignore the ones bigger than stop
             if stop != -1 and block[1] + 1 > stop:
                 continue
@@ -74,7 +84,7 @@ class Blockchain(object):
             ]
         epochs = list(blockchain_dict.keys())
         if len(epochs) == 0:
-            return {"blockchain": [], "reverted": [], "last_updated": int(time.time())}
+            return {"blockchain": [], "reverted": [], "last_updated": int(time.time()), "info": "no new blocks to fetch"}
         else:
             start_epoch = min(epochs)
             stop_epoch = max(epochs)
@@ -120,7 +130,7 @@ class Blockchain(object):
 
         # flatten dict
         blockchain, reverted_blocks = [], []
-        if action == "init" or action == "append":
+        if action == "init" or action == "append" or num < 0:
             sorted_epochs = sorted(list(blockchain_dict.keys()), reverse=True)
         else:
             sorted_epochs = sorted(list(blockchain_dict.keys()))
@@ -131,4 +141,4 @@ class Blockchain(object):
                 reverted_blocks.extend(range(epoch, previous_epoch))
             previous_epoch = epoch
 
-        return {"blockchain": blockchain, "reverted": reverted_blocks, "last_updated": int(time.time())}
+        return {"blockchain": blockchain, "reverted": reverted_blocks, "last_updated": int(time.time()), "info": blockchain_data["info"]}
