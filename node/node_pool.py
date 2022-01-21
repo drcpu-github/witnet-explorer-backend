@@ -72,7 +72,7 @@ class NodePool(object):
         # Start all local nodes
         for node in range(self.config["nodes"]["number"]):
             self.logger.info(f"Starting node process node-{node + 1}")
-            p = Process(target=self.start_node, args=(node, self.config, self.request_counter, self.process_pids, self.node_sockets, self.logging_queue, self.node_synced, self.node_lock, self.node_unsynced_time))
+            p = Process(target=self.start_node, args=(node, self.config, self.request_counter, self.process_pids, self.node_sockets, self.logging_queue, self.node_synced, self.node_lock))
             p.start()
 
         # Infinite loop
@@ -198,7 +198,8 @@ class NodePool(object):
                 if request_served:
                     break
 
-            if not request_served: # If request_served is still False, no nodes were available or all nodes were not synced anymore
+            # If request_served is still False, no nodes were available or all nodes were not synced anymore
+            if not request_served:
                 if sum(node_synced) == 0:
                     response = {"error": "no synced nodes found", "id": request_id}
                     logger.warning("No synced nodes found")
@@ -208,7 +209,7 @@ class NodePool(object):
 
             connection.sendall((json.dumps(response) + "\n").encode("utf-8"))
 
-            # Double check if the node is synced if it was marked as unsynced (reset the unsynced timer if necessary) or mark it as restartable
+            # Double check if the node is synced if it was marked as unsynced or mark it as restartable
             for i, node_socket in enumerate(node_sockets):
                 if node_synced[i] == False:
                     synced = self.check_node_synced(logger, i, request_counter, node_socket)
@@ -219,6 +220,8 @@ class NodePool(object):
                     if node_unsynced_time[i] > 0 and int(time.time()) - node_unsynced_time[i] > config["nodes"]["restart_unsynced_timeout"]:
                         logger.warning(f"Restart timer of node-{i + 1} elapsed and it will be restarted")
                         nodes_to_restart.add(i)
+                        # Reset unsynced time here so concurrent accesses don't try to restart the nodes again
+                        node_unsynced_time[i] = 0
 
             # Restart nodes that are not synced
             if len(nodes_to_restart) > 0:
@@ -227,7 +230,7 @@ class NodePool(object):
                     node_type = config["nodes"][node_str]["type"]
                     if node_type == "local":
                         logger.warning(f"Restarting {node_str}, PID {process_pids[node]}")
-                        p = Process(target=self.restart_node, args=(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock, node_unsynced_time))
+                        p = Process(target=self.restart_node, args=(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock))
                         p.start()
                     else:
                         logger.warning("Cannot restart a remote node")
@@ -238,7 +241,7 @@ class NodePool(object):
         connection.close()
         logger.info("Stopping node client process")
 
-    def start_node(self, node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock, node_unsynced_time):
+    def start_node(self, node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock):
         node_str = f"node-{node  + 1}"
 
         # Set up logger
@@ -338,8 +341,6 @@ class NodePool(object):
 
         if node_synced:
             node_synced[node] = True
-            if node_unsynced_time:
-                node_unsynced_time[node] = 0
             if node_type == "local":
                 logger.info(f"Local node synced ({process_pids[node]})")
             else:
@@ -437,7 +438,7 @@ class NodePool(object):
                 logger.warning(f"Terminating process ({pid}) failed")
                 pass
 
-    def restart_node(self, node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock=None, node_unsynced_time=None):
+    def restart_node(self, node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock=None):
         # Check if we need to acquire the lock in a blocking manner (we may already have it)
         if node_lock:
             node_lock[node].acquire()
@@ -460,7 +461,7 @@ class NodePool(object):
         # Recreate socket
         node_sockets[node] = SocketManager(config["nodes"][node_str]["ip"], config["nodes"][node_str]["port"], 15)
         # Restart node
-        self.start_node(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock, node_unsynced_time)
+        self.start_node(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock)
         # Node lock was released by start_node
 
     def execute_request(self, logger, node_socket, request):
