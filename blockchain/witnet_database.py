@@ -51,6 +51,8 @@ class WitnetDatabase(object):
                             'mint_txn',
                             'value_transfer_txn',
                             'data_request_txn',
+                            'RAD_bytes_hash',
+                            'data_request_bytes_hash',
                             'commit_txn',
                             'reveal_txn',
                             'tally_txn'
@@ -63,7 +65,7 @@ class WitnetDatabase(object):
             """CREATE TABLE IF NOT EXISTS hashes (
                 hash BYTEA PRIMARY KEY,
                 type hash_type NOT NULL,
-                epoch INT NOT NULL
+                epoch INT
             );""",
 
             """CREATE TABLE IF NOT EXISTS blocks (
@@ -150,6 +152,8 @@ class WitnetDatabase(object):
                 aggregate_reducer INT ARRAY NOT NULL,
                 tally_filters filter ARRAY NOT NULL,
                 tally_reducer INT ARRAY NOT NULL,
+                RAD_bytes_hash BYTEA NOT NULL,
+                data_request_bytes_hash BYTEA NOT NULL,
                 epoch INT NOT NULL
             );""",
 
@@ -315,6 +319,9 @@ class WitnetDatabase(object):
 
     def insert_data_request_txn(self, txn_details, epoch):
         txn_hash = bytearray.fromhex(txn_details["txn_hash"])
+        RAD_bytes_hash = bytearray.fromhex(txn_details["RAD_bytes_hash"])
+        data_request_bytes_hash = bytearray.fromhex(txn_details["data_request_bytes_hash"])
+
         # Check if data request txn exists
         # If it does not, generate an insert statement
         if not self.check_hash(txn_hash):
@@ -345,6 +352,8 @@ class WitnetDatabase(object):
                 txn_details["aggregate_reducer"],
                 txn_details["tally_filters"],
                 txn_details["tally_reducer"],
+                RAD_bytes_hash,
+                data_request_bytes_hash,
                 epoch,
             ))
         # If it does, generate an update statement
@@ -357,6 +366,26 @@ class WitnetDatabase(object):
             self.update_data_request_txns.append((
                 txn_hash,
                 epoch,
+            ))
+
+        # Check if the RAD bytes hash exists
+        # If it does not, generate an insert statement
+        if not self.check_hash(RAD_bytes_hash):
+            # Insert RAD bytes hash
+            self.insert_hashes.append((
+                RAD_bytes_hash,
+                "RAD_bytes_hash",
+                None,
+            ))
+
+        # Check if the data request bytes hash exists
+        # If it does not, generate an insert statement
+        if not self.check_hash(data_request_bytes_hash):
+            # Insert data request bytes hash
+            self.insert_hashes.append((
+                data_request_bytes_hash,
+                "data_request_bytes_hash",
+                None,
             ))
 
     def insert_commit_txn(self, txn_details, epoch):
@@ -561,10 +590,12 @@ class WitnetDatabase(object):
                     aggregate_reducer,
                     tally_filters,
                     tally_reducer,
+                    RAD_bytes_hash,
+                    data_request_bytes_hash,
                     epoch
                 ) VALUES %s
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s)")
+            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
             self.logger.info(f"Inserted {len(self.insert_data_request_txns)} data request transaction(s) for epoch {epoch}")
         self.insert_data_request_txns = []
 

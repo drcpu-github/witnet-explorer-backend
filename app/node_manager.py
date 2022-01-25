@@ -18,6 +18,7 @@ from pages.transaction_pool import TransactionPool
 
 from objects.address import Address
 from objects.block import Block
+from objects.data_request_history import DataRequestHistory
 from objects.data_request_report import DataRequestReport
 from transactions.data_request import DataRequest
 from transactions.commit import Commit
@@ -93,9 +94,14 @@ class NodeManager(object):
             self.logger.warning(f"Invalid value for hash: {hash_value}")
             return {"error": "hexadecimal hash should not start with 0x"}
 
+        if len(hash_value) != 64:
+            self.logger.warning(f"Invalid hash length ({len(hash_value)}): {hash_value}")
+            return {"error": "incorrect hexadecimal hash length"}
+
         if not self.sanitize_input(hash_value, "hexadecimal"):
             self.logger.warning(f"Invalid value for hash: {hash_value}")
             return {"error": "hash is not a hexadecimal value"}
+
         if not self.sanitize_input(simple, "bool"):
             self.logger.warning(f"Invalid value for simple: {simple}")
             return {"error": "simple is not a boolean value"}
@@ -176,33 +182,35 @@ class NodeManager(object):
             del json_block["tapi_accept"]
 
             return json_block
-        else:
-            if hash_type == "mint_txn":
-                # Create mint transaction and get the details from the database
-                mint = Mint(self.consensus_constants, self.logging_queue, database_config=self.db_config)
-                return mint.get_transaction_from_database(hash_value)
-            elif hash_type == "value_transfer_txn":
-                # Create value transfer transaction and get the details from the database
-                value_transfer = ValueTransfer(self.consensus_constants, self.logging_queue, database_config=self.db_config)
-                return value_transfer.get_transaction_from_database(hash_value)
-            elif hash_type in ("data_request_txn", "commit_txn", "reveal_txn", "tally_txn"):
-                if simple:
-                    if hash_type == "data_request_txn":
-                        data_request = DataRequest(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
-                        transaction = data_request.get_transaction_from_database(hash_value)
-                    elif hash_type == "commit_txn":
-                        commit = Commit(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
-                        transaction = commit.get_transaction_from_database(hash_value)
-                    elif hash_type == "tally_txn":
-                        tally = Tally(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
-                        transaction = tally.get_transaction_from_database(hash_value)
-                    return transaction
-                # Create data request report from this hash
-                else:
-                    data_request_report = DataRequestReport(hash_type, hash_value, self.consensus_constants, self.logging_queue, self.db_config)
-                    return data_request_report.get_report()
+        elif hash_type == "mint_txn":
+            # Create mint transaction and get the details from the database
+            mint = Mint(self.consensus_constants, self.logging_queue, database_config=self.db_config)
+            return mint.get_transaction_from_database(hash_value)
+        elif hash_type == "value_transfer_txn":
+            # Create value transfer transaction and get the details from the database
+            value_transfer = ValueTransfer(self.consensus_constants, self.logging_queue, database_config=self.db_config)
+            return value_transfer.get_transaction_from_database(hash_value)
+        elif hash_type in ("data_request_txn", "commit_txn", "reveal_txn", "tally_txn"):
+            if simple:
+                if hash_type == "data_request_txn":
+                    data_request = DataRequest(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+                    transaction = data_request.get_transaction_from_database(hash_value)
+                elif hash_type == "commit_txn":
+                    commit = Commit(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+                    transaction = commit.get_transaction_from_database(hash_value)
+                elif hash_type == "tally_txn":
+                    tally = Tally(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+                    transaction = tally.get_transaction_from_database(hash_value)
+                return transaction
+            # Create data request report from this hash
             else:
-                return {"error": "unknown hash type"}
+                data_request_report = DataRequestReport(hash_type, hash_value, self.consensus_constants, self.logging_queue, self.db_config)
+                return data_request_report.get_report()
+        elif hash_type in ("RAD_bytes_hash", "data_request_bytes_hash"):
+            data_request_history = DataRequestHistory(hash_type, hash_value, self.consensus_constants, self.logging_queue, database_config=self.db_config)
+            return data_request_history.get_history()
+        else:
+            return {"error": "unknown hash type"}
 
     def get_address(self, address_value, tab, limit, epoch):
         self.logger.info(f"Fetch address data for {address_value}, {tab}")

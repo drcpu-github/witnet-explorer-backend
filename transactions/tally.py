@@ -135,7 +135,7 @@ class Tally(Transaction):
 
             tally_outputs = output_values
 
-            success, tally_result = translate_tally(txn_hash, result)
+            success, tally_result = translate_tally(bytearray.fromhex(txn_hash), result)
 
             txn_epoch = epoch
             txn_time = self.start_time + (epoch + 1) * self.epoch_period

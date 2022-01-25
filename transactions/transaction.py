@@ -8,6 +8,7 @@ from blockchain.witnet_database import WitnetDatabase
 from node.witnet_node import WitnetNode
 
 from util.address_generator import AddressGenerator
+from util.protobuf_encoder import ProtobufEncoder
 from util.radon_translator import RadonTranslator
 
 class Transaction(object):
@@ -36,6 +37,9 @@ class Transaction(object):
         # Create address generator
         self.address_generator = AddressGenerator("wit")
 
+        # Create Protobuf encoder
+        self.protobuf_encoder = ProtobufEncoder()
+
         # Create Radon translator
         self.translator = RadonTranslator()
 
@@ -62,6 +66,8 @@ class Transaction(object):
                 self.txn_details["weight"] = 0
             else:
                 self.txn_details["weight"] = self.json_txn["weight"]
+
+        self.protobuf_encoder.set_transaction(self.json_txn)
 
     def calculate_addresses(self, signatures):
         addresses = []
