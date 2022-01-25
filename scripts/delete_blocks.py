@@ -2,21 +2,22 @@
 
 import optparse
 import sys
+import toml
 
 from util.database_manager import DatabaseManager
 
 def delete_block(db_mngr, epoch):
     sql_statement = "DELETE FROM hashes WHERE hashes.epoch=%s" % (epoch,)
     result = db_mngr.sql_update_table(sql_statement)
-    print(f"Deleted {result} hashes for epoch {epoch}")
+    print(f"Deleted {result} hash(es) for epoch {epoch}")
 
     sql_statement = "DELETE FROM blocks WHERE blocks.epoch=%s" % (epoch,)
     result = db_mngr.sql_update_table(sql_statement)
-    print(f"Deleted {result} block for epoch {epoch}")
+    print(f"Deleted {result} block(s) for epoch {epoch}")
 
     sql_statement = "DELETE FROM mint_txns WHERE mint_txns.epoch=%s" % (epoch,)
     result = db_mngr.sql_update_table(sql_statement)
-    print(f"Deleted {result} mint transaction for epoch {epoch}")
+    print(f"Deleted {result} mint transaction(s) for epoch {epoch}")
 
     sql_statement = "DELETE FROM value_transfer_txns WHERE value_transfer_txns.epoch=%s" % (epoch,)
     result = db_mngr.sql_update_table(sql_statement)
