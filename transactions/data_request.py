@@ -113,6 +113,8 @@ class DataRequest(Transaction):
                 blocks.confirmed,
                 blocks.reverted,
                 data_request_txns.txn_hash,
+                data_request_txns.data_request_bytes_hash,
+                data_request_txns.RAD_bytes_hash,
                 data_request_txns.txn_kind,
                 data_request_txns.input_addresses,
                 data_request_txns.input_values,
@@ -140,10 +142,12 @@ class DataRequest(Transaction):
         result = self.witnet_database.sql_return_one(sql)
 
         if result:
-            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, txn_kind, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, urls, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
+            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, data_request_bytes_hash, RAD_bytes_hash, txn_kind, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, urls, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
 
             block_hash = block_hash.hex()
             txn_hash = txn_hash.hex()
+            data_request_bytes_hash = data_request_bytes_hash.hex()
+            RAD_bytes_hash = RAD_bytes_hash.hex()
 
             addresses = list(set(input_addresses))
 
@@ -186,8 +190,10 @@ class DataRequest(Transaction):
             else:
                 txn_status = "mined"
         else:
-            block_hash = ""
             txn_hash = ""
+            RAD_bytes_hash = ""
+            data_request_bytes_hash = ""
+            block_hash = ""
             txn_kind = ""
             addresses = []
             input_utxo_values = []
@@ -208,8 +214,10 @@ class DataRequest(Transaction):
 
         return {
             "type": "data_request_txn",
-            "block_hash": block_hash,
             "txn_hash": txn_hash,
+            "RAD_bytes_hash": RAD_bytes_hash,
+            "data_request_bytes_hash": data_request_bytes_hash,
+            "block_hash": block_hash,
             "txn_kind": txn_kind,
             "addresses": addresses,
             "input_utxos": input_utxo_values,
