@@ -197,7 +197,7 @@ def translate_tally(txn_hash, tally):
 
             # Handle some special cases, adding extra explanations
             if error_code == 0x51 and len(error) == 3: # InsufficientConsensus
-                translation += ": " + ("%.0f" % (error[1] * 100)) + "% < " + ("%.0f" % (error[2] * 100)) + "%"
+                translation += ": " + ("%.0f" % (error[1] * 100)) + "% <= " + ("%.0f" % (error[2] * 100)) + "%"
             elif error_code == 0x52 and len(error) == 3: # InsufficientCommits
                 translation += ": " + str(error[1]) + " < " + str(error[2])
             elif error_text != "":
