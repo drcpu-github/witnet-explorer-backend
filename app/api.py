@@ -100,11 +100,17 @@ node = NodeManager(config, logging_queue)
 @cache.cached(timeout=15)
 @api.route("/hash")
 def hash():
+    # hash value
     value = request.args.get("value", default="", type=str)
+    # do not build a full data request report when fetching a data request / commit / reveal / tally transaction
     simple = request.args.get("simple", default=False, type=bool)
+    # control fetching RAD or data request history
+    start = request.args.get("start", default=0, type=int)
+    stop = request.args.get("stop", default=0, type=int)
+    amount = request.args.get("amount", default=100, type=int)
     if value == "":
         return {}
-    return node.get_hash(value, simple)
+    return node.get_hash(value, simple, start, stop, amount)
 
 @api.route("/address")
 def address():

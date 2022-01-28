@@ -8,11 +8,7 @@ from transactions.data_request import DataRequest
 from transactions.tally import translate_tally
 
 class DataRequestHistory(object):
-    def __init__(self, hash_type, bytes_hash, consensus_constants, logging_queue, database_config):
-        # Copy hash parameters
-        self.hash_type = hash_type
-        self.bytes_hash = bytes_hash
-
+    def __init__(self, consensus_constants, logging_queue, database_config):
         # Copy relevant consensus constants
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
@@ -35,32 +31,8 @@ class DataRequestHistory(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def get_history(self):
-        self.logger.info(f"{self.hash_type}, get_history({self.bytes_hash})")
-
-        # Get the matching data requests
-        self.get_matching_data_requests()
-
-        return {
-            "type": "data_request_history",
-            "hash_type": self.hash_type,
-            "bytes_hash": self.bytes_hash,
-            "data_request_history": self.data_request_history,
-            "num_data_requests": self.num_data_requests,
-            "status": "found",
-        }
-
-    def get_matching_data_requests(self):
-        self.logger.info(f"get_matching_data_requests({self.bytes_hash})")
-
-        sql = """
-            SELECT
-                COUNT(*)
-            FROM data_request_txns
-            WHERE
-                data_request_txns.%s=%s
-        """ % (self.hash_type, psycopg2.Binary(bytes.fromhex(self.bytes_hash)))
-        self.num_data_requests = self.witnet_database.sql_return_one(sql)[0]
+    def get_history(self, hash_type, bytes_hash, start, stop, amount):
+        self.logger.info(f"{hash_type}, get_history({bytes_hash})")
 
         sql = """
             SELECT
@@ -87,14 +59,23 @@ class DataRequestHistory(object):
                 data_request_txns.txn_hash=tally_txns.data_request_txn_hash
             WHERE
                 data_request_txns.%s=%s
+                %s
+                %s
             ORDER BY
                 blocks.epoch DESC
-            LIMIT 200
-        """ % (self.hash_type, psycopg2.Binary(bytes.fromhex(self.bytes_hash)))
+        """ % (
+            hash_type,
+            psycopg2.Binary(bytes.fromhex(bytes_hash)),
+            f" AND data_request_txns.epoch>={start}" if start > 0 else "",
+            f" AND data_request_txns.epoch<={stop}" if stop > 0 else "",
+        )
         results = self.witnet_database.sql_return_all(sql)
 
-        self.data_request_history = []
-        data_requests_inserted = {}
+        num_data_requests = len(results) if results else 0
+        first_epoch = min(r[0] for r in results) if results else 0
+        last_epoch = max(r[0] for r in results) if results else 0
+
+        data_request_history = []
         for result in results:
             block_epoch, block_confirmed, block_reverted, data_request_txn_hash, witnesses, witness_reward, collateral, consensus_percentage, RAD_bytes_hash, data_request_bytes_hash, tally_txn_hash, error_addresses, liar_addresses, result, success, tally_epoch = result
 
@@ -111,21 +92,14 @@ class DataRequestHistory(object):
             RAD_bytes_hash = RAD_bytes_hash.hex()
             data_request_bytes_hash = data_request_bytes_hash.hex()
 
-            num_errors = ""
-            if error_addresses:
-                num_errors = len(error_addresses)
-
-            num_liars = ""
-            if liar_addresses:
-                num_liars = len(liar_addresses)
+            num_errors = len(error_addresses) if error_addresses else ""
+            num_liars = len(liar_addresses) if liar_addresses else ""
 
             tally_result = ""
             if result:
                 _, tally_result = translate_tally(tally_txn_hash, result)
 
-            tally_success = ""
-            if success:
-                tally_success = success
+            tally_success = success if success else ""
 
             if block_confirmed:
                 txn_status = "confirmed"
@@ -134,24 +108,53 @@ class DataRequestHistory(object):
             else:
                 txn_status = "mined"
 
-            self.data_request_history.append({
-                "type": "data_request_txn",
-                "txn_hash": data_request_txn_hash,
-                "RAD_bytes_hash": RAD_bytes_hash,
-                "data_request_bytes_hash": data_request_bytes_hash,
-                "txn_epoch": txn_epoch,
-                "txn_time": txn_time,
-                "status": txn_status,
+            data_request_history.append([
+                    txn_status,
+                    tally_success,
+                    txn_time,
+                    txn_epoch,
+                    data_request_txn_hash,
+                    witnesses,
+                    witness_reward,
+                    collateral,
+                    consensus_percentage,
+                    num_errors,
+                    num_liars,
+                    tally_result,
+            ])
+
+            # We fetch more than 'amount' requests, but break here to be able to filter out replaced tally transactions
+            if len(data_request_history) == amount:
+                break
+
+        # post processing
+        # if all witnesses, witness_reward, collateral and consensus_percentage variables are the same, filter them out
+        add_parameters = False
+        witnesses_set = set(drh[5] for drh in data_request_history)
+        witness_reward_set = set(drh[6] for drh in data_request_history)
+        collateral_set = set(drh[7] for drh in data_request_history)
+        consensus_percentage_set = set(drh[8] for drh in data_request_history)
+        if len(witnesses_set) + len(witness_reward_set) + len(collateral_set) + len(consensus_percentage_set) == 4:
+            add_parameters = True
+            data_request_history = [[drh[0], drh[1], drh[2], drh[3], drh[4], drh[9], drh[10], drh[11]] for drh in data_request_history]
+
+        return_value = {
+            "type": "data_request_history",
+            "bytes_hash": bytes_hash,
+            "hash_type": hash_type,
+            "history": data_request_history,
+            "num_data_requests": num_data_requests,
+            "first_epoch": first_epoch,
+            "last_epoch": last_epoch,
+            "status": "found",
+        }
+
+        if add_parameters:
+            return_value["data_request_parameters"] = {
                 "witnesses": witnesses,
                 "witness_reward": witness_reward,
                 "collateral": collateral,
                 "consensus_percentage": consensus_percentage,
-                "num_errors": num_errors,
-                "num_liars": num_liars,
-                "tally_result": tally_result,
-                "tally_success": tally_success,
-            })
+            }
 
-            # We fetch more than 100 requests, but break here to be able to filter out replaced tally transactions
-            if len(self.data_request_history) == 100:
-                break
+        return return_value

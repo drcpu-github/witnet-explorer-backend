@@ -87,7 +87,7 @@ class NodeManager(object):
             return input_value.isalnum()
         return False
 
-    def get_hash(self, hash_value, simple):
+    def get_hash(self, hash_value, simple, start, stop, amount):
         self.logger.info(f"Get hash {hash_value}")
 
         if hash_value.startswith("0x"):
@@ -105,6 +105,10 @@ class NodeManager(object):
         if not self.sanitize_input(simple, "bool"):
             self.logger.warning(f"Invalid value for simple: {simple}")
             return {"error": "simple is not a boolean value"}
+
+        if amount not in range(1, 1000):
+            self.logger.warning(f"Value of amount is bigger than 1000")
+            return {"error": "value of amount is bigger than 1000"}
 
         sql = "SELECT type FROM hashes WHERE hash=%s" % psycopg2.Binary(bytearray.fromhex(hash_value))
         result = self.witnet_database.sql_return_one(sql)
@@ -207,8 +211,8 @@ class NodeManager(object):
                 data_request_report = DataRequestReport(hash_type, hash_value, self.consensus_constants, self.logging_queue, self.db_config)
                 return data_request_report.get_report()
         elif hash_type in ("RAD_bytes_hash", "data_request_bytes_hash"):
-            data_request_history = DataRequestHistory(hash_type, hash_value, self.consensus_constants, self.logging_queue, database_config=self.db_config)
-            return data_request_history.get_history()
+            data_request_history = DataRequestHistory(self.consensus_constants, self.logging_queue, database_config=self.db_config)
+            return data_request_history.get_history(hash_type, hash_value, start, stop, amount)
         else:
             return {"error": "unknown hash type"}
 
