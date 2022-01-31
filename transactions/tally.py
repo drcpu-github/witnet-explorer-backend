@@ -135,7 +135,7 @@ class Tally(Transaction):
 
             tally_outputs = output_values
 
-            success, tally_result = translate_tally(bytearray.fromhex(txn_hash), result)
+            success, tally_result = translate_tally(txn_hash, result)
 
             txn_epoch = epoch
             txn_time = self.start_time + (epoch + 1) * self.epoch_period
@@ -204,6 +204,6 @@ def translate_tally(txn_hash, tally):
                 translation += ": " + str(error_text)
         except Exception:
             translation = translation[translation.find("["):translation.find("]")+1]
-            print(f"Tally exception ({txn_hash.hex()}): {translation}")
+            print(f"Tally exception ({txn_hash}): {translation}")
 
     return success, translation
