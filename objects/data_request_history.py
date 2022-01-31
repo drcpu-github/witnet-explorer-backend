@@ -45,7 +45,6 @@ class DataRequestHistory(object):
                 data_request_txns.collateral,
                 data_request_txns.consensus_percentage,
                 data_request_txns.RAD_bytes_hash,
-                data_request_txns.data_request_bytes_hash,
                 tally_txns.txn_hash,
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses,
@@ -77,7 +76,7 @@ class DataRequestHistory(object):
 
         data_request_history = []
         for result in results:
-            block_epoch, block_confirmed, block_reverted, data_request_txn_hash, witnesses, witness_reward, collateral, consensus_percentage, RAD_bytes_hash, data_request_bytes_hash, tally_txn_hash, error_addresses, liar_addresses, result, success, tally_epoch = result
+            block_epoch, block_confirmed, block_reverted, data_request_txn_hash, witnesses, witness_reward, collateral, consensus_percentage, RAD_bytes_hash, tally_txn_hash, error_addresses, liar_addresses, result, success, tally_epoch = result
 
             # Ignore tallies which happened before the data request / block epoch
             # These originate from errored request and get replaced with newer ones
@@ -90,7 +89,6 @@ class DataRequestHistory(object):
             data_request_txn_hash = data_request_txn_hash.hex()
 
             RAD_bytes_hash = RAD_bytes_hash.hex()
-            data_request_bytes_hash = data_request_bytes_hash.hex()
 
             num_errors = len(error_addresses) if error_addresses else ""
             num_liars = len(liar_addresses) if liar_addresses else ""
@@ -141,6 +139,7 @@ class DataRequestHistory(object):
         return_value = {
             "type": "data_request_history",
             "bytes_hash": bytes_hash,
+            "RAD_bytes_hash": RAD_bytes_hash,
             "hash_type": hash_type,
             "history": data_request_history,
             "num_data_requests": num_data_requests,
