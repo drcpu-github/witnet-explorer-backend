@@ -5,7 +5,7 @@ import psycopg2
 from blockchain.witnet_database import WitnetDatabase
 
 from transactions.data_request import DataRequest
-from transactions.tally import translate_tally
+from transactions.tally import Tally
 
 class DataRequestHistory(object):
     def __init__(self, consensus_constants, logging_queue, database_config):
@@ -24,6 +24,9 @@ class DataRequestHistory(object):
         db_pass = database_config["password"]
         self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-history")
 
+        self.data_request = DataRequest(consensus_constants, logging_queue, database_config=database_config)
+        self.tally = Tally(consensus_constants, logging_queue, database_config=database_config)
+
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
         root = logging.getLogger(label)
@@ -40,16 +43,7 @@ class DataRequestHistory(object):
                 blocks.confirmed,
                 blocks.reverted,
                 data_request_txns.txn_hash,
-                data_request_txns.witnesses,
-                data_request_txns.witness_reward,
-                data_request_txns.collateral,
-                data_request_txns.consensus_percentage,
-                data_request_txns.RAD_bytes_hash,
                 tally_txns.txn_hash,
-                tally_txns.error_addresses,
-                tally_txns.liar_addresses,
-                tally_txns.result,
-                tally_txns.success,
                 tally_txns.epoch
             FROM data_request_txns
             LEFT JOIN blocks ON
@@ -74,9 +68,10 @@ class DataRequestHistory(object):
         first_epoch = min(r[0] for r in results) if results else 0
         last_epoch = max(r[0] for r in results) if results else 0
 
+        data_request = None
         data_request_history = []
         for result in results:
-            block_epoch, block_confirmed, block_reverted, data_request_txn_hash, witnesses, witness_reward, collateral, consensus_percentage, RAD_bytes_hash, tally_txn_hash, error_addresses, liar_addresses, result, success, tally_epoch = result
+            block_epoch, block_confirmed, block_reverted, data_request_txn_hash, tally_txn_hash, tally_epoch = result
 
             # Ignore tallies which happened before the data request / block epoch
             # These originate from errored request and get replaced with newer ones
@@ -86,19 +81,6 @@ class DataRequestHistory(object):
             txn_epoch = block_epoch
             txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
 
-            data_request_txn_hash = data_request_txn_hash.hex()
-
-            RAD_bytes_hash = RAD_bytes_hash.hex()
-
-            num_errors = len(error_addresses) if error_addresses else ""
-            num_liars = len(liar_addresses) if liar_addresses else ""
-
-            tally_result = ""
-            if result:
-                _, tally_result = translate_tally(tally_txn_hash, result)
-
-            tally_success = success if success else ""
-
             if block_confirmed:
                 txn_status = "confirmed"
             elif block_reverted:
@@ -106,16 +88,29 @@ class DataRequestHistory(object):
             else:
                 txn_status = "mined"
 
+            data_request_txn_hash = data_request_txn_hash.hex()
+            data_request = self.data_request.get_transaction_from_database(data_request_txn_hash)
+
+            tally_result, num_errors, num_liars, tally_success = "", "", "", ""
+            if tally_txn_hash:
+                tally_txn_hash = tally_txn_hash.hex()
+                tally = self.tally.get_transaction_from_database(tally_txn_hash)
+
+                tally_result = tally["tally"]
+                num_errors = tally["num_error_addresses"]
+                num_liars = tally["num_liar_addresses"]
+                tally_success = tally["success"]
+
             data_request_history.append([
                     txn_status,
                     tally_success,
                     txn_time,
                     txn_epoch,
                     data_request_txn_hash,
-                    witnesses,
-                    witness_reward,
-                    collateral,
-                    consensus_percentage,
+                    data_request["witnesses"],
+                    data_request["witness_reward"],
+                    data_request["collateral"],
+                    data_request["consensus_percentage"],
                     num_errors,
                     num_liars,
                     tally_result,
@@ -139,7 +134,6 @@ class DataRequestHistory(object):
         return_value = {
             "type": "data_request_history",
             "bytes_hash": bytes_hash,
-            "RAD_bytes_hash": RAD_bytes_hash,
             "hash_type": hash_type,
             "history": data_request_history,
             "num_data_requests": num_data_requests,
@@ -148,12 +142,21 @@ class DataRequestHistory(object):
             "status": "found",
         }
 
-        if add_parameters:
+        if add_parameters and data_request:
             return_value["data_request_parameters"] = {
-                "witnesses": witnesses,
-                "witness_reward": witness_reward,
-                "collateral": collateral,
-                "consensus_percentage": consensus_percentage,
+                "witnesses": data_request["witnesses"],
+                "witness_reward": data_request["witness_reward"],
+                "collateral": data_request["collateral"],
+                "consensus_percentage": data_request["consensus_percentage"],
+            }
+
+        if data_request:
+            return_value["RAD_bytes_hash"] = data_request["RAD_bytes_hash"]
+            return_value["RAD_data"] = {
+                "txn_kind": data_request["txn_kind"],
+                "retrieve": data_request["retrieve"],
+                "aggregate": data_request["aggregate"],
+                "tally": data_request["tally"],
             }
 
         return return_value

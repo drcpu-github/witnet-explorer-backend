@@ -162,6 +162,8 @@ class Tally(Transaction):
             "outputs": tally_outputs,
             "error_addresses": error_addresses,
             "liar_addresses": liar_addresses,
+            "num_error_addresses": len(error_addresses),
+            "num_liar_addresses": len(liar_addresses),
             "success": success,
             "tally": tally_result,
             "txn_epoch": txn_epoch,
