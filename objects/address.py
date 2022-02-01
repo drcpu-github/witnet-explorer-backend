@@ -111,8 +111,8 @@ class Address(object):
 
                 timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
-                if len(input_addresses) > 1:
-                    source = "multiple input_addresses"
+                if len(set(input_addresses)) > 1:
+                    source = "multiple input addresses"
                 elif len(input_addresses) == 0:
                     source = "genesis block"
                 else:
@@ -181,7 +181,7 @@ class Address(object):
                 # Transaction with multiple output_addresses different from the source address
                 if len(unique_output_addresses) > 1:
                     txn_type = 2
-                    output_address = "multiple output_addresses"
+                    output_address = "multiple output addresses"
                 else:
                     # Split or merge UTXO transaction where the output_address address is also the source address
                     if len(unique_output_addresses) == 0:
