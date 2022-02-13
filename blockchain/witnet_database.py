@@ -851,10 +851,10 @@ class WitnetDatabase(object):
         result = self.db_mngr.sql_return_all(sql)
         return result
 
-    def check_hash(self, current_hash):
-        if current_hash in self.insert_hashes:
+    def check_hash(self, item_hash):
+        if item_hash in [insert_hash[0] for insert_hash in self.insert_hashes]:
             return True
-        sql = "SELECT * FROM hashes WHERE hash=%s" % psycopg2.Binary(current_hash)
+        sql = "SELECT * FROM hashes WHERE hash=%s" % psycopg2.Binary(item_hash)
         result = self.db_mngr.sql_return_one(sql)
         if result:
             return True
