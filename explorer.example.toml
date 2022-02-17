@@ -1,13 +1,21 @@
+# user: postgresql database user
+# name: postgresql database name
+# password: postgresql database password
+[database]
+user = "<user>"
+name = "<database>"
+password = "<password>"
+
 # host: IP address of the node pool
 # port: RPC port on which the node pool can be reached
-[server]
+[node-pool]
 host = "127.0.0.1"
 port = 22819
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
-[server.log]
+[node-pool.log]
 log_file = "/path/to/logs/node-pool.log"
 level_file = "info"
 level_stdout = "info"
@@ -18,7 +26,7 @@ level_stdout = "info"
 # no_peers_restart: restart node if we have not found enough peers after 'no_peers_restart' seconds
 # outbound_connections: required amount of outbound connections to synchronize a node, this is a setting in each node's toml file
 # restart_unsynced_timeout: nodes that are rolling back are unsynced, but may recover, allow this for 'restart_unsynced_timeout' seconds
-[nodes]
+[node-pool.nodes]
 binary = "/path/to/witnet/binary"
 number = 2
 sync_sleep = 60
@@ -31,7 +39,7 @@ restart_unsynced_timeout = 360
 # port: RPC port of the node (always required)
 # config: specify the toml configuration file of the node (only required for locally running nodes)
 # log_file: redirect the output of the node to the specified file (only required for locally running nodes)
-[nodes.node-1]
+[node-pool.nodes.node-1]
 type = "local"
 ip = "127.0.0.1"
 port = 21338
@@ -39,10 +47,36 @@ config = "/path/to/node/config/node-1.toml"
 master_key = "/path/to/node/key/node-1.key"
 log_file = "/path/to/logs/node-1.log"
 
-[nodes.node-2]
+[node-pool.nodes.node-2]
 type = "local"
 ip = "127.0.0.1"
 port = 22338
 config = "/path/to/node/config/node-2.toml"
 master_key = "/path/to/node/key/node-2.key"
 log_file = "/path/to/logs/node-2.log"
+
+# pending_interval: time between querying how many pending requests there are in the network
+# error_retry: timeout before retrying a request that returned an error
+[explorer]
+pending_interval = 60
+error_retry = 60
+
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
+[explorer.log]
+log_file = "/path/to/logs/explorer.log"
+level_file = "info"
+level_stdout = "info"
+
+# error_retry: timeout before retrying a request that returned an error
+[api]
+error_retry = 60
+
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
+[api.log]
+log_file = "/path/to/logs/api.log"
+level_file = "info"
+level_stdout = "info"

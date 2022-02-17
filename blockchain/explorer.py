@@ -30,12 +30,9 @@ from transactions.value_transfer import ValueTransfer
 
 class BlockExplorer(object):
     def __init__(self, config, logging_queue):
+        error_retry = config["explorer"]["error_retry"]
+
         self.pending_interval = config["explorer"]["pending_interval"]
-
-        self.error_retry = config["explorer"]["node"]["error_retry"]
-
-        socket_host = config["explorer"]["node"]["host"]
-        socket_port = config["explorer"]["node"]["port"]
 
         # Set up logger
         self.configure_logging_process(logging_queue, "explorer")
@@ -44,28 +41,26 @@ class BlockExplorer(object):
         # Set up logging queue for logging from different processes
         self.logging_queue = logging_queue
 
-        # Get consensus constants
-        socket_host = config["explorer"]["node"]["host"]
-        socket_port = config["explorer"]["node"]["port"]
-        error_retry = config["explorer"]["node"]["error_retry"]
-        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, self.logging_queue, "node-consensus")
+        # Get configuration to connect to the node pool
+        self.node_config = config["node-pool"]
+        socket_host, socket_port = self.node_config["host"], self.node_config["port"]
 
+        # Create nodes to connect to the node pool
         self.insert_blocks_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-insert")
         self.confirm_blocks_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-confirm")
         self.insert_pending_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-pending")
 
-        db_user = config["explorer"]["database"]["user"]
-        db_name = config["explorer"]["database"]["name"]
-        db_pass = config["explorer"]["database"]["password"]
+        # Get consensus constants
+        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, self.logging_queue, "node-consensus")
+
+        # Get configuration to connect to the database
+        self.db_config = config["database"]
+        db_user, db_name, db_pass = self.db_config["user"], self.db_config["name"], self.db_config["password"]
+
+        # Create database objects
         self.insert_blocks_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-insert")
         self.confirm_blocks_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-confirm")
         self.insert_pending_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-pending")
-
-        self.db_config = config["explorer"]["database"]
-
-        self.node_config = {}
-        self.node_config["host"] = config["explorer"]["node"]["host"]
-        self.node_config["port"] = config["explorer"]["node"]["port"]
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)

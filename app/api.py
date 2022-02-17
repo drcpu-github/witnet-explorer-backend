@@ -19,6 +19,8 @@ from app.cache import cache
 
 from app.node_manager import NodeManager
 
+from .config import TOML_CONFIG
+
 def select_logging_level(level):
     if level.lower() == "debug":
         return logging.DEBUG
@@ -89,7 +91,7 @@ def logging_listener(config, queue):
 api = Blueprint("api", __name__)
 
 # Start logging process
-config = toml.load("./config/api.toml")
+config = toml.load(TOML_CONFIG)
 logging_queue = Queue()
 listener = Process(target=logging_listener, args=(config, logging_queue))
 listener.daemon = True

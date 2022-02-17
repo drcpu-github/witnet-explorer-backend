@@ -21,18 +21,18 @@ The explorer consists of three main processes which need to be started in order 
 
 - A node pool process which starts and maintains one or more Witnet nodes. Other processes can communicate and resolve requests using sockets. The start-up command looks like this:
 ```
-cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m node.node_pool --config /path/to/explorer/backend/config/node_pool.toml
+cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m node.node_pool --config /path/to/explorer/backend/explorer.toml
 ```
 - A blockchain scanning process which continously queries the blockchain for new blocks and collects data for all blocks, transactions and addresses. It writes all the data to a PostgreSQL database. You can start this process using a command like below:
 ```
-cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m blockchain.explorer --config /path/to/explorer/backend/config/explorer.toml
+cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m blockchain.explorer --config /path/to/explorer/backend/explorer.toml
 ```
 - The Flask-based API which serves frontend requests through Nginx. It can be started using a basic command like this:
 ```
-cd /path/to/explorer/backend; /path/to/explorer/env/bin/gunicorn --config=python:config app:app
+cd /path/to/explorer/backend; /path/to/explorer/env/bin/gunicorn --config file:app/gunicorn_config.py app:app
 ```
 
-Each of the processes requires a TOML-based configuration file. Examples can be found in the config directory. Based on these files, create configuration files with the same name, but without the `.example` suffix. Note that all paths to binaries, log and configuration files still need to be specified. You also need to replace all entries with a &lt;variable&gt; formatting with values corresponding to your local setup.
+Each of the processes requires a TOML-based configuration file. An example configuration file called `explorer.example.toml` can be found in the root directory. Note that all paths to binaries, log and configuration files still need to be specified. You also need to replace all entries with a &lt;variable&gt; value with the actual setting corresponding to your local setup.
 
 I start all of these processes in a separate screen so I can easily monitor them, but of course, other approaches are possible.
 

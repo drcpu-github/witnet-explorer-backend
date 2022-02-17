@@ -77,7 +77,7 @@ def main():
     parser.add_option("--epochs", type="string", dest="epochs")
     parser.add_option("--start-epoch", type="int", dest="start_epoch")
     parser.add_option("--stop-epoch", type="int", dest="stop_epoch")
-    parser.add_option("--config-file", type="string", default="scripts.toml", dest="config_file")
+    parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)

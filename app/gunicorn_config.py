@@ -1,3 +1,5 @@
+TOML_CONFIG = "explorer.toml"
+
 # Reference https://docs.gunicorn.org/en/latest/settings.html
 
 # Server Socket
@@ -15,82 +17,14 @@ timeout = 30
 graceful_timeout = 30
 keepalive = 2
 
-# Config File
-# config = None
-# wsgi_app = "app:app"
-
-# Debugging
-reload = False
-reload_engine = "auto"
-reload_extra_files = []
-spew = False
-check_config = False
-print_config = False
-
-# Logging
-accesslog = None
-disable_redirect_access_to_syslog = False
-access_log_format = "%(h)s %(l)s %(u)s %(t)s '%(r)s' %(s)s %(b)s '%(f)s' '%(a)s'"
-errorlog = "-"
-loglevel = "info"
-capture_output = False
-logger_class = "gunicorn.glogging.Logger"
-logconfig = None
-logconfig_dict = {}
-syslog_addr = "udp://localhost:514"
-syslog = False
-syslog_prefix = None
-syslog_facility = "user"
-enable_stdio_inheritance = False
-statsd_host = None
-dogstatsd_tags = ""
-statsd_prefix = ""
-
 # Process Naming
 proc_name = None
-default_proc_name = "gunicorn"
-
-# SSL
-# keyfile = None
-# certfile = None
-# ssl_version = "ssl.PROTOCOL_SSLv23"
-# cert_reqs = "VerifyMode.CERT_NONE"
-# ca_certs = None
-# suppress_ragged_eofs = True
-# do_handshake_on_connect = False
-# ciphers = None
-
-# Security
-limit_request_line = 4094
-limit_request_fields = 100
-limit_request_field_size = 8190
 
 # Server Mechanics
-preload_app = False
-sendfile = None
-reuse_port = False
-chdir = ""
 daemon = False
 raw_env = []
-pidfile = None
-worker_tmp_dir = None
 user = None
 group = None
-umask = 0
-initgroups = False
-tmp_upload_dir = None
-secure_scheme_headers = {
-    "X-FORWARDED-PROTOCOL": "ssl",
-    "X-FORWARDED-PROTO": "https",
-    "X-FORWARDED-SSL": "on"
-}
-forwarded_allow_ips = "127.0.0.1"
-pythonpath = None
-paste = None
-proxy_protocol = False
-proxy_allow_ips = "127.0.0.1"
-raw_paste_global_conf = []
-strip_header_spaces = False
 
 # Server Hooks #
 

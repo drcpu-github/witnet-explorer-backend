@@ -44,7 +44,7 @@ class NodePool(object):
         self.logging_queue = queue
 
         # Create all variables consumed by the nodes
-        for node in range(self.config["nodes"]["number"]):
+        for node in range(self.config["node-pool"]["nodes"]["number"]):
             node_str = f"node-{node + 1}"
             # Create shared variables for the nodes
             self.process_pids.append(0)
@@ -52,7 +52,9 @@ class NodePool(object):
             self.node_lock.append(self.mngr.Lock())
             self.node_unsynced_time.append(0)
             # Create sockets
-            self.node_sockets.append(SocketManager(self.config["nodes"][node_str]["ip"], self.config["nodes"][node_str]["port"], 15))
+            node_ip = self.config["node-pool"]["nodes"][node_str]["ip"]
+            node_port = self.config["node-pool"]["nodes"][node_str]["port"]
+            self.node_sockets.append(SocketManager(node_ip, node_port, 15))
             # Create locks only used to terminate nodes in the main process to prevent we try to kill them from every child process
             self.terminate_node_lock.append(self.mngr.Lock())
 
@@ -70,7 +72,7 @@ class NodePool(object):
         self.logger.info("Starting nodes and server processes")
 
         # Start all local nodes
-        for node in range(self.config["nodes"]["number"]):
+        for node in range(self.config["node-pool"]["nodes"]["number"]):
             self.logger.info(f"Starting node process node-{node + 1}")
             p = Process(target=self.start_node, args=(node, self.config, self.request_counter, self.process_pids, self.node_sockets, self.logging_queue, self.node_synced, self.node_lock))
             p.start()
@@ -112,7 +114,7 @@ class NodePool(object):
         self.configure_logging_process(logging_queue, "server")
         logger = logging.getLogger("server")
 
-        address = (config["server"]["host"], config["server"]["port"])
+        address = (config["node-pool"]["host"], config["node-pool"]["port"])
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Set socket options: allows close and immediate reuse of an address, ignoring TIME_WAIT
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -217,7 +219,8 @@ class NodePool(object):
                         node_synced[i] = True
                         node_unsynced_time[i] = 0
                     # If the timer elapsed, add the node to the restart list
-                    if node_unsynced_time[i] > 0 and int(time.time()) - node_unsynced_time[i] > config["nodes"]["restart_unsynced_timeout"]:
+                    restart_unsynced_timeout = config["node-pool"]["nodes"]["restart_unsynced_timeout"]
+                    if node_unsynced_time[i] > 0 and int(time.time()) - node_unsynced_time[i] > restart_unsynced_timeout:
                         logger.warning(f"Restart timer of node-{i + 1} elapsed and it will be restarted")
                         nodes_to_restart.add(i)
                         # Reset unsynced time here so concurrent accesses don't try to restart the nodes again
@@ -227,7 +230,7 @@ class NodePool(object):
             if len(nodes_to_restart) > 0:
                 for node in nodes_to_restart:
                     node_str = f"node-{node  + 1}"
-                    node_type = config["nodes"][node_str]["type"]
+                    node_type = config["node-pool"]["nodes"][node_str]["type"]
                     if node_type == "local":
                         logger.warning(f"Restarting {node_str}, PID {process_pids[node]}")
                         p = Process(target=self.restart_node, args=(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock))
@@ -252,25 +255,25 @@ class NodePool(object):
         if node_lock:
             node_lock[node].acquire(False)
 
-        node_type = config["nodes"][node_str]["type"]
+        node_type = config["node-pool"]["nodes"][node_str]["type"]
         if node_type == "local":
             # Parse some configuration variables
-            binary_path = os.path.dirname(config["nodes"]["binary"])
-            witnet_binary = os.path.basename(config["nodes"]["binary"])
-            witnet_exec = config["nodes"]["binary"]
-            sync_sleep = config["nodes"]["sync_sleep"]
-            no_peers_restart = config["nodes"]["no_peers_restart"]
+            witnet_exec = config["node-pool"]["nodes"]["binary"]
+            binary_path = os.path.dirname(witnet_exec)
+            witnet_binary = os.path.basename(witnet_exec)
+            sync_sleep = config["node-pool"]["nodes"]["sync_sleep"]
+            no_peers_restart = config["node-pool"]["nodes"]["no_peers_restart"]
             # Parse config file if it exists
-            if "config" in config["nodes"][node_str]:
-                config_file = config["nodes"][node_str]["config"]
+            if "config" in config["node-pool"]["nodes"][node_str]:
+                config_file = config["node-pool"]["nodes"][node_str]["config"]
             else:
                 config_file = None
             # Parse master key if it exists
-            if "master_key" in config["nodes"][node_str]:
-                master_key = config["nodes"][node_str]["master_key"]
+            if "master_key" in config["node-pool"]["nodes"][node_str]:
+                master_key = config["node-pool"]["nodes"][node_str]["master_key"]
             else:
                 master_key = None
-            node_log_file = config["nodes"][node_str]["log_file"]
+            node_log_file = config["node-pool"]["nodes"][node_str]["log_file"]
 
             while process_pids[node] == 0 or not self.check_process_alive(witnet_binary, logger, process_pids[node]):
                 logger.info("Starting and syncing node")
@@ -312,7 +315,7 @@ class NodePool(object):
             logger.info("Waiting for the node to synchronize")
             # Check if we have sufficient peers
             outbound_peers = self.count_outbound_peers(logger, node, request_counter, node_sockets[node])
-            if outbound_peers < config["nodes"]["outbound_connections"]:
+            if outbound_peers < config["node-pool"]["nodes"]["outbound_connections"]:
                 logger.info(f"Not enough peers ({outbound_peers}) found to synchronize node")
                 total_wait_time += sync_sleep
             # Reset the wait counter so we only restart the node after a continuous time of "no_peers_restart" seconds
@@ -450,7 +453,7 @@ class NodePool(object):
         logger = logging.getLogger(node_str)
 
         # Get binary name
-        witnet_binary = os.path.basename(config["nodes"]["binary"])
+        witnet_binary = os.path.basename(config["node-pool"]["nodes"]["binary"])
         # Terminate node
         self.terminate_process(witnet_binary, logger, process_pids[node], socket=node_sockets[node])
         # Give the process some time to properly terminate
@@ -459,7 +462,9 @@ class NodePool(object):
             logger.warning(f"Node ({process_pids[node]}) is still alive")
             time.sleep(1)
         # Recreate socket
-        node_sockets[node] = SocketManager(config["nodes"][node_str]["ip"], config["nodes"][node_str]["port"], 15)
+        node_ip = config["node-pool"]["nodes"][node_str]["ip"]
+        node_port = config["node-pool"]["nodes"][node_str]["port"]
+        node_sockets[node] = SocketManager(node_ip, node_port, 15)
         # Restart node
         self.start_node(node, config, request_counter, process_pids, node_sockets, logging_queue, node_synced, node_lock)
         # Node lock was released by start_node
@@ -489,9 +494,9 @@ def configure_logging_listener(config):
     # Add header formatting of the log message
     formatter = logging.Formatter("[%(levelname)-8s] [%(asctime)s] [%(name)-8s] %(message)s", datefmt="%Y/%m/%d %H:%M:%S")
 
-    log_file_name = config["server"]["log"]["log_file"]
-    level_file = select_logging_level(config["server"]["log"]["level_file"])
-    level_stdout = select_logging_level(config["server"]["log"]["level_stdout"])
+    log_file_name = config["node-pool"]["log"]["log_file"]
+    level_file = select_logging_level(config["node-pool"]["log"]["level_file"])
+    level_stdout = select_logging_level(config["node-pool"]["log"]["level_stdout"])
 
     # Get log file parts
     dirname = os.path.dirname(log_file_name)
@@ -553,7 +558,7 @@ def main():
     # Catch ctrl+c signal
     def signal_handler(*args):
         # Terminate all node pool processes
-        witnet_binary = os.path.basename(config["nodes"]["binary"])
+        witnet_binary = os.path.basename(config["node-pool"]["nodes"]["binary"])
         node_pool.terminate(witnet_binary)
         # End the logging process
         logging_queue.put(None)

@@ -29,32 +29,29 @@ from transactions.value_transfer import ValueTransfer
 
 class NodeManager(object):
     def __init__(self, config, logging_queue):
+        error_retry = config["api"]["error_retry"]
+
         # Set up logger
         self.logging_queue = logging_queue
         self.configure_logging_process(self.logging_queue, "node-manager")
         self.logger = logging.getLogger("node-manager")
 
-        self.config = config
-
-        self.node_config = self.config["api"]["node"]
-
-        # Get consensus constants
-        socket_host = self.node_config["host"]
-        socket_port = self.node_config["port"]
-        error_retry = self.node_config["error_retry"]
-        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, self.logging_queue, "node-consensus")
-
-        # Connect to database
-        self.db_config = self.config["api"]["database"]
-        db_user = self.db_config["user"]
-        db_name = self.db_config["name"]
-        db_pass = self.db_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-api")
+        # Get configuration to connect to the node pool
+        self.node_config = config["node-pool"]
+        socket_host, socket_port = self.node_config["host"], self.node_config["port"]
 
         # Create witnet node
-        socket_host = self.node_config["host"]
-        socket_port = self.node_config["port"]
         self.witnet_node = WitnetNode(socket_host, socket_port, 15, self.logging_queue, "node-api")
+
+        # Get consensus constants
+        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, self.logging_queue, "node-consensus")
+
+        # Get configuration to connect to the database
+        self.db_config = config["database"]
+        db_user, db_name, db_pass = self.db_config["user"], self.db_config["name"], self.db_config["password"]
+
+        # Connect to database
+        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-api")
 
         # Create a couple of objects once
         self.blockchain = Blockchain(self.db_config, self.node_config, self.consensus_constants, self.logging_queue)

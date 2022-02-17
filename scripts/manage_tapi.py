@@ -3,6 +3,7 @@
 import optparse
 import sys
 import time
+import toml
 
 from util.database_manager import DatabaseManager
 from util.witnet_node import WitnetNode
@@ -79,9 +80,7 @@ def add_TAPI(db_mngr):
 # Update all TAPI blocks with their acceptance value #
 ######################################################
 
-def process_TAPI(db_mngr):
-    witnet_node = WitnetNode("127.0.0.1", 22819, 15, None, "")
-
+def process_TAPI(db_mngr, witnet_node):
     tapis = list_TAPI(db_mngr)
     for tapi in tapis:
         tapi_id, title, start_epoch, stop_epoch, bit, urls = tapi
@@ -107,9 +106,7 @@ def process_TAPI(db_mngr):
 #   Test how many blocks are signaling acceptance   #
 #####################################################
 
-def test_TAPI(db_mngr, start_epoch, stop_epoch, bit):
-    witnet_node = WitnetNode("127.0.0.1", 22819, 15, None, "")
-
+def test_TAPI(db_mngr, witnet_node, start_epoch, stop_epoch, bit):
     sql = "SELECT epoch, block_hash, confirmed FROM blocks WHERE epoch BETWEEN %s and %s ORDER BY epoch ASC" % (start_epoch, stop_epoch)
     result = db_mngr.sql_return_all(sql)
 
@@ -151,9 +148,13 @@ def main():
     parser.add_option("--stop_epoch", dest="stop_epoch", type=int, help="Test the TAPI processing code")
     parser.add_option("--bit", dest="bit", type=int, help="Test the TAPI processing code")
 
+    parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
+
     options, args = parser.parse_args()
 
-    db_mngr = DatabaseManager("witnet", "explorer", "", None)
+    config = toml.load(options.config_file)
+
+    db_mngr = DatabaseManager(config["database"]["user"], config["database"]["name"], config["database"]["password"], None)
 
     if options.list:
         list_TAPI(db_mngr)
@@ -161,12 +162,14 @@ def main():
     if options.add:
         add_TAPI(db_mngr)
 
+    witnet_node = WitnetNode(config["node-pool"]["host"], config["node-pool"]["port"], 15, None, "")
+
     if options.process:
-        process_TAPI(db_mngr)
+        process_TAPI(db_mngr, witnet_node)
 
     if options.test:
         assert options.start_epoch != None and options.stop_epoch != None and options.bit != None
-        test_TAPI(db_mngr, options.start_epoch, options.stop_epoch, options.bit)
+        test_TAPI(db_mngr, witnet_node, options.start_epoch, options.stop_epoch, options.bit)
 
 if __name__ == "__main__":
     main()
