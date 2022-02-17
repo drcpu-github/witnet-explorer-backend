@@ -4,8 +4,6 @@ __pycache__/
 logs
 *.log
 
-gunicorn.workers
-
 venv
 .idea
 
@@ -15,4 +13,6 @@ config/api.toml
 config/explorer.toml
 config/node_pool.toml
 config/scripts.toml
+
+analysis/*
 
