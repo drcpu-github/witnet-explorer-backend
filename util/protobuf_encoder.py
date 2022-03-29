@@ -245,7 +245,7 @@ class ProtobufEncoder(object):
                 {
                     "script": retrieve["script"],
                     "kind": retrieve["kind"],
-                    "url": retrieve["url"],
+                    "url": retrieve["url"] if "url" in retrieve else "",
                 } for retrieve in RAD_request["retrieve"]
             ],
             "aggregate": {

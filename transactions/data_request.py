@@ -56,7 +56,10 @@ class DataRequest(Transaction):
             else:
                 assert self.txn_details["txn_kind"] == retrieve["kind"], "Unexpectedly found different data request kinds"
 
-            self.txn_details["urls"].append(retrieve["url"])
+            if "url" in retrieve:
+                self.txn_details["urls"].append(retrieve["url"])
+            else:
+                self.txn_details["urls"].append("")
             if call_from == "explorer":
                 self.txn_details["scripts"].append(bytearray(retrieve["script"]))
             else:
