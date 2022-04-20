@@ -119,6 +119,7 @@ class WitnetDatabase(object):
                         CREATE TYPE kind AS ENUM (
                             'Unknown',
                             'HTTP-GET',
+                            'HTTP-POST',
                             'RNG'
                         );
                     END IF;
@@ -134,7 +135,6 @@ class WitnetDatabase(object):
 
             """CREATE TABLE IF NOT EXISTS data_request_txns (
                 txn_hash BYTEA PRIMARY KEY,
-                txn_kind kind NOT NULL,
                 input_addresses CHAR(42) ARRAY NOT NULL,
                 input_values BIGINT ARRAY NOT NULL,
                 input_utxos utxo ARRAY NOT NULL,
@@ -146,6 +146,7 @@ class WitnetDatabase(object):
                 consensus_percentage SMALLINT NOT NULL,
                 commit_and_reveal_fee BIGINT NOT NULL,
                 weight INT NOT NULL,
+                source_kind kind ARRAY NOT NULL,
                 urls VARCHAR ARRAY,
                 scripts BYTEA ARRAY,
                 aggregate_filters filter ARRAY NOT NULL,
@@ -334,7 +335,6 @@ class WitnetDatabase(object):
 
             self.insert_data_request_txns.append((
                 txn_hash,
-                txn_details["txn_kind"],
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -346,6 +346,7 @@ class WitnetDatabase(object):
                 txn_details["consensus_percentage"],
                 txn_details["commit_and_reveal_fee"],
                 txn_details["weight"],
+                txn_details["source_kind"],
                 txn_details["urls"],
                 txn_details["scripts"],
                 txn_details["aggregate_filters"],
@@ -572,7 +573,6 @@ class WitnetDatabase(object):
             sql = """
                 INSERT INTO data_request_txns (
                     txn_hash,
-                    txn_kind,
                     input_addresses,
                     input_values,
                     input_utxos,
@@ -584,6 +584,7 @@ class WitnetDatabase(object):
                     consensus_percentage,
                     commit_and_reveal_fee,
                     weight,
+                    source_kind,
                     urls,
                     scripts,
                     aggregate_filters,
@@ -595,7 +596,7 @@ class WitnetDatabase(object):
                     epoch
                 ) VALUES %s
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
+            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s::kind[], %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
             self.logger.info(f"Inserted {len(self.insert_data_request_txns)} data request transaction(s) for epoch {epoch}")
         self.insert_data_request_txns = []
 
@@ -852,7 +853,7 @@ class WitnetDatabase(object):
         return result
 
     def check_hash(self, current_hash):
-        if current_hash in self.insert_hashes:
+        if current_hash in [item_hash[0] for item_hash in self.insert_hashes]:
             return True
         sql = "SELECT * FROM hashes WHERE hash=%s" % psycopg2.Binary(current_hash)
         result = self.db_mngr.sql_return_one(sql)

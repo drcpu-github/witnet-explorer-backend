@@ -1,5 +1,6 @@
 import cbor
 import psycopg2
+import re
 
 from transactions.transaction import Transaction
 
@@ -48,15 +49,13 @@ class DataRequest(Transaction):
         self.txn_details["collateral"] = max(self.collateral_minimum, self.json_txn["body"]["dr_output"]["collateral"])
 
         # Process sources and scripts
-        self.txn_details["txn_kind"] = None
-        self.txn_details["urls"], self.txn_details["scripts"] = [], []
+        self.txn_details["source_kind"], self.txn_details["urls"], self.txn_details["scripts"] = [], [], []
         for retrieve in self.data_request["retrieve"]:
-            if not self.txn_details["txn_kind"]:
-                self.txn_details["txn_kind"] = retrieve["kind"]
+            self.txn_details["source_kind"].append(retrieve["kind"])
+            if "url" in retrieve:
+                self.txn_details["urls"].append(retrieve["url"])
             else:
-                assert self.txn_details["txn_kind"] == retrieve["kind"], "Unexpectedly found different data request kinds"
-
-            self.txn_details["urls"].append(retrieve["url"])
+                self.txn_details["urls"].append("")
             if call_from == "explorer":
                 self.txn_details["scripts"].append(bytearray(retrieve["script"]))
             else:
@@ -115,7 +114,6 @@ class DataRequest(Transaction):
                 data_request_txns.txn_hash,
                 data_request_txns.data_request_bytes_hash,
                 data_request_txns.RAD_bytes_hash,
-                data_request_txns.txn_kind,
                 data_request_txns.input_addresses,
                 data_request_txns.input_values,
                 data_request_txns.input_utxos,
@@ -126,6 +124,7 @@ class DataRequest(Transaction):
                 data_request_txns.consensus_percentage,
                 data_request_txns.commit_and_reveal_fee,
                 data_request_txns.weight,
+                data_request_txns.source_kind,
                 data_request_txns.urls,
                 data_request_txns.scripts,
                 data_request_txns.aggregate_filters,
@@ -142,7 +141,7 @@ class DataRequest(Transaction):
         result = self.witnet_database.sql_return_one(sql)
 
         if result:
-            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, data_request_bytes_hash, RAD_bytes_hash, txn_kind, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, urls, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
+            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, data_request_bytes_hash, RAD_bytes_hash, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, source_kind, urls, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
 
             block_hash = block_hash.hex()
             txn_hash = txn_hash.hex()
@@ -160,10 +159,14 @@ class DataRequest(Transaction):
             # Get an integer value for the weighted fee
             txn_priority = max(1, txn_fee // txn_weight)
 
-            # Add urls and translate scripts
+            # Add source_kinds, urls and translate scripts
+            # psycopg2 does not handle arrays of enums very well
+            # handle as a string starting and ending with {} + split on commas
             txn_retrieve = []
-            for url, script in zip(urls, scripts):
+            source_kind = re.match(r"^{(.*)}$", source_kind).group(1).split(",")
+            for source_kind, url, script in zip(source_kind, urls, scripts):
                 txn_retrieve.append({
+                    "source_kind": source_kind,
                     "url": url,
                     "script": self.translate_script(script)
                 })
@@ -194,7 +197,6 @@ class DataRequest(Transaction):
             RAD_bytes_hash = ""
             data_request_bytes_hash = ""
             block_hash = ""
-            txn_kind = ""
             addresses = []
             input_utxo_values = []
             txn_fee = 0
@@ -205,7 +207,7 @@ class DataRequest(Transaction):
             collateral = 0
             consensus_percentage = 0
             commit_and_reveal_fee = 0
-            txn_retrieve = ""
+            txn_retrieve = []
             txn_aggregate = ""
             txn_tally = ""
             txn_epoch = 0
@@ -218,7 +220,6 @@ class DataRequest(Transaction):
             "RAD_bytes_hash": RAD_bytes_hash,
             "data_request_bytes_hash": data_request_bytes_hash,
             "block_hash": block_hash,
-            "txn_kind": txn_kind,
             "addresses": addresses,
             "input_utxos": input_utxo_values,
             "fee": txn_fee,

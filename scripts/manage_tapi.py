@@ -153,7 +153,7 @@ def main():
 
     options, args = parser.parse_args()
 
-    db_mngr = DatabaseManager("witnet", "explorer", "", None)
+    db_mngr = DatabaseManager("witnet", "explorer_temp", "", None)
 
     if options.list:
         list_TAPI(db_mngr)

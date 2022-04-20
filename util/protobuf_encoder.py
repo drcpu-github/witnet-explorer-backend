@@ -85,7 +85,8 @@ def pb_field(field_number: int, tag: int, value):
 class RADType(Enum):
     Unknown = 0
     HttpGet = 1
-    Rng = 2
+    HttpPost = 2
+    Rng = 3
 
     @classmethod
     def from_json(cls, data):
@@ -93,6 +94,8 @@ class RADType(Enum):
             return RADType.Unknown
         elif data == 'HTTP-GET':
             return RADType.HttpGet
+        elif data == 'HTTP-POST':
+            return RADType.HttpPost
         elif data == 'RNG':
             return RADType.Rng
         else:
@@ -245,7 +248,7 @@ class ProtobufEncoder(object):
                 {
                     "script": retrieve["script"],
                     "kind": retrieve["kind"],
-                    "url": retrieve["url"],
+                    "url": retrieve["url"] if "url" in retrieve else "",
                 } for retrieve in RAD_request["retrieve"]
             ],
             "aggregate": {
