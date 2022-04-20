@@ -115,10 +115,10 @@ class WitnetDatabase(object):
 
             """DO $$
                 BEGIN
-                    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kind') THEN
-                        CREATE TYPE kind AS ENUM (
-                            'Unknown',
+                    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'retrieve_kind') THEN
+                        CREATE TYPE retrieve_kind AS ENUM (
                             'HTTP-GET',
+                            'HTTP-POST',
                             'RNG'
                         );
                     END IF;
@@ -134,7 +134,6 @@ class WitnetDatabase(object):
 
             """CREATE TABLE IF NOT EXISTS data_request_txns (
                 txn_hash BYTEA PRIMARY KEY,
-                txn_kind kind NOT NULL,
                 input_addresses CHAR(42) ARRAY NOT NULL,
                 input_values BIGINT ARRAY NOT NULL,
                 input_utxos utxo ARRAY NOT NULL,
@@ -146,8 +145,10 @@ class WitnetDatabase(object):
                 consensus_percentage SMALLINT NOT NULL,
                 commit_and_reveal_fee BIGINT NOT NULL,
                 weight INT NOT NULL,
-                urls VARCHAR ARRAY,
-                scripts BYTEA ARRAY,
+                kinds retrieve_kind ARRAY NOT NULL,
+                urls VARCHAR ARRAY NOT NULL,
+                bodies BYTEA ARRAY NOT NULL,
+                scripts BYTEA ARRAY NOT NULL,
                 aggregate_filters filter ARRAY NOT NULL,
                 aggregate_reducer INT ARRAY NOT NULL,
                 tally_filters filter ARRAY NOT NULL,
@@ -334,7 +335,6 @@ class WitnetDatabase(object):
 
             self.insert_data_request_txns.append((
                 txn_hash,
-                txn_details["txn_kind"],
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -346,7 +346,9 @@ class WitnetDatabase(object):
                 txn_details["consensus_percentage"],
                 txn_details["commit_and_reveal_fee"],
                 txn_details["weight"],
+                txn_details["kinds"],
                 txn_details["urls"],
+                txn_details["bodies"],
                 txn_details["scripts"],
                 txn_details["aggregate_filters"],
                 txn_details["aggregate_reducer"],
@@ -572,7 +574,6 @@ class WitnetDatabase(object):
             sql = """
                 INSERT INTO data_request_txns (
                     txn_hash,
-                    txn_kind,
                     input_addresses,
                     input_values,
                     input_utxos,
@@ -584,7 +585,9 @@ class WitnetDatabase(object):
                     consensus_percentage,
                     commit_and_reveal_fee,
                     weight,
+                    kinds,
                     urls,
+                    bodies,
                     scripts,
                     aggregate_filters,
                     aggregate_reducer,
@@ -595,8 +598,9 @@ class WitnetDatabase(object):
                     epoch
                 ) VALUES %s
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
-            self.logger.info(f"Inserted {len(self.insert_data_request_txns)} data request transaction(s) for epoch {epoch}")
+            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_data_request_txns)} data request transaction(s) for epoch {epoch}")
         self.insert_data_request_txns = []
 
         # insert commit transactions

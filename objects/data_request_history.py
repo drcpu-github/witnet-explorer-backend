@@ -153,7 +153,6 @@ class DataRequestHistory(object):
         if data_request:
             return_value["RAD_bytes_hash"] = data_request["RAD_bytes_hash"]
             return_value["RAD_data"] = {
-                "txn_kind": data_request["txn_kind"],
                 "retrieve": data_request["retrieve"],
                 "aggregate": data_request["aggregate"],
                 "tally": data_request["tally"],
