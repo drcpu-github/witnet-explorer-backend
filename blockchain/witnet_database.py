@@ -183,6 +183,7 @@ class WitnetDatabase(object):
 
             """CREATE TABLE IF NOT EXISTS tally_txns (
                 txn_hash BYTEA PRIMARY KEY,
+                output_addresses CHAR(42) ARRAY NOT NULL,
                 output_values BIGINT ARRAY NOT NULL,
                 data_request_txn_hash BYTEA NOT NULL,
                 error_addresses CHAR(42) ARRAY NOT NULL,
@@ -467,6 +468,7 @@ class WitnetDatabase(object):
             # Insert tally transaction
             self.insert_tally_txns.append((
                 txn_hash,
+                txn_details["output_addresses"],
                 txn_details["output_values"],
                 bytearray.fromhex(txn_details["data_request_txn_hash"]),
                 txn_details["error_addresses"],
@@ -486,6 +488,7 @@ class WitnetDatabase(object):
             # Update fields that may have changed when a tally transaction was rolled back and restarted
             self.update_tally_txns.append((
                 txn_hash,
+                txn_details["output_addresses"],
                 txn_details["output_values"],
                 txn_details["error_addresses"],
                 txn_details["liar_addresses"],
@@ -641,6 +644,7 @@ class WitnetDatabase(object):
             sql = """
                 INSERT INTO tally_txns (
                     txn_hash,
+                    output_addresses,
                     output_values,
                     data_request_txn_hash,
                     error_addresses,
@@ -754,6 +758,7 @@ class WitnetDatabase(object):
             sql = """
                 UPDATE tally_txns
                 SET
+                    output_addresses=update.output_addresses,
                     output_values=update.output_values,
                     error_addresses=update.error_addresses,
                     liar_addresses=update.liar_addresses,
@@ -763,6 +768,7 @@ class WitnetDatabase(object):
                 FROM (VALUES %s)
                 AS update(
                     txn_hash,
+                    output_addresses,
                     output_values,
                     error_addresses,
                     liar_addresses,
@@ -772,8 +778,9 @@ class WitnetDatabase(object):
                 )
                 WHERE tally_txns.txn_hash=update.txn_hash
             """
-            self.db_mngr.sql_execute_many(sql, self.update_tally_txns, template="(%s, %s, %s::CHAR(42)[], %s::CHAR(42)[], %s, %s, %s)")
-            self.logger.info(f"Updated {len(self.update_tally_txns)} tally transaction(s) for epoch {epoch}")
+            self.db_mngr.sql_execute_many(sql, self.update_tally_txns, template="(%s, %s::CHAR(42)[], %s, %s::CHAR(42)[], %s::CHAR(42)[], %s, %s, %s)")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_tally_txns)} tally transaction(s) for epoch {epoch}")
         self.update_tally_txns = []
 
     def confirm_block(self, block_hash, epoch):

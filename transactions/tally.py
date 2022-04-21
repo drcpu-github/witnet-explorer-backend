@@ -12,7 +12,8 @@ class Tally(Transaction):
             return self.json_txn
 
         # Collect output details
-        _, output_values, _ = self.get_outputs(self.json_txn["outputs"])
+        output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
+        self.txn_details["output_addresses"] = output_addresses
         self.txn_details["output_values"] = output_values
 
         # Get error_addresses and liar_addresses
@@ -116,6 +117,7 @@ class Tally(Transaction):
             SELECT
                 blocks.confirmed,
                 blocks.reverted,
+                tally_txns.output_addresses,
                 tally_txns.output_values,
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses,
@@ -131,9 +133,7 @@ class Tally(Transaction):
         result = self.witnet_database.sql_return_one(sql)
 
         if result:
-            block_confirmed, block_reverted, output_values, error_addresses, liar_addresses, result, epoch = result
-
-            tally_outputs = output_values
+            block_confirmed, block_reverted, output_addresses, output_values, error_addresses, liar_addresses, result, epoch = result
 
             success, tally_result = translate_tally(txn_hash, result)
 
@@ -147,7 +147,8 @@ class Tally(Transaction):
             else:
                 status = "mined"
         else:
-            tally_outputs = []
+            output_addresses = []
+            output_values = []
             error_addresses = []
             liar_addresses = []
             success = False
@@ -159,7 +160,8 @@ class Tally(Transaction):
         return {
             "type": "tally_txn",
             "txn_hash": txn_hash,
-            "outputs": tally_outputs,
+            "output_addresses": output_addresses,
+            "output_values": output_values,
             "error_addresses": error_addresses,
             "liar_addresses": liar_addresses,
             "num_error_addresses": len(error_addresses),
