@@ -47,7 +47,7 @@ class Blockchain(object):
 
         info = ""
         if num_blocks > 1000:
-            info = "Cannot fetch more than 100 blocks in one go"
+            info = "Cannot fetch more than 1000 blocks in one call"
 
         result = self.witnet_node.get_blockchain(epoch=start_at, num_blocks=num_blocks)
         if type(result) is dict and "error" in result:
