@@ -107,6 +107,7 @@ class Tally(Transaction):
                 "success": success,
                 "epoch": epoch,
                 "time": timestamp,
+                "confirmed": block_confirmed,
                 "status": status,
             }
 
@@ -155,6 +156,7 @@ class Tally(Transaction):
             tally_result = ""
             txn_epoch = ""
             txn_time = ""
+            block_confirmed = False
             status = "transaction not found"
 
         return {
@@ -170,6 +172,7 @@ class Tally(Transaction):
             "tally": tally_result,
             "txn_epoch": txn_epoch,
             "txn_time": txn_time,
+            "confirmed": block_confirmed,
             "status": status,
         }
 

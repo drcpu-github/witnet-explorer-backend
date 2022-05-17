@@ -31,7 +31,7 @@ binary = "/path/to/witnet/binary"
 number = 2
 sync_sleep = 60
 no_peers_restart = 3600
-outbound_connections = 4
+outbound_connections = 8
 restart_unsynced_timeout = 360
 
 # type: the node type can either be local or remote, local nodes can be restarted automatically, remotes ones cannot
@@ -55,11 +55,11 @@ config = "/path/to/node/config/node-2.toml"
 master_key = "/path/to/node/key/node-2.key"
 log_file = "/path/to/logs/node-2.log"
 
-# pending_interval: time between querying how many pending requests there are in the network
 # error_retry: timeout before retrying a request that returned an error
+# pending_interval: time between querying how many pending requests there are in the network
 [explorer]
-pending_interval = 60
 error_retry = 60
+pending_interval = 60
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
@@ -70,8 +70,10 @@ level_file = "info"
 level_stdout = "info"
 
 # error_retry: timeout before retrying a request that returned an error
+# caching: caching is enabled through memcached
 [api]
 error_retry = 60
+caching = "memcached"
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
@@ -80,3 +82,92 @@ error_retry = 60
 log_file = "/path/to/logs/api.log"
 level_file = "info"
 level_stdout = "info"
+
+# server: IP address of the running memcached server, defaults to localhost
+# user: username for the memcached server
+# password: password for the memcached server
+# scripts: specify all caching scripts
+# retries: times to retry fetching data from a Witnet node
+[api.memcached]
+server = "<IP>"
+user = "<user>"
+password = "<password>"
+# Note: the cache.py file in the app directory contains a number of hardcoded memcached settings
+retries = 5
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# timeout: specify the memcached timeout (in seconds) after which the data is invalidated
+[api.caching.scripts.blocks]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/blocks.log"
+timeout = 86400 # 1 day
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+[api.caching.scripts.home_stats]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/logs/home_stats.log"
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+[api.caching.scripts.network_stats]
+cron = "0 * * * *"
+level_file = "info"
+log_file = "/path/to/logs/network_stats.log"
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# timeout: specify the memcached timeout (in seconds) after which the data is invalidated
+[api.caching.scripts.data_request_reports]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/logs/data_request_reports.log"
+timeout = 86400 # 1 day
+cache_time_warning = 40
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+[api.caching.scripts.reputation_list]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/logs/reputation_list.log"
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+[api.caching.scripts.balance_list]
+cron = "0 * * * *"
+level_file = "info"
+log_file = "/path/to/logs/balance_list.log"
+
+# cron: specify the crontab timing configuration
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+[api.caching.scripts.tapi_list]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/logs/tapi_list.log"
+
+# timeout: configure timeout (in seconds) for the hash view function
+[api.caching.views.hash]
+timeout = 86400 # 1 day
+
+# timeout: configure timeout (in seconds) for the pending view function
+[api.caching.views.pending]
+timeout = 15
+
+# timeout: configure timeout (in seconds) for the blockchain view function
+[api.caching.views.blockchain]
+timeout = 15
+
+# timeout: configure timeout (in seconds) for the status view function
+[api.caching.views.status]
+timeout = 15

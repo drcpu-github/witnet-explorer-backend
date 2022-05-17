@@ -2,6 +2,8 @@ import logging
 import logging.handlers
 import time
 
+from blockchain.witnet_database import WitnetDatabase
+
 from node.witnet_node import WitnetNode
 
 from transactions.mint import Mint
@@ -12,7 +14,7 @@ from transactions.reveal import Reveal
 from transactions.tally import Tally
 
 class Block(object):
-    def __init__(self, block_hash, consensus_constants, logging_queue, db_config=None, block=None, tapi_periods=[], node_config=None):
+    def __init__(self, block_hash, consensus_constants, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], node_config=None):
         self.block_hash = block_hash
 
         self.consensus_constants = consensus_constants
@@ -22,11 +24,25 @@ class Block(object):
         self.superblock_period = consensus_constants.superblock_period
 
         # Set up logger
-        self.configure_logging_process(logging_queue, "block")
-        self.logger = logging.getLogger("block")
-        self.logging_queue = logging_queue
+        if logger:
+            self.logger = logger
+        elif log_queue:
+            self.log_queue = log_queue
+            self.configure_logging_process(log_queue, "block")
+            self.logger = logging.getLogger("block")
+        else:
+            self.logger = None
 
-        self.db_config = db_config
+        if database:
+            self.witnet_database = database
+        elif database_config:
+            db_user = database_config["user"]
+            db_name = database_config["name"]
+            db_pass = database_config["password"]
+            self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logger=self.logger)
+        else:
+            self.witnet_database = None
+
         self.node_config = node_config
 
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
@@ -41,6 +57,7 @@ class Block(object):
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
         root = logging.getLogger(label)
+        root.handlers = []
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
@@ -48,9 +65,9 @@ class Block(object):
         # Connect to node pool
         socket_host = self.node_config["host"]
         socket_port = self.node_config["port"]
-        self.witnet_node = WitnetNode(socket_host, socket_port, 15, self.logging_queue, "node-block")
+        witnet_node = WitnetNode(socket_host, socket_port, 15, logger=self.logger)
 
-        block = self.witnet_node.get_block(self.block_hash)
+        block = witnet_node.get_block(self.block_hash)
         if type(block) is dict and "error" in block:
             self.logger.warning(f"Unable to fetch block {self.block_hash}: {block}")
 
@@ -67,7 +84,7 @@ class Block(object):
 
         self.process_details()
 
-        return {
+        self.block = {
             "type": "block",
             "details": {
                 "block_hash": self.block_hash,
@@ -84,6 +101,47 @@ class Block(object):
             "tally_txns": self.process_tally_txns(call_from),
             "tapi_accept": self.process_tapi_signals(),
         }
+
+        if call_from == "api":
+            self.process_block_for_api()
+
+        return self.block
+
+    def process_block_for_api(self):
+        # Add number of commits and reveals
+        self.block["number_of_commits"] = len(self.block["commit_txns"])
+        self.block["number_of_reveals"] = len(self.block["reveal_txns"])
+
+        # Group commits per data request
+        commits_for_data_request = {}
+        for commit in self.block["commit_txns"]:
+            if not commit["data_request_txn_hash"] in commits_for_data_request:
+                commits_for_data_request[commit["data_request_txn_hash"]] = {
+                    "collateral": commit["collateral"],
+                    "txn_address": [],
+                    "txn_hash": [],
+                }
+            commits_for_data_request[commit["data_request_txn_hash"]]["txn_address"].append(commit["txn_address"])
+            commits_for_data_request[commit["data_request_txn_hash"]]["txn_hash"].append(commit["txn_hash"])
+        self.block["commit_txns"] = commits_for_data_request
+
+        # Group reveals per data request
+        reveals_for_data_request = {}
+        for reveal in self.block["reveal_txns"]:
+            if not reveal["data_request_txn_hash"] in reveals_for_data_request:
+                reveals_for_data_request[reveal["data_request_txn_hash"]] = {
+                    "reveal_translation": [],
+                    "success": [],
+                    "txn_address": [],
+                    "txn_hash": [],
+                }
+            reveals_for_data_request[reveal["data_request_txn_hash"]]["reveal_translation"].append(reveal["reveal_translation"])
+            reveals_for_data_request[reveal["data_request_txn_hash"]]["success"].append(1 if reveal["success"] else 0)
+            reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_address"].append(reveal["txn_address"])
+            reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_hash"].append(reveal["txn_hash"])
+        self.block["reveal_txns"] = reveals_for_data_request
+
+        del self.block["tapi_accept"]
 
     def process_details(self):
         try:
@@ -104,14 +162,14 @@ class Block(object):
         txn_hash = self.block["txns_hashes"]["mint"]
         json_txn = self.block["txns"]["mint"]
         block_signature = self.block["block_sig"]["public_key"]
-        mint = Mint(self.consensus_constants, self.logging_queue)
+        mint = Mint(self.consensus_constants, logger=self.logger)
         mint.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
         return mint.process_transaction(block_signature)
 
     def process_value_transfer_txns(self, call_from):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
-            value_transfer = ValueTransfer(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+            value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["value_transfer"], self.block["txns_weights"]["value_transfer"])):
                 json_txn = self.block["txns"]["value_transfer_txns"][i]
                 value_transfer.set_transaction(txn_hash=txn_hash, txn_weight=txn_weight, json_txn=json_txn)
@@ -121,7 +179,7 @@ class Block(object):
     def process_data_request_txns(self, call_from):
         data_request_transactions = []
         if len(self.block["txns_hashes"]["data_request"]) > 0:
-            data_request = DataRequest(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+            data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["data_request"], self.block["txns_weights"]["data_request"])):
                 json_txn = self.block["txns"]["data_request_txns"][i]
                 data_request.set_transaction(txn_hash=txn_hash, txn_weight=txn_weight, json_txn=json_txn)
@@ -131,7 +189,7 @@ class Block(object):
     def process_commit_txns(self, call_from):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
-            commit = Commit(self.consensus_constants, self.logging_queue, database_config=self.db_config, node_config=self.node_config)
+            commit = Commit(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["commit"]):
                 json_txn = self.block["txns"]["commit_txns"][i]
                 commit.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
@@ -141,7 +199,7 @@ class Block(object):
     def process_reveal_txns(self, call_from):
         reveal_transactions = []
         if len(self.block["txns_hashes"]["reveal"]) > 0:
-            reveal = Reveal(self.consensus_constants, self.logging_queue)
+            reveal = Reveal(self.consensus_constants, logger=self.logger)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["reveal"]):
                 json_txn = self.block["txns"]["reveal_txns"][i]
                 reveal.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
@@ -151,7 +209,7 @@ class Block(object):
     def process_tally_txns(self, call_from):
         tally_transactions = []
         if len(self.block["txns_hashes"]["tally"]) > 0:
-            tally = Tally(self.consensus_constants, self.logging_queue)
+            tally = Tally(self.consensus_constants, logger=self.logger)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["tally"]):
                 json_txn = self.block["txns"]["tally_txns"][i]
                 tally.set_transaction(txn_hash=txn_hash, json_txn=json_txn)

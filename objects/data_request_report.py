@@ -1,13 +1,15 @@
 import logging
 import logging.handlers
 
+from blockchain.witnet_database import WitnetDatabase
+
 from transactions.data_request import DataRequest
 from transactions.commit import Commit
 from transactions.reveal import Reveal
 from transactions.tally import Tally
 
 class DataRequestReport(object):
-    def __init__(self, transaction_type, transaction_hash, consensus_constants, logging_queue, database_config):
+    def __init__(self, transaction_type, transaction_hash, consensus_constants, logger=None, log_queue=None, database=None, database_config=None):
         self.transaction_type = transaction_type
         self.transaction_hash = transaction_hash
 
@@ -16,13 +18,25 @@ class DataRequestReport(object):
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
 
-        self.logging_queue = logging_queue
-
         # Set up logger
-        self.configure_logging_process(logging_queue, "node-manager")
-        self.logger = logging.getLogger("node-manager")
+        if logger:
+            self.logger = logger
+        elif log_queue:
+            self.log_queue = log_queue
+            self.configure_logging_process(log_queue, "node-manager")
+            self.logger = logging.getLogger("node-manager")
+        else:
+            self.logger = None
 
-        self.database_config = database_config
+        if database:
+            self.witnet_database = database
+        elif database_config:
+            db_user = database_config["user"]
+            db_name = database_config["name"]
+            db_pass = database_config["password"]
+            self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logger=self.logger)
+        else:
+            self.witnet_database = None
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -31,26 +45,30 @@ class DataRequestReport(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def get_report(self):
-        # First set the data request hash based on the transaction type
+    def get_data_request_hash(self):
+        # Set the data request hash based on the transaction type
         if self.transaction_type == "data_request_txn":
-            self.logger.info(f"data_request_txn, get_report({self.transaction_hash})")
-            self.data_request_hash = self.transaction_hash
+            data_request_hash = self.transaction_hash
+            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
         elif self.transaction_type == "commit_txn":
             self.logger.info(f"commit_txn, get_report({self.transaction_hash})")
-            self.commit = Commit(self.consensus_constants, self.logging_queue, database_config=self.database_config)
-            self.data_request_hash = self.commit.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({self.data_request_hash})")
+            self.commit = Commit(self.consensus_constants, logger=self.logger, database=self.witnet_database)
+            data_request_hash = self.commit.get_data_request_hash(self.transaction_hash)
+            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
         elif self.transaction_type == "reveal_txn":
             self.logger.info(f"reveal_txn, get_report({self.transaction_hash})")
-            self.reveal = Reveal(self.consensus_constants, self.logging_queue, database_config=self.database_config)
-            self.data_request_hash = self.reveal.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({self.data_request_hash})")
+            self.reveal = Reveal(self.consensus_constants, logger=self.logger, database=self.witnet_database)
+            data_request_hash = self.reveal.get_data_request_hash(self.transaction_hash)
+            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
         elif self.transaction_type == "tally_txn":
             self.logger.info(f"tally_txn, get_report({self.transaction_hash})")
-            self.tally = Tally(self.consensus_constants, self.logging_queue, database_config=self.database_config)
-            self.data_request_hash = self.tally.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({self.data_request_hash})")
+            self.tally = Tally(self.consensus_constants, logger=self.logger, database=self.witnet_database)
+            data_request_hash = self.tally.get_data_request_hash(self.transaction_hash)
+            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
+        return data_request_hash
+
+    def get_report(self):
+        self.data_request_hash = self.get_data_request_hash()
 
         # If there was an error, return the error message
         if "error" in self.data_request_hash:
@@ -88,22 +106,22 @@ class DataRequestReport(object):
 
     def get_data_request_details(self):
         self.logger.info(f"get_data_request_details({self.data_request_hash})")
-        data_request = DataRequest(self.consensus_constants, self.logging_queue, database_config=self.database_config)
+        data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.witnet_database)
         self.data_request = data_request.get_transaction_from_database(self.data_request_hash)
 
     def get_commit_details(self):
         self.logger.info(f"get_commit_details({self.data_request_hash})")
-        commit = Commit(self.consensus_constants, self.logging_queue, database_config=self.database_config)
+        commit = Commit(self.consensus_constants, logger=self.logger, database=self.witnet_database)
         self.commits = commit.get_commits_for_data_request(self.data_request_hash)
 
     def get_reveal_details(self):
         self.logger.info(f"get_reveal_details({self.data_request_hash})")
-        reveal = Reveal(self.consensus_constants, self.logging_queue, database_config=self.database_config)
+        reveal = Reveal(self.consensus_constants, logger=self.logger, database=self.witnet_database)
         self.reveals = reveal.get_reveals_for_data_request(self.data_request_hash)
 
     def get_tally_details(self):
         self.logger.info(f"get_tally_details({self.data_request_hash})")
-        tally = Tally(self.consensus_constants, self.logging_queue, database_config=self.database_config)
+        tally = Tally(self.consensus_constants, logger=self.logger, database=self.witnet_database)
         self.tally = tally.get_tally_for_data_request(self.data_request_hash)
 
     def add_missing_reveals(self):

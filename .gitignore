@@ -13,3 +13,5 @@ explorer.toml
 
 analysis/*
 
+caching/*.lock
+
