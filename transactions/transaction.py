@@ -12,17 +12,22 @@ from util.protobuf_encoder import ProtobufEncoder
 from util.radon_translator import RadonTranslator
 
 class Transaction(object):
-    def __init__(self, consensus_constants, logging_queue, database_config=None, node_config=None):
+    def __init__(self, consensus_constants, logger=None, log_queue=None, database=None, database_config=None, node_config=None):
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
 
         # Connect to the database
-        if database_config:
+        if database:
+            self.witnet_database = database
+        elif database_config:
             db_user = database_config["user"]
             db_name = database_config["name"]
             db_pass = database_config["password"]
-            self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logging_queue, "db-transaction")
+            if logger:
+                self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logger=logger)
+            else:
+                self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=log_queue, log_label="db-transaction")
         else:
             self.witnet_database = None
 
@@ -30,9 +35,14 @@ class Transaction(object):
         self.node_config = node_config
 
         # Set up logger
-        self.configure_logging_process(logging_queue, "transaction")
-        self.logger = logging.getLogger("transaction")
-        self.logging_queue = logging_queue
+        if logger:
+            self.logger = logger
+        elif log_queue:
+            self.log_queue = log_queue
+            self.configure_logging_process(log_queue, "transaction")
+            self.logger = logging.getLogger("transaction")
+        else:
+            self.logger = None
 
         # Create address generator
         self.address_generator = AddressGenerator("wit")
@@ -137,7 +147,7 @@ class Transaction(object):
         # Create connection to the node pool
         socket_host = self.node_config["host"]
         socket_port = self.node_config["port"]
-        witnet_node = WitnetNode(socket_host, socket_port, 15, self.logging_queue, "node-transaction")
+        witnet_node = WitnetNode(socket_host, socket_port, 15, logger=self.logger)
 
         transaction = witnet_node.get_transaction(txn_hash)
         while "error" in transaction:

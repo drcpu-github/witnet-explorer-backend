@@ -15,23 +15,11 @@ from flask import Blueprint
 from flask import Response
 from flask import request
 
-from app.cache import cache
-
 from app.node_manager import NodeManager
 
-from .config import TOML_CONFIG
+from .gunicorn_config import TOML_CONFIG
 
-def select_logging_level(level):
-    if level.lower() == "debug":
-        return logging.DEBUG
-    elif level.lower() == "info":
-        return logging.INFO
-    elif level.lower() == "warning":
-        return logging.WARNING
-    elif level.lower() == "error":
-        return logging.ERROR
-    elif level.lower() == "critical":
-        return logging.CRITICAL
+from util.logger import select_logging_level
 
 def configure_logging_listener(config):
     root = logging.getLogger()
@@ -99,7 +87,6 @@ listener.start()
 
 node = NodeManager(config, logging_queue)
 
-@cache.cached(timeout=15)
 @api.route("/hash")
 def hash():
     # hash value
@@ -124,74 +111,36 @@ def address():
         return {}
     return node.get_address(value, tab, limit, epoch)
 
-# Cache the latest data requests for 15 seconds
 @api.route("/home")
-@cache.cached(timeout=15)
 def home():
-    return node.get_home("home")
+    return node.get_home("full")
 
-# Cache the latest data requests for 15 seconds
 @api.route("/supply_info")
-@cache.cached(timeout=15, query_string=True)
 def supply_info():
     key = request.args.get("key", default="", type=str)
-    if key not in (
-        "blocks_minted",
-        "blocks_minted_reward",
-        "blocks_missing",
-        "blocks_missing_reward",
-        "current_locked_supply",
-        "current_time",
-        "current_unlocked_supply",
-        "epoch",
-        "in_flight_requests",
-        "locked_wits_by_requests",
-        "maximum_supply",
-        "current_supply", # composite key
-        "total_supply", # composite key
-    ):
-        return {"error": "invalid key"}
-
-    home_stats = node.get_home(key)
-    supply_info = home_stats["supply_info"]
-
-    if key == "current_supply":
-        return str(int((supply_info["current_unlocked_supply"] + supply_info["current_locked_supply"]) / 1E9))
-    elif key == "total_supply":
-        return str(int((supply_info["maximum_supply"] - supply_info["blocks_missing_reward"]) / 1E9))
-    elif key in ("blocks_minted", "blocks_missing", "current_time", "epoch", "in_flight_requests"):
-        return str(supply_info[key])
+    supply_info = node.get_home(key)
+    if key in ("blocks_minted", "blocks_missing", "current_time", "epoch", "in_flight_requests"):
+        return str(supply_info)
     else:
-        return str(int(supply_info[key] / 1E9))
+        return str(int(supply_info / 1E9))
 
-# Cache the reputation overview for 5 minutes
 @api.route("/reputation")
-@cache.cached(timeout=300)
 def reputation():
     return node.get_reputation_list()
 
-# Cache the richlist for 5 minutes
 @api.route("/richlist")
-@cache.cached(timeout=300, query_string=True)
 def richlist():
     start = request.args.get("start", default=0, type=int)
     stop = request.args.get("stop", default=1000, type=int)
-    if stop - start == 1000:
-        return node.get_rich_list(start, stop)
-    else:
-        return {"error": "cannot fetch more than 1000 enties from the richlist"}
+    return node.get_richlist(start, stop)
 
-# Cache the network stats for 5 minutes
 @api.route("/network")
-@cache.cached(timeout=300)
 def network():
     return node.get_network()
 
-# Cache the transaction pool for 30 seconds
 @api.route("/pending")
-@cache.cached(timeout=30)
 def get_transaction_pool():
-    return node.get_pending_transactions()
+    return node.get_mempool_transactions()
 
 @api.route('/blockchain')
 def blockchain():
@@ -199,9 +148,7 @@ def blockchain():
     block = request.args.get("block", default=-100, type=int)
     return node.get_blockchain(action, block)
 
-# Cache the utxos for 30 seconds
 @api.route("/utxos")
-@cache.cached(timeout=30, query_string=True)
 def utxos():
     address = request.args.get("address", default=None)
     if address == None:
@@ -216,7 +163,6 @@ def utxos():
         return utxos
 
 @api.route("/tapi")
-@cache.cached(timeout=180, query_string=True)
 def get_tapi():
     action = request.args.get("action", default="init", type=str)
     if action == "init":
@@ -227,7 +173,6 @@ def get_tapi():
         return {"error": "invalid TAPI action"}
 
 @api.route("/status")
-@cache.cached(timeout=10)
 def status():
     return node.get_status()
 

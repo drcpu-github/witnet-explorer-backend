@@ -5,16 +5,16 @@ from blockchain.witnet_database import WitnetDatabase
 from node.witnet_node import WitnetNode
 
 class Blockchain(object):
-    def __init__(self, database_config, node_config, consensus_constants, logging_queue):
+    def __init__(self, database_config, node_config, consensus_constants, log_queue):
         db_user = database_config["user"]
         db_name = database_config["name"]
         db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logging_queue, "db-blockchain")
+        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=log_queue, log_label="db-blockchain")
 
         # Connect to node pool
         socket_host = node_config["host"]
         socket_port = node_config["port"]
-        self.witnet_node = WitnetNode(socket_host, socket_port, 15, logging_queue, "node-blockchain")
+        self.witnet_node = WitnetNode(socket_host, socket_port, 15, log_queue=log_queue, log_label="node-blockchain")
 
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period

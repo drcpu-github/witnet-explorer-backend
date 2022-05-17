@@ -55,6 +55,7 @@ class Mint(Transaction):
             mint_outputs = []
             txn_epoch = ""
             txn_time = ""
+            block_confirmed = False
             status = "transaction not found"
 
         return {
@@ -64,5 +65,6 @@ class Mint(Transaction):
             "mint_outputs": mint_outputs,
             "txn_epoch": txn_epoch,
             "txn_time": txn_time,
+            "confirmed": block_confirmed,
             "status": status,
         }

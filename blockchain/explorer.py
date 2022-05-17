@@ -29,38 +29,38 @@ from transactions.data_request import DataRequest
 from transactions.value_transfer import ValueTransfer
 
 class BlockExplorer(object):
-    def __init__(self, config, logging_queue):
+    def __init__(self, config, log_queue):
         error_retry = config["explorer"]["error_retry"]
 
         self.pending_interval = config["explorer"]["pending_interval"]
 
         # Set up logger
-        self.configure_logging_process(logging_queue, "explorer")
+        self.configure_logging_process(log_queue, "explorer")
         self.logger = logging.getLogger("explorer")
 
         # Set up logging queue for logging from different processes
-        self.logging_queue = logging_queue
+        self.log_queue = log_queue
 
         # Get configuration to connect to the node pool
         self.node_config = config["node-pool"]
         socket_host, socket_port = self.node_config["host"], self.node_config["port"]
 
         # Create nodes to connect to the node pool
-        self.insert_blocks_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-insert")
-        self.confirm_blocks_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-confirm")
-        self.insert_pending_node = WitnetNode(socket_host, socket_port, 30, self.logging_queue, "node-pending")
+        self.insert_blocks_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-insert")
+        self.confirm_blocks_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-confirm")
+        self.insert_pending_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-pending")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, self.logging_queue, "node-consensus")
+        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
         # Get configuration to connect to the database
-        self.db_config = config["database"]
-        db_user, db_name, db_pass = self.db_config["user"], self.db_config["name"], self.db_config["password"]
+        self.database_config = config["database"]
+        db_user, db_name, db_pass = self.database_config["user"], self.database_config["name"], self.database_config["password"]
 
         # Create database objects
-        self.insert_blocks_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-insert")
-        self.confirm_blocks_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-confirm")
-        self.insert_pending_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-pending")
+        self.insert_blocks_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-insert")
+        self.confirm_blocks_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-confirm")
+        self.insert_pending_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-pending")
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -76,7 +76,7 @@ class BlockExplorer(object):
 
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
         # Create block object and parse it to a JSON object
-        block = Block(block_hash_hex_str, self.consensus_constants, self.logging_queue, db_config=self.db_config, block=block, tapi_periods=tapi_periods, node_config=self.node_config)
+        block = Block(block_hash_hex_str, self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, block=block, tapi_periods=tapi_periods, node_config=self.node_config)
         block_json = block.process_block("explorer")
 
         # Insert block
@@ -112,9 +112,9 @@ class BlockExplorer(object):
         for txn_details in block_json["tally_txns"]:
             database.insert_tally_txn(txn_details, epoch)
 
-    def insert_blocks_and_transactions(self, logging_queue, unconfirmed_blocks_queue):
+    def insert_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
         # Set up logger
-        self.configure_logging_process(logging_queue, "explorer-insert")
+        self.configure_logging_process(log_queue, "explorer-insert")
         logger = logging.getLogger("explorer-insert")
 
         # Get some consensus constants
@@ -180,9 +180,9 @@ class BlockExplorer(object):
             sleep_for = max(0, next_poll_interval - time.time())
             time.sleep(sleep_for)
 
-    def confirm_blocks_and_transactions(self, logging_queue, unconfirmed_blocks_queue):
+    def confirm_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
         # Set up logger
-        self.configure_logging_process(logging_queue, "explorer-confirm")
+        self.configure_logging_process(log_queue, "explorer-confirm")
         logger = logging.getLogger("explorer-confirm")
 
         # Calculate superepoch period from consensus constants
@@ -295,9 +295,9 @@ class BlockExplorer(object):
             sleep_for = max(0, next_poll_interval - time.time())
             time.sleep(sleep_for)
 
-    def insert_pending_transactions(self, logging_queue):
+    def insert_pending_transactions(self, log_queue):
         # Set up logger
-        self.configure_logging_process(logging_queue, "explorer-pending")
+        self.configure_logging_process(log_queue, "explorer-pending")
         logger = logging.getLogger("explorer-pending")
 
         # sleep until the next poll interval
@@ -341,7 +341,7 @@ class BlockExplorer(object):
                     data_request_fee, data_request_size = mapped_data_requests[transaction]
                     mapped_transactions += 1
                 else:
-                    data_request = DataRequest(consensus_constants=self.consensus_constants, database_config=self.db_config, node_config=self.node_config, logging_queue = self.logging_queue)
+                    data_request = DataRequest(self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
                     data_request.set_transaction(txn_hash=transaction)
                     txn_details = data_request.process_transaction("explorer")
 
@@ -384,7 +384,7 @@ class BlockExplorer(object):
                     value_transfer_fee, value_transfer_size = mapped_value_transfers[transaction]
                     mapped_transactions += 1
                 else:
-                    value_transfer = ValueTransfer(consensus_constants=self.consensus_constants, database_config=self.db_config, node_config=self.node_config, logging_queue=self.logging_queue)
+                    value_transfer = ValueTransfer(self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
                     value_transfer.set_transaction(txn_hash=transaction)
                     txn_details = value_transfer.process_transaction("explorer")
 
@@ -524,22 +524,22 @@ def main():
     config = toml.load(options.config_file)
 
     # Start logging process
-    logging_queue = Queue()
-    listener_process = Process(target=logging_listener, args=(config, logging_queue))
+    log_queue = Queue()
+    listener_process = Process(target=logging_listener, args=(config, log_queue))
     listener_process.start()
 
     # Create explorer
-    explorer = BlockExplorer(config, logging_queue)
+    explorer = BlockExplorer(config, log_queue)
 
     # Create queue to pass data about unconfirmed blocks
     unconfirmed_blocks_queue = Queue()
 
     # This process will query the node and fetch all new blocks
-    insert_process = Process(target=explorer.insert_blocks_and_transactions, args=(logging_queue, unconfirmed_blocks_queue))
+    insert_process = Process(target=explorer.insert_blocks_and_transactions, args=(log_queue, unconfirmed_blocks_queue))
     # This process will query the node and confirm all new blocks
-    confirm_process = Process(target=explorer.confirm_blocks_and_transactions, args=(logging_queue, unconfirmed_blocks_queue))
+    confirm_process = Process(target=explorer.confirm_blocks_and_transactions, args=(log_queue, unconfirmed_blocks_queue))
     # This process will query the node and fetch pending transactions from the memory pool
-    pending_process = Process(target=explorer.insert_pending_transactions, args=(logging_queue,))
+    pending_process = Process(target=explorer.insert_pending_transactions, args=(log_queue,))
 
     # Catch ctrl+c
     def signal_handler(*args):
@@ -550,7 +550,7 @@ def main():
         explorer.terminate()
 
         # End the logging process
-        logging_queue.put(None)
+        log_queue.put(None)
         # Sleep 1 second to make sure everything ended
         time.sleep(1)
 

@@ -148,6 +148,7 @@ class ValueTransfer(Transaction):
             txn_priority = 0
             txn_epoch = 0
             txn_time = ""
+            block_confirmed = False
             txn_status = "transaction not found"
 
         return {
@@ -163,5 +164,6 @@ class ValueTransfer(Transaction):
             "priority": txn_priority,
             "txn_epoch": txn_epoch,
             "txn_time": txn_time,
+            "confirmed": block_confirmed,
             "status": txn_status
         }

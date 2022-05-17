@@ -7,12 +7,17 @@ import sys
 from blockchain.database_manager import DatabaseManager
 
 class WitnetDatabase(object):
-    def __init__(self, db_user, db_name, db_pass, logging_queue, log_label):
+    def __init__(self, db_user, db_name, db_pass, logger=None, log_queue=None, log_label=None):
         # Set up logger
-        self.configure_logging_process(logging_queue, log_label)
-        self.logger = logging.getLogger(log_label)
+        if logger:
+            self.logger = logger
+        elif log_queue:
+            self.configure_logging_process(log_queue, log_label)
+            self.logger = logging.getLogger(log_label)
+        else:
+            self.logger = None
 
-        self.db_mngr = DatabaseManager(db_user, db_name, db_pass, self.logger)
+        self.db_mngr = DatabaseManager(db_user, db_name, db_pass, logger=self.logger)
 
         # Create all database tables if they do not exist yet
         self.create_tables_and_indexes()
@@ -516,7 +521,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_hashes)
-            self.logger.info(f"Inserted {len(self.insert_hashes)} hashes for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_hashes)} hashes for epoch {epoch}")
         self.insert_hashes = []
 
         # insert blocks
@@ -535,7 +541,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_blocks)
-            self.logger.info(f"Inserted {len(self.insert_blocks)} block for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_blocks)} block for epoch {epoch}")
         self.insert_blocks = []
 
         # insert mint transactions
@@ -550,7 +557,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_mint_txns)
-            self.logger.info(f"Inserted {len(self.insert_mint_txns)} mint transaction for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_mint_txns)} mint transaction for epoch {epoch}")
         self.insert_mint_txns = []
 
         # insert value transfer transactions
@@ -569,7 +577,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_value_transfer_txns, template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s)")
-            self.logger.info(f"Inserted {len(self.insert_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
         self.insert_value_transfer_txns = []
 
         # insert data request transactions
@@ -620,7 +629,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_commit_txns, template="(%s, %s, %s, %s::utxo[], %s, %s, %s)")
-            self.logger.info(f"Inserted {len(self.insert_commit_txns)} commit transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_commit_txns)} commit transaction(s) for epoch {epoch}")
         self.insert_commit_txns = []
 
         # insert reveal transactions
@@ -636,7 +646,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_reveal_txns)
-            self.logger.info(f"Inserted {len(self.insert_reveal_txns)} reveal transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_reveal_txns)} reveal transaction(s) for epoch {epoch}")
         self.insert_reveal_txns = []
 
         # insert tally transactions
@@ -655,7 +666,8 @@ class WitnetDatabase(object):
                 ) VALUES %s
             """
             self.db_mngr.sql_execute_many(sql, self.insert_tally_txns)
-            self.logger.info(f"Inserted {len(self.insert_tally_txns)} tally transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Inserted {len(self.insert_tally_txns)} tally transaction(s) for epoch {epoch}")
         self.insert_tally_txns = []
 
     def finalize_update(self, epoch):
@@ -674,7 +686,8 @@ class WitnetDatabase(object):
                     hashes.hash=update.hash
             """
             self.db_mngr.sql_execute_many(sql, self.update_hashes, template="(%s, %s)")
-            self.logger.info(f"Updated {len(self.update_hashes)} hash(es) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_hashes)} hash(es) for epoch {epoch}")
         self.update_hashes = []
 
         # update blocks
@@ -692,7 +705,8 @@ class WitnetDatabase(object):
                     blocks.block_hash=update.block_hash
             """
             self.db_mngr.sql_execute_many(sql, self.update_blocks, template="(%s, %s)")
-            self.logger.info(f"Updated {len(self.update_blocks)} block(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_blocks)} block(s) for epoch {epoch}")
         self.update_blocks = []
 
         # update value transfer transactions
@@ -710,7 +724,8 @@ class WitnetDatabase(object):
                     value_transfer_txns.txn_hash=update.txn_hash
             """
             self.db_mngr.sql_execute_many(sql, self.update_value_transfer_txns, template="(%s, %s)")
-            self.logger.info(f"Updated {len(self.update_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
         self.update_value_transfer_txns = []
 
         # update data request transactions
@@ -728,7 +743,8 @@ class WitnetDatabase(object):
                     data_request_txns.txn_hash=update.txn_hash
                 """
             self.db_mngr.sql_execute_many(sql, self.update_data_request_txns, template="(%s, %s)")
-            self.logger.info(f"Updated {len(self.update_data_request_txns)} data request transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_data_request_txns)} data request transaction(s) for epoch {epoch}")
         self.update_data_request_txns = []
 
         # update reveal transactions
@@ -750,7 +766,8 @@ class WitnetDatabase(object):
                     reveal_txns.txn_hash=update.txn_hash
             """
             self.db_mngr.sql_execute_many(sql, self.update_reveal_txns, template="(%s, %s, %s, %s)")
-            self.logger.info(f"Updated {len(self.update_reveal_txns)} reveal transaction(s) for epoch {epoch}")
+            if self.logger:
+                self.logger.info(f"Updated {len(self.update_reveal_txns)} reveal transaction(s) for epoch {epoch}")
         self.update_reveal_txns = []
 
         # update tally transactions
@@ -792,7 +809,8 @@ class WitnetDatabase(object):
                 block_hash=%s
         """ % psycopg2.Binary(bytearray.fromhex(block_hash))
         result = self.db_mngr.sql_update_table(sql)
-        self.logger.info(f"Confirmed block {block_hash} for epoch {epoch}")
+        if self.logger:
+            self.logger.info(f"Confirmed block {block_hash} for epoch {epoch}")
 
     def revert_block(self, block_hash, epoch):
         sql = """
@@ -803,7 +821,8 @@ class WitnetDatabase(object):
             WHERE block_hash=%s
         """ % psycopg2.Binary(bytearray.fromhex(block_hash))
         result = self.db_mngr.sql_update_table(sql)
-        self.logger.info(f"Reverted block {block_hash} for epoch {epoch}")
+        if self.logger:
+            self.logger.info(f"Reverted block {block_hash} for epoch {epoch}")
 
     def remove_block(self, block_hash, epoch):
         sql = """
@@ -812,14 +831,16 @@ class WitnetDatabase(object):
                 block_hash=%s
         """ % psycopg2.Binary(bytearray.fromhex(block_hash))
         result = self.db_mngr.sql_update_table(sql)
-        self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
+        if self.logger:
+            self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
 
     #####################################################
     #       Create pending transactions histograms      #
     #####################################################
 
     def insert_pending_data_request_txns(self, timestamp, fee_per_unit, num_txns):
-        self.logger.info(f"Inserting pending data requests at {timestamp}")
+        if self.logger:
+            self.logger.info(f"Inserting pending data requests at {timestamp}")
         sql = """
             INSERT INTO pending_data_request_txns (
                 timestamp,
@@ -830,7 +851,8 @@ class WitnetDatabase(object):
         self.db_mngr.sql_insert_one(sql, (timestamp, fee_per_unit, num_txns))
 
     def insert_pending_value_transfer_txns(self, timestamp, fee_per_unit, num_txns):
-        self.logger.info(f"Inserting pending value transfers at {timestamp}")
+        if self.logger:
+            self.logger.info(f"Inserting pending value transfers at {timestamp}")
         sql = """
             INSERT INTO pending_value_transfer_txns (
                 timestamp,

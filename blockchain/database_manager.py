@@ -3,7 +3,7 @@ import psycopg2.extras
 import sys
 
 class DatabaseManager(object):
-    def __init__(self, db_user, db_name, db_pass, logger):
+    def __init__(self, db_user, db_name, db_pass, logger=None):
         self.logger = logger
 
         self.db_user = db_user
@@ -29,11 +29,13 @@ class DatabaseManager(object):
                 self.connection.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
             self.cursor = self.connection.cursor()
-        except Exception as e:
+        except psycopg2.OperationalError as e:
+            str_error = str(e).replace("\n", "").replace("\t", " ")
             if self.logger:
-                self.logger.error("Could not connect to database: " + str(e))
+                self.logger.error(f"Could not connect to database, error message: {str_error}")
             else:
-                sys.stderr.write("Could not connect to database: " + str(e) + "\n")
+                sys.stderr.write(f"Could not connect to database, error message: {str_error}\n")
+            raise psycopg2.OperationalError(e)
 
     def create_database(self):
         self.cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = '%s'" % (self.db_name,))

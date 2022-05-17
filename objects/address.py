@@ -15,12 +15,12 @@ class Address(object):
         db_user = database_config["user"]
         db_name = database_config["name"]
         db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logging_queue, "db-address")
+        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=logging_queue, log_label="db-address")
 
         # Connect to node pool
         socket_host = node_config["host"]
         socket_port = node_config["port"]
-        self.witnet_node = WitnetNode(socket_host, socket_port, 15, logging_queue, "node-address")
+        self.witnet_node = WitnetNode(socket_host, socket_port, 15, log_queue=logging_queue, log_label="node-address")
 
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period

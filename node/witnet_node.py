@@ -14,15 +14,17 @@ from util.socket_manager import SocketManager
 class WitnetNode(object):
     request_id = 1
 
-    def __init__(self, socket_host, socket_port, timeout, logging_queue=None, log_label=""):
+    def __init__(self, socket_host, socket_port, timeout, logger=None, log_queue=None, log_label=""):
         self.socket_mngr = SocketManager(socket_host, socket_port, timeout)
         self.socket_mngr.connect()
 
         self.vtt_regex = re.compile(r'\{"transaction":\{"ValueTransfer":\{"body":\{"inputs":\[(\{"output_pointer":"\w{64}:\d{1,3}"\},*)+\],"outputs":\[(\{"pkh":"wit1\w{38}","time_lock":\d+,"value":\d+\},*)+\]\},"signatures":\[(\{"public_key":\{"bytes":"[a-f0-9]+","compressed":\d+\},"signature":\{"Secp256k1":\{"der":"[a-f0-9]+"\}\}\},*)+\]\}\}\}')
 
         # Set up logger
-        if logging_queue:
-            self.configure_logging_process(logging_queue, log_label)
+        if logger:
+            self.logger = logger
+        elif log_queue:
+            self.configure_logging_process(log_queue, log_label)
             self.logger = logging.getLogger(log_label)
         else:
             self.logger = None
