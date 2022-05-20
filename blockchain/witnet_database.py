@@ -200,13 +200,13 @@ class WitnetDatabase(object):
 
             """CREATE TABLE IF NOT EXISTS pending_data_request_txns (
                 timestamp INT NOT NULL,
-                fee_per_unit INT ARRAY NOT NULL,
+                fee_per_unit BIGINT ARRAY NOT NULL,
                 num_txns INT ARRAY NOT NULL
             );""",
 
             """CREATE TABLE IF NOT EXISTS pending_value_transfer_txns (
                 timestamp INT NOT NULL,
-                fee_per_unit INT ARRAY NOT NULL,
+                fee_per_unit BIGINT ARRAY NOT NULL,
                 num_txns INT ARRAY NOT NULL
             );""",
 
