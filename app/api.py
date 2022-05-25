@@ -128,11 +128,11 @@ def supply_info():
 def reputation():
     return node.get_reputation_list()
 
-@api.route("/richlist")
-def richlist():
+@api.route("/balances")
+def balance_list():
     start = request.args.get("start", default=0, type=int)
     stop = request.args.get("stop", default=1000, type=int)
-    return node.get_richlist(start, stop)
+    return node.get_balance_list(start, stop)
 
 @api.route("/network")
 def network():

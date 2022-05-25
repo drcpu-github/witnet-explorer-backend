@@ -330,35 +330,35 @@ class NodeManager(object):
 
         return reputation
 
-    def get_richlist(self, start, stop):
-        self.logger.info(f"get_richlist({start}, {stop})")
+    def get_balance_list(self, start, stop):
+        self.logger.info(f"get_balance_list({start}, {stop})")
 
         # integer arguments are sanitized already by Flask argument parsing
         if stop - start > 1000:
-            return {"error": "cannot fetch more than 1000 entries from the richlist at once"}
+            return {"error": "cannot fetch more than 1000 entries from the balance list at once"}
 
         if start % 1000 != 0 or stop % 1000 != 0:
-            return {"error": "start and stop parameters should be thousands"}
+            return {"error": "start and stop parameters should be multiples of thousands"}
 
-        richlist_part = cache.get(f"richlist_{start}-{stop}")
-        balances_sum = cache.get(f"richlist_balances-sum")
-        last_updated = cache.get(f"richlist_last-updated")
-        if not richlist_part:
-            self.logger.error(f"Could not find 'richlist_{start}_{stop}' in memcached cache")
-            richlist = {
-                "richlist": [],
+        balance_list_part = cache.get(f"balance-list_{start}-{stop}")
+        balances_sum = cache.get(f"balance-list_sum")
+        last_updated = cache.get(f"balance-list_updated")
+        if not balance_list_part:
+            self.logger.error(f"Could not find 'balance-list_{start}_{stop}' in memcached cache")
+            balance_list = {
+                "balance_list": [],
                 "balances_sum": 0,
                 "last_updated": 0,
             }
         else:
-            self.logger.info(f"Found 'richlist_{start}_{stop}' in memcached cache")
-            richlist = {
-                "richlist": richlist_part,
+            self.logger.info(f"Found 'balance-list_{start}_{stop}' in memcached cache")
+            balance_list = {
+                "balance_list": balance_list_part,
                 "balances_sum": balances_sum if balances_sum else 0,
                 "last_updated": last_updated if last_updated else 0,
             }
 
-        return richlist
+        return balance_list
 
     def get_network(self):
         self.logger.info("get_network()")
