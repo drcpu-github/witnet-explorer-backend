@@ -83,7 +83,7 @@ def add_TAPI(db_mngr):
 def process_TAPI(db_mngr, witnet_node):
     tapis = list_TAPI(db_mngr)
     for tapi in tapis:
-        tapi_id, title, start_epoch, stop_epoch, bit, urls = tapi
+        tapi_id, title, description, start_epoch, stop_epoch, bit, urls = tapi
         sql = "SELECT epoch, block_hash, tapi_accept, confirmed FROM blocks WHERE epoch BETWEEN %s and %s ORDER BY epoch ASC" % (start_epoch, stop_epoch)
         result = db_mngr.sql_return_all(sql)
         for db_block in result:
