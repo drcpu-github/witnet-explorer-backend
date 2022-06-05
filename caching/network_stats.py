@@ -15,8 +15,8 @@ class NetworkStats(Client):
         log_level = config["api"]["caching"]["scripts"]["network_stats"]["level_file"]
         self.logger = configure_logger("network", log_filename, log_level)
 
-        # Create database client, memcached client and a consensus constants object
-        super().__init__(config, database=True, memcached_client=True, consensus_constants=True)
+        # Create node client, database client, memcached client and a consensus constants object
+        super().__init__(config, node=True, database=True, memcached_client=True, consensus_constants=True)
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
@@ -42,6 +42,11 @@ class NetworkStats(Client):
         self.get_unique_data_request_solvers()
         self.logger.info(f"Found {len(self.unique_data_request_solvers)} data request solvers in {time.perf_counter() - inner_start:.2f}s")
 
+        inner_start = time.perf_counter()
+        self.logger.info("Collecting ARS statistics")
+        self.get_ars_collateralization_stats()
+        self.logger.info(f"Collected ARS statistics in {time.perf_counter() - inner_start:.2f}s")
+
         self.logger.info(f"Built network stats in {time.perf_counter() - start:.2f}s")
 
         self.network = {
@@ -50,6 +55,8 @@ class NetworkStats(Client):
             "data_request_solvers": len(self.unique_data_request_solvers),
             "miner_top_100": self.miner_top_100,
             "data_request_solver_top_100": self.data_request_solver_top_100,
+            "average_ars_balance": self.average_ars_balance,
+            "average_reputed_balance": self.average_reputed_balance,
             "last_updated": int(time.time()),
         }
 
@@ -112,6 +119,32 @@ class NetworkStats(Client):
         self.unique_data_request_solvers = self.witnet_database.sql_return_all(sql)
         # Reverse sort and extract the top 100 data request solvers
         self.data_request_solver_top_100 = sorted(self.unique_data_request_solvers, key=lambda l: l[1], reverse=True)[:100]
+
+    def get_ars_collateralization_stats(self):
+        reputation_list = self.witnet_node.get_reputation_all()
+        if "result" in reputation_list:
+            reputation_list = reputation_list["result"]
+        else:
+            self.logger.warning("Could not fetch ARS from node")
+
+        ars_addresses = [address for address in reputation_list["stats"].keys()]
+        reputed_addresses = [address for address in reputation_list["stats"].keys() if reputation_list["stats"][address]["reputation"] > 0]
+
+        balance_list = self.witnet_node.get_balance_all()
+        if "result" in balance_list:
+            balance_list = balance_list["result"]
+        else:
+            self.logger.warning("Could not fetch all balances from node")
+
+        ars_balances, reputed_balances = [], []
+        for ars_address in ars_addresses:
+            if ars_address in balance_list.keys():
+                ars_balances.append(balance_list[ars_address]["total"])
+            if ars_address in reputed_addresses and ars_address in balance_list.keys():
+                reputed_balances.append(balance_list[ars_address]["total"])
+
+        self.average_ars_balance = int(sum(ars_balances) / len(ars_balances))
+        self.average_reputed_balance = int(sum(reputed_balances) / len(ars_balances))
 
     def save_network(self):
         self.logger.info("Saving all data in our memcached instance")
