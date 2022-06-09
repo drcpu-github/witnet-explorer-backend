@@ -90,6 +90,9 @@ class Block(object):
                 "block_hash": self.block_hash,
                 "epoch": self.block_epoch,
                 "time": self.start_time + (self.block_epoch + 1) * self.epoch_period,
+                "dr_weight": self.dr_weight,
+                "vt_weight": self.vt_weight,
+                "block_weight": self.block_weight,
                 "confirmed": self.confirmed,
                 "status": self.status,
             },
@@ -148,6 +151,10 @@ class Block(object):
             self.block_epoch = self.block["block_header"]["beacon"]["checkpoint"]
         except KeyError:
             self.logger.error(f"Unable to process block: {self.block}")
+
+        self.dr_weight = self.block["dr_weight"]
+        self.vt_weight = self.block["vt_weight"]
+        self.block_weight = self.block["block_weight"]
 
         self.confirmed = self.block["confirmed"]
         if self.confirmed:
