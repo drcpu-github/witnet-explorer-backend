@@ -165,7 +165,7 @@ class NodeManager(object):
             json_block = block.process_block("api")
             if json_block["details"]["confirmed"]:
                 self.logger.info(f"Added block with hash '{hash_value}' to the memcached cache")
-                cache.set(hash_value, json_block, timeout=self.cache_config["scripts"]["block"]["timeout"])
+                cache.set(hash_value, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
             else:
                 self.logger.info(f"Did not add unconfirmed block with hash '{hash_value}' to the memcached cache")
             return json_block
