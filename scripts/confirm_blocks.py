@@ -2,6 +2,7 @@
 
 import optparse
 import sys
+import toml
 
 from util.database_manager import DatabaseManager
 
