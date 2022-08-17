@@ -29,16 +29,17 @@ class Blocks(Client):
 
         self.superblock_period = self.consensus_constants.superblock_period
 
-    def process(self):
+    def process(self, force_update):
         start = time.perf_counter()
 
-        # Fetch the most recently confirmed epoch
+        # Fetch the most recently added epoch
         _, last_epoch = self.witnet_database.get_last_block(confirmed=False)
 
         # check until which epoch we succesfully added blocks to the cache
-        # if no epoch is found, start at the current confirmed epoch minus the TOML-defined timeout
+        # if no epoch is found, start at the current epoch minus the TOML-defined timeout
+        # if force_update is enabled, update all blocks up to self.lookback_epochs ago
         block_cache_epoch = self.memcached_client.get("block_cache_epoch")
-        if not block_cache_epoch:
+        if not block_cache_epoch or force_update:
             block_cache_epoch = last_epoch - self.lookback_epochs
 
         self.logger.info(f"Fetching blocks starting at epoch {block_cache_epoch} to {last_epoch}")
@@ -67,8 +68,8 @@ class Blocks(Client):
             block_hash = block_hash.hex()
             json_block = self.memcached_client.get(block_hash)
 
-            # Was the block already present in the cache?
-            if not json_block:
+            # Check if the block is already present in the cache or if a forced update is required
+            if not json_block or force_update:
                 json_block = self.build_block(block_hash, epoch)
                 if json_block == None:
                     continue
@@ -131,6 +132,7 @@ class Blocks(Client):
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file", help="Specify a configuration file")
+    parser.add_option("--force-update", action="store_true", dest="force_update", help="Use this flag to force an update of all blocks which should be cached")
     options, args = parser.parse_args()
 
     if options.config_file == None:
@@ -142,7 +144,7 @@ def main():
 
     # Create block cache
     blocks = Blocks(config)
-    blocks.process()
+    blocks.process(options.force_update)
 
 if __name__ == "__main__":
     main()
