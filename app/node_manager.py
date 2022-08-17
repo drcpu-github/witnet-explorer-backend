@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import pylibmc
 import psycopg2
 import toml
 
@@ -164,8 +165,11 @@ class NodeManager(object):
             block = Block(hash_value, self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
             json_block = block.process_block("api")
             if json_block["details"]["confirmed"]:
-                self.logger.info(f"Added block with hash '{hash_value}' to the memcached cache")
-                cache.set(hash_value, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                try:
+                    cache.set(hash_value, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                    self.logger.info(f"Added block with hash '{hash_value}' to the memcached cache")
+                except pylibmc.TooBig as e:
+                    self.logger.warning(f"Could not save block '{hash_value}' in the memcached instance because its size exceeded 1MB")
             else:
                 self.logger.info(f"Did not add unconfirmed block with hash '{hash_value}' to the memcached cache")
             return json_block
