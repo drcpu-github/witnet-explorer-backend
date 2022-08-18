@@ -5,7 +5,7 @@ This repository contains all code to run the backend for the Witnet Explorer. Th
 
 You will have to install following dependencies to run the explorer locally:
 ```
-git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen
+sudo apt-get install git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin
 ```
 
 ## Python3 dependencies - virtual environment
@@ -19,12 +19,7 @@ pip install -r requirements.txt
 
 ## Install and configure memcached
 
-First install memcached, its tools and the SASL binary:
-```
-memcached libmemcached-dev libmemcached-tools sasl2-bin
-```
-
-The memcached daemon will now have started with default parameters. You can modify the parameters by opening the configuration file:
+After installing memcached (see Dependencies), the memcached daemon will now have started with default parameters. You can modify the parameters by opening the configuration file:
 ```
 sudo vim /etc/memcached.conf
 ```
