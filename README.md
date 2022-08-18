@@ -28,7 +28,7 @@ Increase the amount of memory in MB memcached can use by editing the value after
 
 Create the SASL configuration:
 ```
-mkdir /etc/sasl2
+sudo mkdir /etc/sasl2
 sudo vim /etc/sasl2/memcached.conf
 ```
 
