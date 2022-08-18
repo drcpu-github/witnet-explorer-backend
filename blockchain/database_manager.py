@@ -10,24 +10,14 @@ class DatabaseManager(object):
         self.db_name = db_name
         self.db_pass = db_pass
 
-        # connect to default database
-        self.connect("postgres")
-        self.create_database()
-        self.terminate(verbose=False)
-        # connect to expected / created database
-        self.connect(self.db_name)
+        self.connect()
 
-    def connect(self, db_name):
+    def connect(self):
         try:
             if self.db_pass:
-                self.connection = psycopg2.connect(user=self.db_user, dbname=db_name, password=self.db_pass)
+                self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
             else:
-                self.connection = psycopg2.connect(user=self.db_user, dbname=db_name)
-
-            # Only set isolation level to autocommit when we still have to create our database
-            if db_name == "postgres":
-                self.connection.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
+                self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name)
             self.cursor = self.connection.cursor()
         except psycopg2.OperationalError as e:
             str_error = str(e).replace("\n", "").replace("\t", " ")
@@ -36,12 +26,6 @@ class DatabaseManager(object):
             else:
                 sys.stderr.write(f"Could not connect to database, error message: {str_error}\n")
             raise psycopg2.OperationalError(e)
-
-    def create_database(self):
-        self.cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = '%s'" % (self.db_name,))
-        result = self.cursor.fetchone()
-        if not result:
-            self.cursor.execute("CREATE DATABASE \"%s\" OWNER '%s'" % (self.db_name, self.db_user))
 
     def register_type(self, type_name):
         psycopg2.extras.register_composite(type_name, self.connection)
@@ -55,17 +39,6 @@ class DatabaseManager(object):
         self.connection.commit()
         self.cursor.close()
         self.connection.close()
-
-    def execute_create_statements(self, sqls):
-        for sql in sqls:
-            try:
-                self.cursor.execute(sql)
-            except Exception as e:
-                if self.logger:
-                    self.logger.error("Could not execute SQL statement '" + str(sql) + "', error: " + str(e))
-                else:
-                    sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
-        self.connection.commit()
 
     def sql_insert_one(self, sql, data):
         try:

@@ -74,6 +74,13 @@ You can fetch memcached statistics using below command.
 memcstat --servers="127.0.0.1" --username <username> --password <password>
 ```
 
+## Creating the database
+
+This repository contains a `create_database.py` utility script that will help setup the database required to run the explorer backend. It does require root access in order to create a user. If you do not have root access or want to use an existing user simply remove the `create_user` function call in the `main` function.
+```
+/path/to/explorer/env/bin/python3 create_database.py
+```
+
 ## Launching the explorer
 
 The explorer consists of two main backend processes which need to be started in order to be able to serve it to the outside world. All these processes can be started in a screen.
