@@ -40,13 +40,12 @@ class NodeManager(object):
 
         # Get configuration to connect to the node pool
         self.node_config = config["node-pool"]
-        socket_host, socket_port = self.node_config["host"], self.node_config["port"]
 
         # Create witnet node
-        self.witnet_node = WitnetNode(socket_host, socket_port, 15, log_queue=self.log_queue, log_label="node-api")
+        self.witnet_node = WitnetNode(self.node_config, log_queue=self.log_queue, log_label="node-api")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, log_queue=self.log_queue, log_label="node-consensus")
+        self.consensus_constants = ConsensusConstants(self.node_config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
         # Get configuration to connect to the database
         self.database_config = config["database"]

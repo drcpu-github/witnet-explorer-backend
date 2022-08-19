@@ -10,6 +10,7 @@ class SocketManager(object):
         self.ip = ip
         self.port = int(port)
         self.timeout = timeout
+        self.old_timeout = timeout
 
         self.create_socket()
 
@@ -33,6 +34,13 @@ class SocketManager(object):
         self.create_socket()
         self.connect()
 
+    def set_timeout(self, timeout):
+        self.old_timeout = self.timeout
+        self.timeout = timeout
+
+    def reset_timeout(self):
+        self.timeout = self.old_timeout
+
     def send_request(self, request):
         try:
             self.socket.send((json.dumps(request) + "\n").encode("utf-8"))
@@ -55,7 +63,7 @@ class SocketManager(object):
                 if len(response) == 0 or response[-1] == "\n":
                     break
             except socket.timeout:
-                return {"error": {"code": 1, "message": "Timed out"}, "id": request_id}
+                return {"error": {"code": 1, "message": f"Timed out after {self.timeout} seconds"}, "id": request_id}
             except socket.error as e:
                 if e.errno == errno.ECONNRESET:
                     return {"error": {"code": 2, "message": f"Connection reset: {os.strerror(e.errno)} ({e.errno})"}, "id": request_id}

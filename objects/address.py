@@ -18,9 +18,7 @@ class Address(object):
         self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=logging_queue, log_label="db-address")
 
         # Connect to node pool
-        socket_host = node_config["host"]
-        socket_port = node_config["port"]
-        self.witnet_node = WitnetNode(socket_host, socket_port, 15, log_queue=logging_queue, log_label="node-address")
+        self.witnet_node = WitnetNode(node_config, log_queue=logging_queue, log_label="node-address")
 
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period

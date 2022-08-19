@@ -162,7 +162,7 @@ def main():
     if options.add:
         add_TAPI(db_mngr)
 
-    witnet_node = WitnetNode(config["node-pool"]["host"], config["node-pool"]["port"], 15, None, "")
+    witnet_node = WitnetNode(config["node-pool"])
 
     if options.process:
         process_TAPI(db_mngr, witnet_node)

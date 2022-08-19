@@ -44,6 +44,7 @@ class NodePool(object):
         self.logging_queue = queue
 
         # Create all variables consumed by the nodes
+        self.default_timeout = self.config["node-pool"]["default_timeout"]
         for node in range(self.config["node-pool"]["nodes"]["number"]):
             node_str = f"node-{node + 1}"
             # Create shared variables for the nodes
@@ -54,7 +55,7 @@ class NodePool(object):
             # Create sockets
             node_ip = self.config["node-pool"]["nodes"][node_str]["ip"]
             node_port = self.config["node-pool"]["nodes"][node_str]["port"]
-            self.node_sockets.append(SocketManager(node_ip, node_port, 15))
+            self.node_sockets.append(SocketManager(node_ip, node_port, self.default_timeout))
             # Create locks only used to terminate nodes in the main process to prevent we try to kill them from every child process
             self.terminate_node_lock.append(self.mngr.Lock())
 
@@ -167,6 +168,12 @@ class NodePool(object):
             # Log the complete request
             logger.info(f"Request {counter}: {request}")
 
+            # Check if a non-default timeout was specified and propagate it
+            request_timeout = 0
+            if "timeout" in request:
+                request_timeout = request["timeout"]
+                del request["timeout"]
+
             request_served = False
             nodes_to_restart = set()
             # If all variables in node_synced are False, there are no nodes synced
@@ -187,7 +194,13 @@ class NodePool(object):
                     # Check that it is currently synced (if required)
                     if self.check_node_synced(logger, i, request_counter, node_socket):
                         logger.info(f"{node_str} can serve the request")
+                        # If requested set a different socket timeout
+                        if request_timeout != 0:
+                            node_socket.set_timeout(request_timeout)
                         response = self.execute_request(logger, node_socket, request)
+                        # Reset socket timeout
+                        if request_timeout != 0:
+                            node_socket.reset_timeout()
                         request_served = True
                     else:
                         # If this is the first time we notice the node is unsynced, start the unsynced timer

@@ -15,11 +15,11 @@ class ReputationList(Client):
         log_level = config["api"]["caching"]["scripts"]["reputation_list"]["level_file"]
         self.logger = configure_logger("reputation", log_filename, log_level)
 
+        # Read some Witnet node parameters
+        self.node_retries = config["api"]["caching"]["node_retries"]
+
         # Create node client and memcached client
         super().__init__(config, node=True, memcached_client=True)
-
-        # Read number of allowed retries from config
-        self.retries = config["api"]["caching"]["retries"]
 
     def get_reputation(self):
         start = time.perf_counter()
@@ -39,8 +39,8 @@ class ReputationList(Client):
                 break
 
             attempts += 1
-            if attempts == self.retries:
-                self.logger.error("Maximum retries to fetch reputation for all addresses reached")
+            if attempts == self.node_retries:
+                self.logger.error(f"Maximum retries ({self.node_retries}) to fetch reputation for all addresses exceeded")
                 return False
 
             # Sleep for an increasing timeout

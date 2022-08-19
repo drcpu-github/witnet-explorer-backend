@@ -15,10 +15,12 @@ class BalanceList(Client):
         log_level = config["api"]["caching"]["scripts"]["balance_list"]["level_file"]
         self.logger = configure_logger("balance-list", log_filename, log_level)
 
-        # Initialize self.witnet_node, self.witnet_database and self.memcached_client
-        super().__init__(config, node=True, database=True, memcached_client=True)
+        # Read some Witnet node parameters
+        self.node_retries = config["api"]["caching"]["node_retries"]
+        self.node_timeout = config["api"]["caching"]["scripts"]["balance_list"]["node_timeout"]
 
-        self.retries = config["api"]["caching"]["retries"]
+        # Initialize self.witnet_node, self.witnet_database and self.memcached_client
+        super().__init__(config, node=True, timeout=self.node_timeout, database=True, memcached_client=True)
 
     def build(self):
         start = time.perf_counter()
@@ -50,8 +52,8 @@ class BalanceList(Client):
                 break
 
             attempts += 1
-            if attempts == self.retries:
-                self.logger.error("Maximum retries to fetch all address balances reached")
+            if attempts == self.node_retries:
+                self.logger.error(f"Maximum retries ({self.node_retries}) to fetch all address balances exceeded")
                 return False
 
             time.sleep(attempts)

@@ -9,12 +9,11 @@ from node.witnet_node import WitnetNode
 from util.socket_manager import SocketManager
 
 class Client(object):
-    def __init__(self, config, node=False, database=False, memcached_client=False, consensus_constants=False):
+    def __init__(self, config, node=False, timeout=0, database=False, memcached_client=False, consensus_constants=False):
         # Connect to node pool
         if node:
-            node_config = config["node-pool"]
             try:
-                self.witnet_node = WitnetNode(node_config["host"], node_config["port"], 300, logger=self.logger)
+                self.witnet_node = WitnetNode(config["node-pool"], timeout=timeout, logger=self.logger)
             except ConnectionRefusedError:
                 self.logger.error(f"Could not connect to the node pool!")
                 sys.exit(1)
@@ -46,9 +45,8 @@ class Client(object):
 
         # Get consensus constants
         if consensus_constants:
-            node_config = config["node-pool"]
             try:
-                self.consensus_constants = ConsensusConstants(node_config["host"], node_config["port"], config["api"]["error_retry"], logger=self.logger)
+                self.consensus_constants = ConsensusConstants(config["node-pool"], error_retry=config["api"]["error_retry"], logger=self.logger)
             except ConnectionRefusedError:
                 self.logger.error(f"Could not connect to the node pool!")
                 sys.exit(1)

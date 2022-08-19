@@ -16,7 +16,8 @@ class NetworkStats(Client):
         self.logger = configure_logger("network", log_filename, log_level)
 
         # Create node client, database client, memcached client and a consensus constants object
-        super().__init__(config, node=True, database=True, memcached_client=True, consensus_constants=True)
+        timeout = config["api"]["caching"]["scripts"]["network_stats"]["node_timeout"]
+        super().__init__(config, node=True, timeout=timeout, database=True, memcached_client=True, consensus_constants=True)
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
@@ -126,6 +127,7 @@ class NetworkStats(Client):
             reputation_list = reputation_list["result"]
         else:
             self.logger.warning("Could not fetch ARS from node")
+            return
 
         ars_addresses = [address for address in reputation_list["stats"].keys()]
         reputed_addresses = [address for address in reputation_list["stats"].keys() if reputation_list["stats"][address]["reputation"] > 0]
@@ -135,6 +137,7 @@ class NetworkStats(Client):
             balance_list = balance_list["result"]
         else:
             self.logger.warning("Could not fetch all balances from node")
+            return
 
         ars_balances, reputed_balances = [], []
         for ars_address in ars_addresses:

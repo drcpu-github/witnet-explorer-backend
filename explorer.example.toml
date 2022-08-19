@@ -8,9 +8,11 @@ password = "<password>"
 
 # host: IP address of the node pool
 # port: RPC port on which the node pool can be reached
+# default_timeout: timeout for a socket to receive a request response
 [node-pool]
 host = "127.0.0.1"
 port = 22819
+default_timeout = 15
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
@@ -70,10 +72,10 @@ level_file = "info"
 level_stdout = "info"
 
 # error_retry: timeout before retrying a request that returned an error
-# caching: caching is enabled through memcached
+# cache_server: caching is enabled through memcached
 [api]
 error_retry = 60
-caching = "memcached"
+cache_server = "memcached"
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
@@ -86,14 +88,13 @@ level_stdout = "info"
 # server: IP address of the running memcached server, defaults to localhost
 # user: username for the memcached server
 # password: password for the memcached server
-# scripts: specify all caching scripts
-# retries: times to retry fetching data from a Witnet node
-[api.memcached]
+# node_retries: times to retry fetching data from a Witnet node
+[api.caching]
 server = "<IP>"
 user = "<user>"
 password = "<password>"
 # Note: the cache.py file in the app directory contains a number of hardcoded memcached settings
-retries = 5
+node_retries = 5
 
 # cron: specify the crontab timing configuration
 # log_file: specify logging file name
@@ -120,11 +121,13 @@ log_file = "/path/to/logs/home_stats.log"
 cron = "0 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/network_stats.log"
+node_timeout = 60
 
 # cron: specify the crontab timing configuration
-# log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# log_file: specify logging file name
 # timeout: specify the memcached timeout (in seconds) after which the data is invalidated
+# cache_time_warning: the caching process will print a warning when the it ran for more than this amount of time (in seconds)
 [api.caching.scripts.data_request_reports]
 cron = "* * * * *"
 level_file = "info"
@@ -147,6 +150,7 @@ log_file = "/path/to/logs/reputation_list.log"
 cron = "0 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/balance_list.log"
+node_timeout = 60
 
 # cron: specify the crontab timing configuration
 # log_file: specify logging file name

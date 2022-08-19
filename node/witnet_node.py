@@ -14,8 +14,13 @@ from util.socket_manager import SocketManager
 class WitnetNode(object):
     request_id = 1
 
-    def __init__(self, socket_host, socket_port, timeout, logger=None, log_queue=None, log_label=""):
-        self.socket_mngr = SocketManager(socket_host, socket_port, timeout)
+    def __init__(self, node_config, timeout=0, logger=None, log_queue=None, log_label=""):
+        # If a timeout is specified, save it here so it can be propagated into the request
+        self.request_timeout = timeout if timeout != node_config["default_timeout"] else 0
+
+        # Set the local socket to the default timeout or the one passed to the constructor
+        socket_timeout = node_config["default_timeout"] if timeout == 0 else timeout
+        self.socket_mngr = SocketManager(node_config["host"], node_config["port"], socket_timeout)
         self.socket_mngr.connect()
 
         self.vtt_regex = re.compile(r'\{"transaction":\{"ValueTransfer":\{"body":\{"inputs":\[(\{"output_pointer":"\w{64}:\d{1,3}"\},*)+\],"outputs":\[(\{"pkh":"wit1\w{38}","time_lock":\d+,"value":\d+\},*)+\]\},"signatures":\[(\{"public_key":\{"bytes":"[a-f0-9]+","compressed":\d+\},"signature":\{"Secp256k1":\{"der":"[a-f0-9]+"\}\}\},*)+\]\}\}\}')
@@ -177,6 +182,8 @@ class WitnetNode(object):
 
     def execute_request(self, request):
         WitnetNode.request_id += 1
+        if self.request_timeout:
+            request["timeout"] = self.request_timeout
         response = self.socket_mngr.query(request)
         if self.logger:
             # Always log errors as warning

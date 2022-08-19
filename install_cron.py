@@ -33,7 +33,7 @@ def main():
             time_indication = ""
 
         cron_lines.append(
-            f"# Execute the {cache_process}_cache caching process {time_indication}. Use flock to prevent concurrent execution."
+            f"# Execute the {cache_process} caching process {time_indication}. Use flock to prevent concurrent execution."
         )
         cron_lines.append(
             f"{config} cd {backend} && flock -n {backend}/caching/.{cache_process}.lock {explorer}/env/bin/python3 -m caching.{cache_process} --config-file {backend}/explorer.toml\n"

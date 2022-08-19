@@ -3,8 +3,8 @@ import time
 from node.witnet_node import WitnetNode
 
 class ConsensusConstants(object):
-    def __init__(self, socket_host, socket_port, error_retry, logger=None, log_queue=None, log_label=None):
-        witnet_node = WitnetNode(socket_host, socket_port, 15, logger=logger, log_queue=log_queue, log_label=log_label)
+    def __init__(self, config, error_retry=0, logger=None, log_queue=None, log_label=None):
+        witnet_node = WitnetNode(config, logger=logger, log_queue=log_queue, log_label=log_label)
 
         response = witnet_node.get_consensus_constants()
         while type(response) is dict and "error" in response:

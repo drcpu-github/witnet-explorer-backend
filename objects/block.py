@@ -63,9 +63,7 @@ class Block(object):
 
     def get_block(self):
         # Connect to node pool
-        socket_host = self.node_config["host"]
-        socket_port = self.node_config["port"]
-        witnet_node = WitnetNode(socket_host, socket_port, 15, logger=self.logger)
+        witnet_node = WitnetNode(self.node_config, logger=self.logger)
 
         block = witnet_node.get_block(self.block_hash)
         if type(block) is dict and "error" in block:

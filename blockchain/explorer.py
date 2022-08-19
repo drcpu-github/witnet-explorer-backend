@@ -43,15 +43,14 @@ class BlockExplorer(object):
 
         # Get configuration to connect to the node pool
         self.node_config = config["node-pool"]
-        socket_host, socket_port = self.node_config["host"], self.node_config["port"]
 
         # Create nodes to connect to the node pool
-        self.insert_blocks_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-insert")
-        self.confirm_blocks_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-confirm")
-        self.insert_pending_node = WitnetNode(socket_host, socket_port, 30, log_queue=self.log_queue, log_label="node-pending")
+        self.insert_blocks_node = WitnetNode(self.node_config, timeout=30, log_queue=self.log_queue, log_label="node-insert")
+        self.confirm_blocks_node = WitnetNode(self.node_config, timeout=30, log_queue=self.log_queue, log_label="node-confirm")
+        self.insert_pending_node = WitnetNode(self.node_config, timeout=30, log_queue=self.log_queue, log_label="node-pending")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(socket_host, socket_port, error_retry, log_queue=self.log_queue, log_label="node-consensus")
+        self.consensus_constants = ConsensusConstants(self.node_config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
         # Get configuration to connect to the database
         self.database_config = config["database"]

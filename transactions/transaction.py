@@ -145,9 +145,7 @@ class Transaction(object):
 
     def get_transaction_from_node(self, txn_hash):
         # Create connection to the node pool
-        socket_host = self.node_config["host"]
-        socket_port = self.node_config["port"]
-        witnet_node = WitnetNode(socket_host, socket_port, 15, logger=self.logger)
+        witnet_node = WitnetNode(self.node_config, logger=self.logger)
 
         transaction = witnet_node.get_transaction(txn_hash)
         while "error" in transaction:
