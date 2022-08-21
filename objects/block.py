@@ -14,8 +14,9 @@ from transactions.reveal import Reveal
 from transactions.tally import Tally
 
 class Block(object):
-    def __init__(self, block_hash, consensus_constants, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], node_config=None):
+    def __init__(self, consensus_constants, block_hash="", block_epoch=-1, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], node_config=None):
         self.block_hash = block_hash
+        self.block_epoch = block_epoch
 
         self.consensus_constants = consensus_constants
         self.collateral_minimum = consensus_constants.collateral_minimum
@@ -62,12 +63,37 @@ class Block(object):
         root.setLevel(logging.DEBUG)
 
     def get_block(self):
+        # No block hash specified, check if we can fetch it based on a block epoch
+        if self.block_hash == "":
+            # Log and return warnings if necessary
+            if self.block_epoch == -1:
+                return self.return_block_error("No block hash or block epoch specified")
+            if not self.witnet_database:
+                return self.return_block_error("No database found to fetch block hash")
+
+            # Fetch block hash from the database
+            sql = """
+                SELECT
+                    block_hash,
+                    epoch
+                FROM blocks
+                WHERE
+                    epoch=%s
+            """ % self.block_epoch
+            block_hash = self.witnet_database.sql_return_one(sql)
+
+            if block_hash:
+                self.block_hash = block_hash[0].hex()
+            else:
+                return self.return_block_error(f"Could not find block for epoch {self.block_epoch}")
+
         # Connect to node pool
         witnet_node = WitnetNode(self.node_config, logger=self.logger)
 
         block = witnet_node.get_block(self.block_hash)
         if type(block) is dict and "error" in block:
             self.logger.warning(f"Unable to fetch block {self.block_hash}: {block}")
+            return block
 
         return block["result"]
 
@@ -235,3 +261,10 @@ class Block(object):
             return tapi_accept
         else:
             return None
+
+    def return_block_error(self, message):
+        self.logger.warning(message)
+        return {
+            "type": "block",
+            "error": message.lower(),
+        }

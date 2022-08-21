@@ -82,6 +82,8 @@ class NodeManager(object):
             return input_value.isalpha()
         elif required_type == "alphanumeric":
             return input_value.isalnum()
+        elif required_type == "numeric":
+            return input_value.isnumeric()
         return False
 
     def is_transaction_pending(self, hash_value):
@@ -161,7 +163,7 @@ class NodeManager(object):
 
         if hash_type == "block":
             # Fetch block from a node
-            block = Block(hash_value, self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
+            block = Block(self.consensus_constants, block_hash=hash_value, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
             json_block = block.process_block("api")
             if json_block["details"]["confirmed"]:
                 try:
@@ -245,6 +247,48 @@ class NodeManager(object):
             return data_request_history.get_history(hash_type, hash_value, start, stop, amount)
 
         return {"error": "unknown hash type"}
+
+    def get_epoch(self, epoch):
+        self.logger.info(f"get_epoch({epoch})")
+
+        if len(str(epoch)) > 8:
+            self.logger.warning(f"Invalid epoch length ({len(str(epoch))})")
+            return {"error": "invalid epoch length"}
+
+        if not self.sanitize_input(str(epoch), "numeric"):
+            self.logger.warning(f"Invalid value for epoch: {epoch}")
+            return {"error": "argument is not a numeric value"}
+
+        # Epoch cached items return block hash
+        cached_block_hash = cache.get(epoch)
+        if cached_block_hash:
+            # Fetch the actual block based on the block hash
+            cached_block = cache.get(cached_block_hash)
+            if cached_block:
+                self.logger.info(f"Found block {epoch} with hash {cached_block_hash} in memcached cache")
+                return cached_block
+
+        # Fetch block from a node
+        block = Block(self.consensus_constants, block_epoch=epoch, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
+        json_block = block.process_block("api")
+        if "error" in json_block:
+            return json_block
+
+        # Attempt to cache the block
+        block_hash = json_block["details"]["block_hash"]
+        if json_block["details"]["confirmed"]:
+            try:
+                # Cache the actual block based on its hash
+                cache.set(block_hash, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                # Cache the epoch to block hash value
+                cache.set(epoch, block_hash, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                self.logger.info(f"Added block {epoch} with hash {block_hash} to the memcached cache")
+            except pylibmc.TooBig as e:
+                self.logger.warning(f"Could not save block {epoch} with hash {block_hash} in the memcached instance because its size exceeded 1MB")
+        else:
+            self.logger.info(f"Did not add unconfirmed block {epoch} with hash {block_hash} to the memcached cache")
+
+        return json_block
 
     def get_home(self, key):
         self.logger.info(f"get_home({key})")
