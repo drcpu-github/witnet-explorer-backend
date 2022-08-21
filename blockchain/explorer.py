@@ -75,7 +75,7 @@ class BlockExplorer(object):
 
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
         # Create block object and parse it to a JSON object
-        block = Block(block_hash_hex_str, self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, block=block, tapi_periods=tapi_periods, node_config=self.node_config)
+        block = Block(self.consensus_constants, block_hash=block_hash_hex_str, log_queue=self.log_queue, database_config=self.database_config, block=block, tapi_periods=tapi_periods, node_config=self.node_config)
         block_json = block.process_block("explorer")
 
         # Insert block
