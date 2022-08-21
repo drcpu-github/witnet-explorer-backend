@@ -111,6 +111,11 @@ def address():
         return {}
     return node.get_address(value, tab, limit, epoch)
 
+@api.route("/epoch")
+def epoch():
+    epoch = request.args.get("value", default=1, type=int)
+    return node.get_epoch(epoch)
+
 @api.route("/home")
 def home():
     return node.get_home("full")
