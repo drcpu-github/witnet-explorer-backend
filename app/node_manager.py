@@ -24,6 +24,8 @@ from transactions.tally import Tally
 from transactions.mint import Mint
 from transactions.value_transfer import ValueTransfer
 
+from util.memcached import calculate_timeout
+
 class NodeManager(object):
     def __init__(self, config, log_queue):
         error_retry = config["api"]["error_retry"]
@@ -167,7 +169,7 @@ class NodeManager(object):
             json_block = block.process_block("api")
             if json_block["details"]["confirmed"]:
                 try:
-                    cache.set(hash_value, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                    cache.set(hash_value, json_block, timeout=calculate_timeout(self.cache_config["scripts"]["blocks"]["timeout"]))
                     self.logger.info(f"Added block with hash '{hash_value}' to the memcached cache")
                 except pylibmc.TooBig as e:
                     self.logger.warning(f"Could not save block '{hash_value}' in the memcached instance because its size exceeded 1MB")
@@ -181,7 +183,7 @@ class NodeManager(object):
             mint_txn = mint.get_transaction_from_database(hash_value)
             if mint_txn["confirmed"]:
                 self.logger.info(f"Added mint transaction with hash '{hash_value}' to the memcached cache")
-                cache.set(hash_value, mint_txn, timeout=self.cache_config["views"]["hash"]["timeout"])
+                cache.set(hash_value, mint_txn, timeout=calculate_timeout(self.cache_config["views"]["hash"]["timeout"]))
             else:
                 self.logger.info(f"Did not add unconfirmed mint transaction with hash '{hash_value}' to the memcached cache")
             return mint_txn
@@ -192,7 +194,7 @@ class NodeManager(object):
             value_transfer_txn = value_transfer.get_transaction_from_database(hash_value)
             if value_transfer_txn["confirmed"]:
                 self.logger.info(f"Added value transfer transaction with hash '{hash_value}' to the memcached cache")
-                cache.set(hash_value, value_transfer_txn, timeout=self.cache_config["views"]["hash"]["timeout"])
+                cache.set(hash_value, value_transfer_txn, timeout=calculate_timeout(self.cache_config["views"]["hash"]["timeout"]))
             else:
                 self.logger.info(f"Did not add unconfirmed value transfer transaction with hash '{hash_value}' to the memcached cache")
             return value_transfer_txn
@@ -230,7 +232,7 @@ class NodeManager(object):
                     if data_request_report["tally_txn"] and data_request_report["tally_txn"]["confirmed"]:
                         self.logger.info(f"Added data request report with hash '{data_request_hash}' to the memcached cache")
                         # Cache data request report based on the data request hash
-                        cache.set(data_request_hash, data_request_report, timeout=self.cache_config["scripts"]["data_request_reports"]["timeout"])
+                        cache.set(data_request_hash, data_request_report, timeout=calculate_timeout(self.cache_config["scripts"]["data_request_reports"]["timeout"]))
                     else:
                         if not data_request_report["tally_txn"]:
                             self.logger.info(f"Did not add incomplete data request report with hash '{data_request_hash}' to the memcached cache")
@@ -284,10 +286,10 @@ class NodeManager(object):
         block_hash = json_block["details"]["block_hash"]
         if json_block["details"]["confirmed"]:
             try:
-                # Cache the actual block based on its hash
-                cache.set(block_hash, json_block, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
-                # Cache the epoch to block hash value
-                cache.set(epoch, block_hash, timeout=self.cache_config["scripts"]["blocks"]["timeout"])
+                # First, cache the actual block with the hash as key
+                cache.set(block_hash, json_block, timeout=calculate_timeout(self.cache_config["scripts"]["blocks"]["timeout"]))
+                # Second, cache the block hash with the block epoch as key
+                cache.set(epoch, block_hash, timeout=calculate_timeout(self.cache_config["scripts"]["blocks"]["timeout"]))
                 self.logger.info(f"Added block {epoch} with hash {block_hash} to the memcached cache")
             except pylibmc.TooBig as e:
                 self.logger.warning(f"Could not save block {epoch} with hash {block_hash} in the memcached instance because its size exceeded 1MB")
@@ -340,7 +342,7 @@ class NodeManager(object):
             if not blockchain_init:
                 self.logger.info(f"Could not find '{cache_key}' in memcached cache")
                 blockchain_init = self.blockchain.get_blockchain_details(action, block, -1, -1)
-                cache.set(cache_key, blockchain_init, timeout=self.cache_config["views"]["blockchain"]["timeout"])
+                cache.set(cache_key, blockchain_init, timeout=calculate_timeout(self.cache_config["views"]["blockchain"]["timeout"]))
             else:
                 self.logger.info(f"Found '{cache_key}' in memcached cache")
             return blockchain_init
@@ -355,7 +357,7 @@ class NodeManager(object):
             if not blockchain_append:
                 self.logger.info(f"Could not find '{cache_key}' in memcached cache")
                 blockchain_append = self.blockchain.get_blockchain_details(action, num, start, stop)
-                cache.set(cache_key, blockchain_append, timeout=self.cache_config["views"]["blockchain"]["timeout"])
+                cache.set(cache_key, blockchain_append, timeout=calculate_timeout(self.cache_config["views"]["blockchain"]["timeout"]))
             else:
                 self.logger.info(f"Found '{cache_key}' in memcached cache")
             return blockchain_append
@@ -367,7 +369,7 @@ class NodeManager(object):
             if not blockchain_prepend:
                 self.logger.info(f"Could not find '{cache_key}' in memcached cache")
                 blockchain_prepend = self.blockchain.get_blockchain_details(action, 0, start, block)
-                cache.set(cache_key, blockchain_prepend, timeout=self.cache_config["views"]["blockchain"]["timeout"])
+                cache.set(cache_key, blockchain_prepend, timeout=calculate_timeout(self.cache_config["views"]["blockchain"]["timeout"]))
             else:
                 self.logger.info(f"Found '{cache_key}' in memcached cache")
             return blockchain_prepend
@@ -439,7 +441,7 @@ class NodeManager(object):
         if not mempool_transactions:
             self.logger.info(f"Could not find 'mempool_transactions' in memcached cache")
             mempool_transactions = self.transaction_pool.get_mempool_transactions()
-            cache.set(f"mempool_transactions", mempool_transactions, timeout=self.cache_config["views"]["pending"]["timeout"])
+            cache.set(f"mempool_transactions", mempool_transactions, timeout=calculate_timeout(self.cache_config["views"]["pending"]["timeout"]))
         else:
             self.logger.info(f"Found 'mempool_transactions' in memcached cache")
 
@@ -525,7 +527,7 @@ class NodeManager(object):
                 "node_pool_message": node_pool_message,
             }
 
-            cache.set(f"status", status, timeout=self.cache_config["views"]["status"]["timeout"])
+            cache.set(f"status", status, timeout=calculate_timeout(self.cache_config["views"]["status"]["timeout"]))
         else:
             self.logger.info(f"Found 'status' in memcached cache")
 

@@ -9,6 +9,7 @@ from objects.data_request_report import DataRequestReport
 from caching.client import Client
 
 from util.logger import configure_logger
+from util.memcached import calculate_timeout
 
 class DataRequestReports(Client):
     def __init__(self, config):
@@ -125,10 +126,7 @@ class DataRequestReports(Client):
         # Try to insert the data request report in the cache
         try:
             # Cache older data request reports for a shorter amount of time proportional to mimic the normal expiry time
-            timeout = int(self.memcached_timeout * (self.lookback_epochs - self.last_epoch + epoch) / self.lookback_epochs)
-            # Memcached timeouts bigger than 30 days needs to be specified as a unix timestamp
-            if timeout > 60*60*24*30:
-                timeout = int(time.time()) + timeout
+            timeout = calculate_timeout(int(self.memcached_timeout * (self.lookback_epochs - self.last_epoch + epoch) / self.lookback_epochs))
             self.memcached_client.set(txn_hash, data_request_report, time=timeout)
         except pylibmc.TooBig as e:
             self.logger.warning(f"Built data request report {txn_hash} for epoch {epoch} in {time.perf_counter() - inner_start:.2f}s, but could not save it in the memcached instance because its size exceeded 1MB")
