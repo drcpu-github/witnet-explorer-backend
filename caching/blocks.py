@@ -122,8 +122,10 @@ class Blocks(Client):
         try:
             # Cache older blocks for a shorter amount of time proportional to mimic the normal expiry time
             timeout = calculate_timeout(int(self.memcached_timeout * (self.lookback_epochs - last_epoch + epoch) / self.lookback_epochs))
-            # Cache the full block based on the hash
+            # First, cache the full block based on the hash
             self.memcached_client.set(block_hash, json_block, time=timeout)
+            # Second, cache the block epoch to block hash mapping
+            self.memcached_client.set(str(epoch), block_hash, time=timeout)
         except pylibmc.TooBig as e:
             raise
 

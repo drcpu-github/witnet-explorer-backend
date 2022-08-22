@@ -169,7 +169,11 @@ class NodeManager(object):
             json_block = block.process_block("api")
             if json_block["details"]["confirmed"]:
                 try:
+                    # First cache the block with its hash as a key
                     cache.set(hash_value, json_block, timeout=calculate_timeout(self.cache_config["scripts"]["blocks"]["timeout"]))
+                    # Second cache the block hash with the block epoch as key
+                    block_epoch = json_block["details"]["epoch"]
+                    cache.set(block_epoch, hash_value, timeout=calculate_timeout(self.cache_config["scripts"]["blocks"]["timeout"]))
                     self.logger.info(f"Added block with hash '{hash_value}' to the memcached cache")
                 except pylibmc.TooBig as e:
                     self.logger.warning(f"Could not save block '{hash_value}' in the memcached instance because its size exceeded 1MB")
