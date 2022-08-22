@@ -9,6 +9,7 @@ from objects.block import Block
 from caching.client import Client
 
 from util.logger import configure_logger
+from util.memcached import calculate_timeout
 
 class Blocks(Client):
     def __init__(self, config):
@@ -120,11 +121,8 @@ class Blocks(Client):
     def cache_block(self, last_epoch, epoch, block_hash, json_block):
         try:
             # Cache older blocks for a shorter amount of time proportional to mimic the normal expiry time
-            timeout = int(self.memcached_timeout * (self.lookback_epochs - last_epoch + epoch) / self.lookback_epochs)
-            # Memcached timeouts bigger than 30 days needs to be specified as a unix timestamp
-            if timeout > 60*60*24*30:
-                timeout = int(time.time()) + timeout
-            # No need to surround this with a try / except since it is already present in the cache and thus fits
+            timeout = calculate_timeout(int(self.memcached_timeout * (self.lookback_epochs - last_epoch + epoch) / self.lookback_epochs))
+            # Cache the full block based on the hash
             self.memcached_client.set(block_hash, json_block, time=timeout)
         except pylibmc.TooBig as e:
             raise
