@@ -71,6 +71,16 @@ log_file = "/path/to/logs/explorer.log"
 level_file = "info"
 level_stdout = "info"
 
+# json_file: the JSON file where the TRS data will be persisted between subsequent runs
+# log_file: specify logging file name
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# fetch_epochs: number of epochs for which to fetch transactions in one query
+[engine]
+json_file = "/path/to/explorer/backend/engine/data/trs.json"
+log_file = "/path/to/logs/engine_reputation.log"
+level_file = "info"
+fetch_epochs = 10000
+
 # error_retry: timeout before retrying a request that returned an error
 # cache_server: caching is enabled through memcached
 [api]
