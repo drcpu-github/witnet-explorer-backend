@@ -112,6 +112,31 @@ password = "<password>"
 # Note: the cache.py file in the app directory contains a number of hardcoded memcached settings
 node_retries = 5
 
+
+# host: IP address of the address JIT
+# port: RPC port on which the address JIT can be reached
+# default_timeout: timeout for a socket to receive a request response
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
+# log_file: specify logging file name
+# cache_size: the number of tracked addresses for which API call results are updated and cached
+# processes: the number of concurrent processes which can be used to query the database for API call results
+# jit_timeout: timeout for address data cached when an address is queried from the API
+# update_timeout: timeout for monitored address which is recached when an update is triggered through the explorer
+# plot_directory: directory where to save the reputation-through-time plots
+[api.caching.scripts.addresses]
+host = "127.0.0.1"
+port = 22820
+default_timeout = 15
+level_file = "info"
+level_stdout = "info"
+log_file = "/path/to/logs/address.log"
+cache_size = 100
+processes = 4
+jit_timeout = 20 # 20 seconds
+update_timeout = 86400 # 1 day
+plot_directory = "/path/to/plots"
+
 # cron: specify the crontab timing configuration
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
