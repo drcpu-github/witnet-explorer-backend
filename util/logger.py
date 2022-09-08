@@ -52,9 +52,9 @@ def configure_logging_listener(config):
     # Add header formatting of the log message
     formatter = logging.Formatter("[%(levelname)-8s] [%(asctime)s] [%(name)-8s] %(message)s", datefmt="%Y/%m/%d %H:%M:%S")
 
-    log_file_name = config["address-jit"]["log"]["log_file"]
-    level_file = select_logging_level(config["address-jit"]["log"]["level_file"])
-    level_stdout = select_logging_level(config["address-jit"]["log"]["level_stdout"])
+    log_file_name = config["log_file"]
+    level_file = select_logging_level(config["level_file"])
+    level_stdout = select_logging_level(config["level_stdout"])
 
     # Get log file parts
     dirname = os.path.dirname(log_file_name)
