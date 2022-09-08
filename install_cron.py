@@ -24,7 +24,8 @@ def main():
 
     cron_config = {}
     for script in caching_scripts:
-        cron_config[script] = config["api"]["caching"]["scripts"][script]["cron"]
+        if "cron" in config["api"]["caching"]["scripts"][script]:
+            cron_config[script] = config["api"]["caching"]["scripts"][script]["cron"]
 
     p = subprocess.Popen(["crontab", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()

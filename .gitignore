@@ -16,3 +16,7 @@ analysis/*
 **/*.lock
 
 engine/data/*
+
+caching/plots/*
+
+**/*.json
