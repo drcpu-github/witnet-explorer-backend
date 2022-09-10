@@ -57,9 +57,11 @@ config = "/path/to/node/config/node-2.toml"
 master_key = "/path/to/node/key/node-2.key"
 log_file = "/path/to/logs/node-2.log"
 
+# path: path to explorer directory
 # error_retry: timeout before retrying a request that returned an error
 # pending_interval: time between querying how many pending requests there are in the network
 [explorer]
+path = "/home/witnet/explorer"
 error_retry = 60
 pending_interval = 60
 
@@ -75,11 +77,13 @@ level_stdout = "info"
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # fetch_epochs: number of epochs for which to fetch transactions in one query
+# cron: specify the crontab timing configuration
 [engine]
 json_file = "/path/to/explorer/backend/engine/data/trs.json"
 log_file = "/path/to/logs/engine_reputation.log"
 level_file = "info"
 fetch_epochs = 10000
+cron = "*/5 * * * *"
 
 # error_retry: timeout before retrying a request that returned an error
 # cache_server: caching is enabled through memcached

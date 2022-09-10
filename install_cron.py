@@ -3,6 +3,17 @@ import os
 import subprocess
 import toml
 
+def translate_cron(config):
+    if config == "* * * * *":
+        return "every minute"
+    elif config[:2] == "*/" and config[-8:] == "* * * *":
+        minutes = config.split()[2:]
+        return f"every {minutes} minutes"
+    elif config == "0 * * * *":
+        return "at the top of every hour"
+    else:
+        return ""
+
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
@@ -22,22 +33,28 @@ def main():
     if len(cron_lines) > 0:
         cron_lines.append("")
 
-    explorer = "/home/witnet/explorer"
+    explorer = config["explorer"]["path"]
     backend = f"{explorer}/backend"
-    for cache_process, config in cron_config.items():
-        if config == "* * * * *":
-            time_indication = "every minute"
-        elif config == "0 * * * *":
-            time_indication = "at the top of every hour"
-        else:
-            time_indication = ""
 
+    # Cron jobs for all processes caching data
+    for cache_process, cron in cron_config.items():
+        time_indication = translate_cron(cron)
         cron_lines.append(
             f"# Execute the {cache_process} caching process {time_indication}. Use flock to prevent concurrent execution."
         )
         cron_lines.append(
-            f"{config} cd {backend} && flock -n {backend}/caching/.{cache_process}.lock {explorer}/env/bin/python3 -m caching.{cache_process} --config-file {backend}/explorer.toml\n"
+            f"{cron} cd {backend} && flock -n {backend}/caching/.{cache_process}.lock {explorer}/env/bin/python3 -m caching.{cache_process} --config-file {backend}/explorer.toml\n"
         )
+
+    # Cron job for the TRS building process
+    cron = config["engine"]["cron"]
+    time_indication = translate_cron(cron)
+    cron_lines.append(
+        f"# Execute the TRS building process {time_indication}. Use flock to prevent concurrent execution."
+    )
+    cron_lines.append(
+        f"{cron} cd {backend} && flock -n {backend}/engine/.reputation.lock {explorer}/env/bin/python3 -m engine.reputation --config-file {backend}/explorer.toml --load-trs --persist-trs\n"
+    )
 
     f = open("crontabs.txt", "w+")
     f.write("\n".join(cron_lines))
