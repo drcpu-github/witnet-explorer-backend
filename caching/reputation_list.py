@@ -48,7 +48,9 @@ class ReputationList(Client):
 
         # Parse reputation statistics
         stats = result["result"]["stats"]
-        reputation = [(key, stats[key]["reputation"], stats[key]["eligibility"], stats[key]["is_active"]) for key in stats.keys()]
+        total_reputation = result["result"]["total_reputation"]
+        # Only keep identities with a non-zero reputation
+        reputation = [(key, stats[key]["reputation"], stats[key]["eligibility"] / total_reputation * 100) for key in stats.keys() if stats[key]["reputation"] > 0]
         reputation = sorted(reputation, key=lambda l: l[1], reverse=True)
 
         self.reputation = {
