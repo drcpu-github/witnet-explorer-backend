@@ -131,7 +131,8 @@ def supply_info():
 
 @api.route("/reputation")
 def reputation():
-    return node.get_reputation_list()
+    epoch = request.args.get("epoch", default="", type=str)
+    return node.get_reputation_list(epoch)
 
 @api.route("/balances")
 def balance_list():

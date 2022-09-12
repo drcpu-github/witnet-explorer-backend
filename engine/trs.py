@@ -1,11 +1,17 @@
 import json
 import os
 
+from blockchain.database_manager import DatabaseManager
+
 class TRS:
-    def __init__(self, db_mngr, logger, trs_json, load_trs):
-        self.db_mngr = db_mngr
-        self.logger = logger
-        self.trs_json = trs_json
+    def __init__(self, trs_file_json, load_trs, db_config=None, db_mngr=None, logger=None):
+        self.trs_file_json = trs_file_json
+        if db_config:
+            self.db_mngr = DatabaseManager(db_config["user"], db_config["name"], db_config["password"], logger)
+        else:
+            self.db_mngr = db_mngr
+        if logger:
+            self.logger = logger
 
         # Reputation-related consensus constants
         self.reputation_issuance_stop = 1 << 20
@@ -15,11 +21,13 @@ class TRS:
         # Attempt to load the TRS data from a file if requested
         load_trs_success = load_trs
         if load_trs:
-            if self.trs_json == "":
-                self.logger.warning("No TRS data JSON file supplied, initializing all data to zero")
+            if self.trs_file_json == "":
+                if self.logger:
+                    self.logger.warning("No TRS data JSON file supplied, initializing all data to zero")
                 load_trs_success = False
-            if not os.path.exists(self.trs_json):
-                self.logger.warning("The supplied TRS data JSON file does not exist, initializing all data to zero")
+            if not os.path.exists(self.trs_file_json):
+                if self.logger:
+                    self.logger.warning("The supplied TRS data JSON file does not exist, initializing all data to zero")
                 load_trs_success = False
             if load_trs_success:
                 self.load_trs()
@@ -43,6 +51,10 @@ class TRS:
         # Variable for database insertions
         self.insert_reputation_differences = []
 
+        # Get an initial id to address mapping
+        self.ids_to_addresses = {}
+        self.get_ids_to_addresses()
+
         # Statistics
         self.max_reputation_distributed = 0
         self.max_reputation_slashed = 0
@@ -52,14 +64,15 @@ class TRS:
     #####################################################
 
     def persist_trs(self):
-        if self.trs_json == "":
-            self.logger.error("Could not persist TRS as no file name was specified")
+        if self.trs_file_json == "":
+            if self.logger:
+                self.logger.error("Could not persist TRS as no file name was specified")
             return
 
-        if not os.path.exists(os.path.dirname(self.trs_json)):
-            os.makedirs(os.path.dirname(self.trs_json))
+        if not os.path.exists(os.path.dirname(self.trs_file_json)):
+            os.makedirs(os.path.dirname(self.trs_file_json))
 
-        f = open(self.trs_json, "w+")
+        f = open(self.trs_file_json, "w+")
         data = {
             "witnessing_acts": self.witnessing_acts,
             "leftover_reputation": self.leftover_reputation,
@@ -71,7 +84,7 @@ class TRS:
         f.close()
 
     def load_trs(self):
-        f = open(self.trs_json, "r")
+        f = open(self.trs_file_json, "r")
         data = json.load(f)
         f.close()
 
@@ -105,7 +118,7 @@ class TRS:
                 self.logger.debug(f"Inserted {len(self.insert_reputation_differences)} reputation differences")
         self.insert_reputation_differences = []
 
-    def get_address_ids(self):
+    def get_addresses_to_ids(self):
         sql = """
             SELECT
                 address,
@@ -125,6 +138,22 @@ class TRS:
         self.address_ids = address_ids
 
         return address_ids
+
+    def get_ids_to_addresses(self):
+        sql = """
+            SELECT
+                address,
+                id
+            FROM
+                addresses
+        """
+        addresses = self.db_mngr.sql_return_all(sql)
+
+        # Transform list of data to dictionary
+        if addresses:
+            self.ids_to_addresses = {}
+            for address, address_id in addresses:
+                self.ids_to_addresses[address_id] = address
 
     def insert_addresses(self, addresses_to_insert):
         sql = """
@@ -149,6 +178,53 @@ class TRS:
         self.db_mngr.sql_insert_one(sql, [epoch, addresses, reputations])
         if self.logger:
             self.logger.debug(f"Inserted the TRS for epoch {epoch}")
+
+    def get_trs(self, epoch):
+        data = None
+        while not data:
+            sql = """
+                SELECT
+                    epoch,
+                    addresses,
+                    reputations
+                FROM
+                    trs
+                WHERE epoch=%s
+            """ % epoch
+
+            # Fetch the data
+            data = self.db_mngr.sql_return_one(sql)
+
+            # If we did not find a TRS, decrement the epoch
+            epoch -= 1
+
+            if epoch <= 0:
+                break
+
+        if data:
+            # Create TRS dictionary
+            epoch, addresses, reputations = data
+
+            # Optimistic implementation
+            # We assume the initial mapping contains all required ids, but if it does not, refresh the mapping
+            if set(addresses) - set(self.ids_to_addresses.keys()) != set():
+                if self.logger:
+                    self.logger.warning("Not all IDs where found in the id to address mapping")
+                self.get_addresses_to_ids()
+
+            # Transform to dictionary and calculate total reputation
+            identities = {self.ids_to_addresses[address]: reputation for address, reputation in zip(addresses, reputations)}
+            total_reputation = sum(identities.values())
+
+            # Calculate eligibilities and create the TRS list
+            eligibilities = self.calculate_eligibilities(identities)
+            trs = [(address, reputation, eligibilities[address] * 100) for address, reputation in sorted(identities.items(), key=lambda l: l[1], reverse=True)]
+        else:
+            epoch = 0
+            trs = []
+            total_reputation = 0
+
+        return epoch, trs, total_reputation
 
     #####################################################
     #         Reputation manipulation functions         #
@@ -200,16 +276,19 @@ class TRS:
         # Log how much reputation expired in total
         for identity in self.identities.keys():
             if self.identities[identity] != old_trs[identity]:
-                self.logger.debug(f"{epoch} -- {old_trs[identity] - self.identities[identity]} reputation expired for {identity}")
+                if self.logger:
+                    self.logger.debug(f"{epoch} -- {old_trs[identity] - self.identities[identity]} reputation expired for {identity}")
 
         return expired
 
     def expire_reputation_in_next_epoch(self):
-        self.logger.debug(f"Expiring reputation in next epoch")
+        if self.logger:
+            self.logger.debug(f"Expiring reputation in next epoch")
         expired_reputation = self.expire_reputation(next_epoch=True)
         if expired_reputation > 0:
             total_reputation = self.leftover_reputation + expired_reputation
-            self.logger.debug(f"{self.epoch + 1} -- {self.leftover_reputation} from previous epoch + {expired_reputation} expired + 0 issued + 0 penalized = {total_reputation}")
+            if self.logger:
+                self.logger.debug(f"{self.epoch + 1} -- {self.leftover_reputation} from previous epoch + {expired_reputation} expired + 0 issued + 0 penalized = {total_reputation}")
             self.leftover_reputation += expired_reputation
 
     def penalize_liars(self, liar_identities):
@@ -240,7 +319,8 @@ class TRS:
 
                 # Update identity reputation
                 self.identities[liar_identity] = reputation_after_lies
-                self.logger.debug(f"{self.epoch} -- The reputation score of {liar_identity} has been slashed by {penalized_reputation} points")
+                if self.logger:
+                    self.logger.debug(f"{self.epoch} -- The reputation score of {liar_identity} has been slashed by {penalized_reputation} points")
 
                 # Insert into database
                 self.insert_reputation_difference(liar_identity, self.epoch, -penalized_reputation, "lie")
@@ -263,7 +343,8 @@ class TRS:
             if honest_identity not in self.identities:
                 self.identities[honest_identity] = 0
             self.identities[honest_identity] += reputation_to_distribute
-            self.logger.debug(f"{self.epoch} -- {honest_identity} reputation score has increased by {reputation_to_distribute} points")
+            if self.logger:
+                self.logger.debug(f"{self.epoch} -- {honest_identity} reputation score has increased by {reputation_to_distribute} points")
 
             # Insert into database
             self.insert_reputation_difference(honest_identity, self.epoch, reputation_to_distribute, "gain")
@@ -275,7 +356,7 @@ class TRS:
 
     def update(self, epoch, revealing_identities, honest_identities, error_identities, liar_identities):
         # If we loaded a TRS from a file, check if the sequential epochs make sense
-        if self.first_update and abs(self.epoch - epoch) > 10:
+        if self.first_update and abs(self.epoch - epoch) > 10 and self.logger:
             self.logger.warning(f"TRS loaded from JSON file was persisted at epoch {self.epoch}, first update is at {epoch}")
         self.first_update = False
 
@@ -288,7 +369,8 @@ class TRS:
             self.insert_trs(next_epoch=True)
         if self.epoch and epoch > self.epoch + 2:
             total_reputation = self.leftover_reputation
-            self.logger.debug(f"{self.epoch + 2} -- {self.leftover_reputation} from previous epoch + 0 expired + 0 issued + 0 penalized = {total_reputation}")
+            if self.logger:
+                self.logger.debug(f"{self.epoch + 2} -- {self.leftover_reputation} from previous epoch + 0 expired + 0 issued + 0 penalized = {total_reputation}")
 
         # Track the last epoch, do not update this earlier since previous expiries still require the old epoch
         self.epoch = epoch
@@ -298,7 +380,8 @@ class TRS:
         # Calculate witnessing acts for this epoch
         new_witnessing_acts = sum(revealing_identities.values())
 
-        self.logger.debug(f"{self.epoch} -- Witnessing acts: Total {self.witnessing_acts} + new {new_witnessing_acts}")
+        if self.logger:
+            self.logger.debug(f"{self.epoch} -- Witnessing acts: Total {self.witnessing_acts} + new {new_witnessing_acts}")
 
         # Calculate expired reputation
         expired_reputation = self.expire_reputation()
@@ -311,7 +394,8 @@ class TRS:
 
         # Calculate total reputation
         total_reputation = self.leftover_reputation + expired_reputation + issued_reputation + penalized_reputation
-        self.logger.debug(f"{self.epoch} -- {self.leftover_reputation} from previous epoch + {expired_reputation} expired + {issued_reputation} issued + {penalized_reputation} penalized = {total_reputation}")
+        if self.logger:
+            self.logger.debug(f"{self.epoch} -- {self.leftover_reputation} from previous epoch + {expired_reputation} expired + {issued_reputation} issued + {penalized_reputation} penalized = {total_reputation}")
 
         # Distribute reputation over all honest identities
         total_reputation_distributed, reputation_earning_identities = self.distribute_reputation(total_reputation, honest_identities)
@@ -342,6 +426,72 @@ class TRS:
         self.insert_trs()
 
     #####################################################
+    #               Eligibility functions               #
+    #####################################################
+
+    # Calculate the result of `y = mx + K`, the result is rounded and low saturated in 0
+    def magic_line(self, x, m, k):
+        res = m * x + k
+        if res < 0:
+            return 0
+        else:
+            return round(res, 0)
+
+    # Calculate the values and the total reputation for the upper triangle of the trapezoid
+    def calculate_trapezoid_triangle(self, total_active_rep, active_reputed_ids_len, minimum_rep):
+        # Calculate parameters for the curve y = mx + k
+        # k: 1'5 * average of the total active reputation without the minimum
+        average = total_active_rep / active_reputed_ids_len
+        k = 1.5 * (average - minimum_rep)
+        # m: negative slope with -k
+        m = -k / (active_reputed_ids_len - 1)
+
+        triangle_reputation = []
+        total_triangle_reputation = 0
+        for i in range(0, active_reputed_ids_len):
+            calculated_rep = self.magic_line(i, m, k)
+            triangle_reputation.append(calculated_rep)
+            total_triangle_reputation += calculated_rep
+
+        return triangle_reputation, total_triangle_reputation
+
+    # Use the trapezoid distribution to calculate eligibility for each of the identities in the ARS based on their reputation ranking
+    def trapezoidal_eligibility(self, identities):
+        active_reputed_ids = sorted([(identity, reputation) for identity, reputation in identities.items()], key=lambda l: l[1], reverse=True)
+        total_active_rep = sum(identities.values())
+
+        if len(active_reputed_ids) == 0:
+            return {}, 0
+
+        # Calculate upper triangle reputation in the trapezoidal eligibility
+        minimum_rep = active_reputed_ids[-1][1]
+        triangle_reputation, total_triangle_reputation = self.calculate_trapezoid_triangle(total_active_rep, len(active_reputed_ids), minimum_rep)
+
+        # To complete the trapezoid, an offset needs to be added (the rectangle at the base)
+        remaining_reputation = total_active_rep - total_triangle_reputation
+        offset_reputation = remaining_reputation / len(active_reputed_ids)
+        ids_with_extra_rep = remaining_reputation % len(active_reputed_ids)
+
+        eligibility = {}
+        for i, (ar_id, rep) in enumerate(zip(active_reputed_ids, triangle_reputation)):
+            trapezoid_rep = rep + offset_reputation
+            if i < ids_with_extra_rep:
+                trapezoid_rep += 1
+            eligibility[ar_id[0]] = int(trapezoid_rep)
+
+        return eligibility, total_active_rep
+
+    # Calculate actual relative eligibilities adding 1 to each of the identities
+    def calculate_eligibilities(self, identities):
+        eligibility, total_active_rep = self.trapezoidal_eligibility(identities)
+
+        eligibilities = {}
+        for identity in identities.keys():
+            eligibilities[identity] = (eligibility.get(identity, 0) + 1) / (total_active_rep + len(identities))
+
+        return eligibilities
+
+    #####################################################
     #                  Helper functions                 #
     #####################################################
 
@@ -358,7 +508,7 @@ class TRS:
         # Do insertion and refresh our local mapping
         if len(addresses_to_insert) > 0:
             self.insert_addresses(addresses_to_insert)
-            self.get_address_ids()
+            self.get_addresses_to_ids()
 
         # Transform addresses list to address of ids
         address_ids, reputations = [], []

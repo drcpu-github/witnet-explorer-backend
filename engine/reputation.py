@@ -165,7 +165,7 @@ def main():
         total_epochs = get_last_confirmed_epoch(db_mngr)
 
     # Create TRS
-    trs = TRS(db_mngr, logger, config["engine"]["json_file"], options.load_trs)
+    trs = TRS(config["engine"]["json_file"], options.load_trs, db_mngr=db_mngr, logger=logger)
 
     # We always take the TRS epoch as start epoch because otherwise it's impossible to guarantee it's being built correctly
     start_epoch = trs.epoch + 1
@@ -183,7 +183,7 @@ def main():
             fetch_to_epoch = total_epochs
         addresses = get_unique_addresses(db_mngr, fetch_from_epoch, fetch_to_epoch)
 
-        address_ids = trs.get_address_ids()
+        address_ids = trs.get_addresses_to_ids()
 
         addresses_to_insert = []
         for address in addresses:
@@ -196,7 +196,7 @@ def main():
         logger.info(f"Inserted {len(addresses_to_insert)} new adddresses for epochs {fetch_from_epoch} to {fetch_to_epoch}")
 
     # Update TRS address ids once more
-    trs.get_address_ids()
+    trs.get_addresses_to_ids()
 
     logger.info(f"Collecting data requests for epoch {start_epoch} to {total_epochs} to build TRS")
 
