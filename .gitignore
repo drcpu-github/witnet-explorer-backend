@@ -13,6 +13,6 @@ explorer.toml
 
 analysis/*
 
-caching/*.lock
+**/*.lock
 
 engine/data/*
