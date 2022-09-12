@@ -32,6 +32,8 @@ class BalanceList(Client):
                 address,
                 label
             FROM addresses
+            WHERE
+                label IS NOT NULL
         """
         address_labels = self.witnet_database.sql_return_all(sql)
         address_labels = {address: label for address,label in address_labels}
@@ -58,11 +60,12 @@ class BalanceList(Client):
 
             time.sleep(attempts)
 
-        self.balances, self.balances_sum = [], 0
+        self.addresses, self.balances, self.balances_sum = [], [], 0
         for address, balance in address_balances["result"].items():
             # Only save addresses with a balance above 1 WIT
             if balance["total"] // 1E9 < 1:
                 continue
+            self.addresses.append(address)
             # Create balance entry
             self.balances.append([address, balance["total"] // 1E9, address_labels[address] if address in address_labels else ""])
             # Sum all balances, don't floor to an integer to minimize rounding errors
@@ -97,6 +100,44 @@ class BalanceList(Client):
 
         self.memcached_client.set(f"balance-list_items", items_stored_in_cache)
 
+    def get_address_ids(self):
+        # Fetch all known addresses and their ids
+        sql = """
+            SELECT
+                address,
+                id
+            FROM
+                addresses
+        """
+        addresses = self.witnet_database.sql_return_all(sql)
+
+        # Transform list of data to dictionary
+        self.address_ids = {}
+        if addresses:
+            for address, address_id in addresses:
+                self.address_ids[address] = address_id
+
+    def insert_addresses(self):
+        start = time.perf_counter()
+
+        # Check which addresses we need to insert
+        self.get_address_ids()
+        addresses_to_insert = []
+        for address in self.addresses:
+            if address not in self.address_ids:
+                addresses_to_insert.append([address])
+
+        if len(addresses_to_insert) > 0:
+            # Insert them
+            sql = """
+                INSERT INTO addresses (
+                    address
+                ) VALUES %s
+            """
+            self.witnet_database.sql_execute_many(sql, addresses_to_insert)
+
+        self.logger.info(f"Inserted {len(addresses_to_insert)} addresses into database in {time.perf_counter() - start:.2f}s")
+
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file", help="Specify a configuration file")
@@ -114,6 +155,7 @@ def main():
     # Save BalanceList in memcached instance on success
     if balance_list.build():
         balance_list.save()
+        balance_list.insert_addresses()
 
 if __name__ == "__main__":
     main()

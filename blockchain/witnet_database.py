@@ -701,6 +701,9 @@ class WitnetDatabase(object):
         result = self.db_mngr.sql_return_all(sql)
         return result
 
+    def sql_execute_many(self, sql, data, template=None):
+        self.db_mngr.sql_execute_many(sql, data, template=template)
+
     def check_hash(self, item_hash):
         if item_hash in [insert_hash[0] for insert_hash in self.insert_hashes]:
             return True
