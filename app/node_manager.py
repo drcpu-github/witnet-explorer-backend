@@ -8,6 +8,8 @@ from app.cache import cache
 
 from blockchain.witnet_database import WitnetDatabase
 
+from engine.trs import TRS
+
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 
@@ -49,6 +51,9 @@ class NodeManager(object):
         # Get consensus constants
         self.consensus_constants = ConsensusConstants(self.node_config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
+        self.start_time = self.consensus_constants.checkpoint_zero_timestamp
+        self.epoch_period = self.consensus_constants.checkpoints_period
+
         # Get configuration to connect to the database
         self.database_config = config["database"]
         db_user, db_name, db_pass = self.database_config["user"], self.database_config["name"], self.database_config["password"]
@@ -59,6 +64,8 @@ class NodeManager(object):
         # Create a couple of objects once
         self.blockchain = Blockchain(self.database_config, self.node_config, self.consensus_constants, self.log_queue)
         self.transaction_pool = TransactionPool(self.database_config, self.log_queue)
+
+        self.TRS = TRS(config["engine"]["json_file"], False, db_config=self.database_config, logger=self.logger)
 
     ########################
     #   Helper functions   #
@@ -372,14 +379,30 @@ class NodeManager(object):
                 self.logger.info(f"Found '{cache_key}' in memcached cache")
             return blockchain_prepend
 
-    def get_reputation_list(self):
-        self.logger.info("get_reputation_list()")
+    def get_reputation_list(self, epoch):
+        self.logger.info(f"get_reputation_list({epoch})")
 
-        reputation = cache.get(f"reputation")
-        if not reputation:
-            self.logger.error(f"Could not find 'reputation' in memcached cache")
+        if epoch == "":
+            reputation = cache.get(f"reputation")
+            if not reputation:
+                self.logger.error(f"Could not find 'reputation' in memcached cache")
+            else:
+                self.logger.info(f"Found 'reputation' in memcached cache")
         else:
-            self.logger.info(f"Found 'reputation' in memcached cache")
+            if not self.sanitize_input(epoch, "numeric"):
+                self.logger.warning(f"Invalid value for epoch: {epoch}")
+                return {"error": "epoch is not a numerical value"}
+
+            epoch = int(epoch)
+            found_epoch, trs, total_reputation = self.TRS.get_trs(epoch)
+
+            reputation = {
+                "reputation": trs,
+                "total_reputation": total_reputation,
+                "last_updated": self.start_time + (epoch + 1) * self.epoch_period
+            }
+
+            self.logger.info(f"Found historical TRS for epoch {epoch} at epoch {found_epoch}")
 
         return reputation
 
