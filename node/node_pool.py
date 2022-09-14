@@ -22,6 +22,8 @@ from multiprocessing import Queue
 from multiprocessing import Value
 from multiprocessing.managers import SyncManager
 
+from util.logger import create_logging_listener
+from util.logger import select_logging_level
 from util.socket_manager import SocketManager
 
 class NodePool(object):
@@ -487,71 +489,6 @@ class NodePool(object):
         logger.debug(f"Result for {request}: {response}")
         return response
 
-def select_logging_level(level):
-    if level.lower() == "debug":
-        return logging.DEBUG
-    elif level.lower() == "info":
-        return logging.INFO
-    elif level.lower() == "warning":
-        return logging.WARNING
-    elif level.lower() == "error":
-        return logging.ERROR
-    elif level.lower() == "critical":
-        return logging.CRITICAL
-
-def configure_logging_listener(config):
-    root = logging.getLogger()
-
-    logging.Formatter.converter = time.gmtime
-
-    # Add header formatting of the log message
-    formatter = logging.Formatter("[%(levelname)-8s] [%(asctime)s] [%(name)-8s] %(message)s", datefmt="%Y/%m/%d %H:%M:%S")
-
-    log_file_name = config["node-pool"]["log"]["log_file"]
-    level_file = select_logging_level(config["node-pool"]["log"]["level_file"])
-    level_stdout = select_logging_level(config["node-pool"]["log"]["level_stdout"])
-
-    # Get log file parts
-    dirname = os.path.dirname(log_file_name)
-    basename = os.path.basename(log_file_name)
-    filename, extension = os.path.splitext(basename)
-    # Move the existing log
-    if os.path.exists(log_file_name):
-        today = datetime.date.today()
-        shutil.move(log_file_name, os.path.join(dirname, f"{filename}.{today.strftime('%Y%m%d')}{extension}"))
-
-    # Add file handler
-    file_handler = logging.handlers.TimedRotatingFileHandler(log_file_name, when="D", utc=True)
-    # Date suffix should not contain dashes
-    file_handler.suffix = "%Y%m%d"
-    file_handler.extMatch = re.compile(r"^\d{8}$")
-    # Put the date timestamp between the filename and the extension
-    file_handler.namer = lambda name: os.path.join(os.path.dirname(name), os.path.basename(name).replace(extension, "") + extension)
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(level_file)
-    root.addHandler(file_handler)
-
-    # Add console handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-    console_handler.setLevel(level_stdout)
-    root.addHandler(console_handler)
-
-def logging_listener(config, queue):
-    configure_logging_listener(config)
-
-    while True:
-        try:
-            record = queue.get()
-            if record == None:
-                break
-            logger = logging.getLogger(record.name)
-            logger.handle(record)
-        except EOFError:
-            break
-        except KeyboardInterrupt:
-            continue
-
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="node_pool.toml", dest="config_file")
@@ -562,7 +499,7 @@ def main():
 
     # Start logging process
     logging_queue = Queue()
-    listener = Process(target=logging_listener, args=(config, logging_queue))
+    listener = Process(target=create_logging_listener, args=(config, logging_queue))
     listener.start()
 
     # Create node pool
