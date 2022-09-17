@@ -4,7 +4,7 @@ import toml
 
 from collections import Counter
 
-from blockchain.database_manager import DatabaseManager
+from util.database_manager import DatabaseManager
 
 from engine.trs import TRS
 
