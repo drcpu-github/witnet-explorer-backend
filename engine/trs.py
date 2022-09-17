@@ -1,7 +1,7 @@
 import json
 import os
 
-from blockchain.database_manager import DatabaseManager
+from util.database_manager import DatabaseManager
 
 class TRS:
     def __init__(self, trs_file_json, load_trs, db_config=None, db_mngr=None, logger=None):

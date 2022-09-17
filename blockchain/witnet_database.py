@@ -4,7 +4,7 @@ import os
 import psycopg2
 import sys
 
-from blockchain.database_manager import DatabaseManager
+from util.database_manager import DatabaseManager
 
 class WitnetDatabase(object):
     def __init__(self, db_user, db_name, db_pass, logger=None, log_queue=None, log_label=None):
