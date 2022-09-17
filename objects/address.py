@@ -8,6 +8,8 @@ from node.witnet_node import WitnetNode
 from transactions.reveal import translate_reveal
 from transactions.tally import translate_tally
 
+from util.witnet_functions import calculate_block_reward
+
 class Address(object):
     def __init__(self, address, database_config, node_config, consensus_constants, logging_queue=None):
         # Set address
@@ -21,10 +23,9 @@ class Address(object):
         # Connect to node pool
         self.witnet_node = WitnetNode(node_config, log_queue=logging_queue, log_label="node-address")
 
+        self.consensus_constants = consensus_constants
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
-        self.halving_period = consensus_constants.halving_period
-        self.initial_block_reward = consensus_constants.initial_block_reward
 
         # Create logger
         if logging_queue:
@@ -32,13 +33,6 @@ class Address(object):
             self.logger = logging.getLogger("address")
         else:
             self.logger = None
-
-    def calculate_block_reward(self, epoch):
-        halvings = int(epoch // self.halving_period)
-        if halvings < 64:
-            return self.initial_block_reward >> halvings
-        else:
-            return 0
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -271,7 +265,7 @@ class Address(object):
                 timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
 
                 block_reward = sum(output_values)
-                block_fees = sum(output_values) - self.calculate_block_reward(block_epoch)
+                block_fees = sum(output_values) - calculate_block_reward(block_epoch, self.consensus_constants)
 
                 blocks_minted.append((block_hash.hex(), timestamp, block_epoch, block_reward, block_fees, value_transfers, data_requests, commits, reveals, tallies, block_reverted))
 
