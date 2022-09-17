@@ -573,12 +573,16 @@ class NodeManager(object):
         if tab == "details":
             return address.get_details()
         elif tab == "value_transfers":
+            address.connect_to_database()
             return address.get_value_transfers(limit, epoch)
         elif tab == "blocks":
+            address.connect_to_database()
             return address.get_blocks(limit, epoch)
         elif tab == "data_requests_solved":
+            address.connect_to_database()
             return address.get_data_requests_solved(limit, epoch)
         elif tab == "data_requests_launched":
+            address.connect_to_database()
             return address.get_data_requests_launched(limit, epoch)
 
     def get_utxos(self, address):

@@ -1,13 +1,13 @@
+import logging
 import sys
 import time
-
-from blockchain.witnet_database import WitnetDatabase
 
 from node.witnet_node import WitnetNode
 
 from transactions.reveal import translate_reveal
 from transactions.tally import translate_tally
 
+from util.database_manager import DatabaseManager
 from util.witnet_functions import calculate_block_reward
 
 class Address(object):
@@ -15,14 +15,11 @@ class Address(object):
         # Set address
         self.address = address.strip()
 
-        db_user = database_config["user"]
-        db_name = database_config["name"]
-        db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=logging_queue, log_label="db-address")
+        # Save configs
+        self.database_config = database_config
+        self.node_config = node_config
 
-        # Connect to node pool
-        self.witnet_node = WitnetNode(node_config, log_queue=logging_queue, log_label="node-address")
-
+        # Save consensus constants
         self.consensus_constants = consensus_constants
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
@@ -41,22 +38,26 @@ class Address(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def connect_to_database(self, named_cursor=False):
-        self.named_cursor = named_cursor
-        self.db_mngr = DatabaseManager(self.database_config, named_cursor=named_cursor, logger=self.logger)
+    def connect_to_database(self):
+        self.db_mngr = DatabaseManager(self.database_config, named_cursor=False, logger=self.logger)
 
     def close_database_connection(self):
         self.db_mngr.terminate(verbose=False)
 
     def get_details(self):
-        balance = self.witnet_node.get_balance(self.address)
+        # Connect to node pool
+        witnet_node = WitnetNode(self.node_config, logger=self.logger)
+
+        # Get balance
+        balance = witnet_node.get_balance(self.address)
         if type(balance) is dict and "error" in balance:
             balance = "Could not retrieve balance"
         else:
             balance = balance["result"]
             balance = balance[self.address]["total"]
 
-        reputation = self.witnet_node.get_reputation(self.address)
+        # Get reputation
+        reputation = witnet_node.get_reputation(self.address)
         if type(reputation) is dict and "error" in reputation:
             total_reputation = "Could not retrieve total reputation"
             eligibility = "Could not retrieve eligibility"
@@ -116,7 +117,7 @@ class Address(object):
         sql += " ORDER BY epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
-        result = self.witnet_database.sql_return_all(sql)
+        result = self.db_mngr.sql_return_all(sql)
 
         value_transfers_in = []
         if result:
@@ -176,7 +177,7 @@ class Address(object):
         sql += " ORDER BY epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
-        result = self.witnet_database.sql_return_all(sql)
+        result = self.db_mngr.sql_return_all(sql)
 
         value_transfers_out = []
         if result:
@@ -255,7 +256,7 @@ class Address(object):
         sql += " ORDER BY blocks.epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
-        result = self.witnet_database.sql_return_all(sql)
+        result = self.db_mngr.sql_return_all(sql)
 
         blocks_minted = []
         if result:
@@ -310,7 +311,7 @@ class Address(object):
         sql += " ORDER BY commit_txns.epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
-        result = self.witnet_database.sql_return_all(sql)
+        result = self.db_mngr.sql_return_all(sql)
 
         solved_data_request_txns = []
         if result:
@@ -379,7 +380,7 @@ class Address(object):
         sql += " ORDER BY data_request_txns.epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
-        result = self.witnet_database.sql_return_all(sql)
+        result = self.db_mngr.sql_return_all(sql)
 
         launched_data_request_txns = []
         if result:
@@ -421,7 +422,7 @@ class Address(object):
                 MAX(epoch)
             FROM reputation
         """
-        last_epoch = self.witnet_database.sql_return_one(sql)[0]
+        last_epoch = self.db_mngr.sql_return_one(sql)[0]
         if last_epoch:
             return last_epoch
         else:
@@ -440,14 +441,15 @@ class Address(object):
             ORDER BY
                 epoch ASC
         """ % self.address
-        reputations = self.witnet_database.sql_return_all(sql)
+        reputations = self.db_mngr.sql_return_all(sql)
 
         # Interpolate the reputation of the address
         interpolated_reputation = []
         if reputations:
             # First merge reputation differences with the same epoch
             merged_reputations = []
-            for epoch, reputation in reputations:
+            for row in reputations:
+                epoch, reputation = row
                 if len(merged_reputations) == 0 or epoch != merged_reputations[-1][0]:
                     merged_reputations.append([epoch, reputation])
                 else:
