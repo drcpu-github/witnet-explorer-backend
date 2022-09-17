@@ -9,7 +9,8 @@ from transactions.reveal import translate_reveal
 from transactions.tally import translate_tally
 
 class Address(object):
-    def __init__(self, address, database_config, node_config, consensus_constants, logging_queue):
+    def __init__(self, address, database_config, node_config, consensus_constants, logging_queue=None):
+        # Set address
         self.address = address.strip()
 
         db_user = database_config["user"]
@@ -25,12 +26,33 @@ class Address(object):
         self.halving_period = consensus_constants.halving_period
         self.initial_block_reward = consensus_constants.initial_block_reward
 
+        # Create logger
+        if logging_queue:
+            self.configure_logging_process(logging_queue, "address")
+            self.logger = logging.getLogger("address")
+        else:
+            self.logger = None
+
     def calculate_block_reward(self, epoch):
         halvings = int(epoch // self.halving_period)
         if halvings < 64:
             return self.initial_block_reward >> halvings
         else:
             return 0
+
+    def configure_logging_process(self, queue, label):
+        handler = logging.handlers.QueueHandler(queue)
+        root = logging.getLogger(label)
+        root.handlers = []
+        root.addHandler(handler)
+        root.setLevel(logging.DEBUG)
+
+    def connect_to_database(self, named_cursor=False):
+        self.named_cursor = named_cursor
+        self.db_mngr = DatabaseManager(self.database_config, named_cursor=named_cursor, logger=self.logger)
+
+    def close_database_connection(self):
+        self.db_mngr.terminate(verbose=False)
 
     def get_details(self):
         balance = self.witnet_node.get_balance(self.address)
@@ -398,3 +420,72 @@ class Address(object):
             "num_data_requests_launched": len(launched_data_request_txns),
             "data_requests_launched": launched_data_request_txns,
         }
+
+    def get_last_epoch_processed(self):
+        sql = """
+            SELECT
+                MAX(epoch)
+            FROM reputation
+        """
+        last_epoch = self.witnet_database.sql_return_one(sql)[0]
+        if last_epoch:
+            return last_epoch
+        else:
+            return 0
+
+    def get_reputation(self):
+        last_epoch = self.get_last_epoch_processed()
+
+        sql = """
+            SELECT
+                epoch,
+                reputation
+            FROM reputation
+            WHERE
+                address='%s'
+            ORDER BY
+                epoch ASC
+        """ % self.address
+        reputations = self.witnet_database.sql_return_all(sql)
+
+        # Interpolate the reputation of the address
+        interpolated_reputation = []
+        if reputations:
+            # First merge reputation differences with the same epoch
+            merged_reputations = []
+            for epoch, reputation in reputations:
+                if len(merged_reputations) == 0 or epoch != merged_reputations[-1][0]:
+                    merged_reputations.append([epoch, reputation])
+                else:
+                    merged_reputations[-1][1] += reputation
+
+            # Add zeros for the range from epoch one up to the first reputation gain
+            for i in range(1, merged_reputations[0][0]):
+                interpolated_reputation.append(0)
+
+            # Sum reputation differences and interpolate all regions in between
+            for index, reputation in enumerate(merged_reputations):
+                interpolated_reputation.append(interpolated_reputation[-1] + reputation[1])
+                if index < len(merged_reputations) - 1:
+                    for i in range(reputation[0] + 1, merged_reputations[index + 1][0]):
+                        interpolated_reputation.append(interpolated_reputation[-1])
+
+            # Add zeros for the range from the last reputation gain epoch to the last observed epoch
+            for i in range(merged_reputations[-1][0] + 1, last_epoch):
+                interpolated_reputation.append(0)
+
+        # Get the non-zero reputation regions
+        reset = False
+        non_zero_reputation, non_zero_reputation_regions = [], []
+        for i, reputation in enumerate(interpolated_reputation):
+            if reputation != 0:
+                if not reset:
+                    non_zero_reputation.append([])
+                    non_zero_reputation_regions.append([i])
+                reset = True
+                non_zero_reputation[-1].append(reputation)
+            if reset and reputation == 0:
+                reset = False
+                non_zero_reputation_regions[-1].append(i)
+
+        return non_zero_reputation, non_zero_reputation_regions
