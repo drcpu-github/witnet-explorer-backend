@@ -7,7 +7,7 @@ import sys
 from util.database_manager import DatabaseManager
 
 class WitnetDatabase(object):
-    def __init__(self, db_user, db_name, db_pass, logger=None, log_queue=None, log_label=None):
+    def __init__(self, db_config, logger=None, log_queue=None, log_label=None):
         # Set up logger
         if logger:
             self.logger = logger
@@ -17,7 +17,7 @@ class WitnetDatabase(object):
         else:
             self.logger = None
 
-        self.db_mngr = DatabaseManager(db_user, db_name, db_pass, logger=self.logger)
+        self.db_mngr = DatabaseManager(db_config, logger=self.logger)
 
         # Register types created for this database
         self.register_types()

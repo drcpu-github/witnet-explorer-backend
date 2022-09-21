@@ -21,13 +21,10 @@ class Transaction(object):
         if database:
             self.witnet_database = database
         elif database_config:
-            db_user = database_config["user"]
-            db_name = database_config["name"]
-            db_pass = database_config["password"]
             if logger:
-                self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logger=logger)
+                self.witnet_database = WitnetDatabase(database_config, logger=logger)
             else:
-                self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=log_queue, log_label="db-transaction")
+                self.witnet_database = WitnetDatabase(database_config, log_queue=log_queue, log_label="db-transaction")
         else:
             self.witnet_database = None
 

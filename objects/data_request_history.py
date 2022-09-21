@@ -19,10 +19,7 @@ class DataRequestHistory(object):
         self.logger = logging.getLogger("node-manager")
 
         # Set up database connection
-        db_user = database_config["user"]
-        db_name = database_config["name"]
-        db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, self.logging_queue, "db-history")
+        self.witnet_database = WitnetDatabase(database_config, log_queue=self.logging_queue, log_label="db-history")
 
         self.data_request = DataRequest(consensus_constants, logging_queue, database_config=database_config)
         self.tally = Tally(consensus_constants, logging_queue, database_config=database_config)

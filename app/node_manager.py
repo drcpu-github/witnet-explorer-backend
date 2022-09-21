@@ -56,10 +56,9 @@ class NodeManager(object):
 
         # Get configuration to connect to the database
         self.database_config = config["database"]
-        db_user, db_name, db_pass = self.database_config["user"], self.database_config["name"], self.database_config["password"]
 
         # Connect to database
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-api")
+        self.witnet_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-api")
 
         # Create a couple of objects once
         self.blockchain = Blockchain(self.database_config, self.node_config, self.consensus_constants, self.log_queue)

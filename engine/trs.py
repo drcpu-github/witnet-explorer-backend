@@ -7,7 +7,7 @@ class TRS:
     def __init__(self, trs_file_json, load_trs, db_config=None, db_mngr=None, logger=None):
         self.trs_file_json = trs_file_json
         if db_config:
-            self.db_mngr = DatabaseManager(db_config["user"], db_config["name"], db_config["password"], logger)
+            self.db_mngr = DatabaseManager(db_config, logger=logger)
         else:
             self.db_mngr = db_mngr
         if logger:
