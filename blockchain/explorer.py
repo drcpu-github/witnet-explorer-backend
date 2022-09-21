@@ -28,6 +28,8 @@ from objects.block import Block
 from transactions.data_request import DataRequest
 from transactions.value_transfer import ValueTransfer
 
+from util.socket_manager import SocketManager
+
 class BlockExplorer(object):
     def __init__(self, config, log_queue):
         error_retry = config["explorer"]["error_retry"]
@@ -60,6 +62,9 @@ class BlockExplorer(object):
         self.confirm_blocks_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-confirm")
         self.insert_pending_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-pending")
 
+        # Get configuration to connect to the address caching server
+        self.addresses_config = config["api"]["caching"]["scripts"]["addresses"]
+
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
         root = logging.getLogger(label)
@@ -85,6 +90,43 @@ class BlockExplorer(object):
 
         # Finalize insertions and updates on every block
         database.finalize(epoch)
+
+        return block_json
+
+    def update_cached_views(self, block_json, logger, caching_server):
+        epoch = block_json["details"]["epoch"]
+
+        # Update the blocks mined view for the miner using the caching server
+        miner = block_json["mint_txn"]["miner"]
+        request = {"method": "update", "epoch": epoch, "function": "blocks", "addresses": [miner], "id": 1}
+        self.try_send_request(logger, caching_server, request)
+
+        # Update all value transfer cached views for all addresses involved in value transfers
+        value_transfer_addresses = set()
+        for value_transfer in block_json["value_transfer_txns"]:
+            value_transfer_addresses.update(value_transfer["unique_input_addresses"])
+            value_transfer_addresses.update(value_transfer["output_addresses"])
+        if len(value_transfer_addresses) > 0:
+            request = {"method": "update", "epoch": epoch, "function": "value-transfers", "addresses": list(value_transfer_addresses), "id": 2}
+            self.try_send_request(logger, caching_server, request)
+
+        # Update the data requests solved cached view for all addresses in all tallies
+        tally_addresses = set()
+        for tally in block_json["tally_txns"]:
+            tally_addresses.update(tally["output_addresses"])
+            tally_addresses.update(tally["error_addresses"])
+            tally_addresses.update(tally["liar_addresses"])
+        if len(tally_addresses) > 0:
+            request = {"method": "update", "epoch": epoch, "function": "data-requests-solved", "addresses": list(tally_addresses), "id": 3}
+            self.try_send_request(logger, caching_server, request)
+
+        # Update the data requests launched cached view for all addresses in all data requests
+        data_request_addresses = set()
+        for data_request in block_json["data_request_txns"]:
+            data_request_addresses.update(data_request["unique_input_addresses"])
+        if len(data_request_addresses) > 0:
+            request = {"method": "update", "epoch": epoch, "function": "data-requests-launched", "addresses": list(data_request_addresses), "id": 4}
+            self.try_send_request(logger, caching_server, request)
 
     def insert_transactions(self, database, block_json, epoch):
         # Insert mint transaction
@@ -117,6 +159,9 @@ class BlockExplorer(object):
 
         # Get some consensus constants
         checkpoints_period = self.consensus_constants.checkpoints_period
+
+        # Connect to the addresses caching server
+        caching_server = SocketManager(self.addresses_config["host"], self.addresses_config["port"], self.addresses_config["default_timeout"])
 
         logger.info("Querying database for last confirmed block")
         # Get the last block we inserted into the database
@@ -163,7 +208,10 @@ class BlockExplorer(object):
                 block = block["result"]
 
                 # Insert block
-                self.insert_block(self.insert_blocks_database, block_hash_hex_str, block, epoch, tapi_periods)
+                block_json = self.insert_block(self.insert_blocks_database, block_hash_hex_str, block, epoch, tapi_periods)
+
+                # Update all cached views
+                self.update_cached_views(block_json, logger, caching_server)
 
                 # Check if the block is confirmed and if it isn't track the hash
                 confirmed = block["confirmed"]
@@ -186,6 +234,9 @@ class BlockExplorer(object):
         # Calculate superepoch period from consensus constants
         superblock_period = self.consensus_constants.superblock_period
         checkpoints_period = self.consensus_constants.checkpoints_period
+
+        # Connect to the addresses caching server
+        caching_server = SocketManager(self.addresses_config["host"], self.addresses_config["port"], self.addresses_config["default_timeout"])
 
         # sleep until the next poll interval
         next_poll_interval = (int(time.time() / checkpoints_period) + 1) * checkpoints_period + 5
@@ -241,6 +292,10 @@ class BlockExplorer(object):
                             logger.info(f"Block {block_hash_hex_str} for epoch {epoch} is not part of the chain anymore and will be reverted")
                             self.confirm_blocks_database.revert_block(block_hash_hex_str, epoch)
 
+                            # Update cached views
+                            request = {"method": "revert", "epoch": epoch, "id": 1}
+                            self.try_send_request(logger, caching_server, request)
+
                             # Track epochs to remove
                             remove_epochs.append(epoch)
                         # There is a different block at this epoch, our node was forked when inserting this block
@@ -256,7 +311,12 @@ class BlockExplorer(object):
                                 logger.warning(f"Unable to fetch block {blockchain[epoch]} for epoch {epoch}: {block['error']}")
                                 break
                             block = block["result"]
-                            self.insert_block(self.confirm_blocks_database, blockchain[epoch], block, epoch, tapi_periods)
+                            block_json = self.insert_block(self.confirm_blocks_database, blockchain[epoch], block, epoch, tapi_periods, caching_server)
+
+                            # Update all cached views
+                            request = {"method": "revert", "epoch": epoch, "id": 1}
+                            self.try_send_request(logger, caching_server, request)
+                            self.update_cached_views(block_json, logger, caching_server)
 
                             # Track epochs to remove
                             if "confirmed" in block and block["confirmed"] == True:
@@ -280,6 +340,10 @@ class BlockExplorer(object):
                             if "confirmed" in block and block["confirmed"] == True:
                                 logger.info(f"Block {block_hash_hex_str} for epoch {epoch} can be confirmed")
                                 self.confirm_blocks_database.confirm_block(block_hash_hex_str, epoch)
+
+                                # Update cached views
+                                request = {"method": "confirm", "epoch": epoch, "id": 1}
+                                self.try_send_request(logger, caching_server, request)
 
                                 # Track epochs to remove
                                 remove_epochs.append(epoch)
@@ -447,6 +511,17 @@ class BlockExplorer(object):
 
             sleep_for = max(0, next_poll_interval - time.time())
             time.sleep(sleep_for)
+
+    def try_send_request(self, logger, caching_server, request):
+        try:
+            caching_server.send_request(request)
+        except ConnectionRefusedError:
+            logger.warning(f"Could not send {request['method']} request to address caching server")
+            try:
+                caching_server.recreate_socket()
+                caching_server.send_request(request)
+            except ConnectionRefusedError:
+                logger.warning(f"Could not recreate socket, will try again next {request['method']} request")
 
 def select_logging_level(level):
     if level.lower() == "debug":
