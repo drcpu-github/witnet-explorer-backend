@@ -154,7 +154,7 @@ def main():
     logger = configure_logger("reputation", config["engine"]["log_file"], config["engine"]["level_file"])
 
     # Create database manager
-    db_mngr = DatabaseManager(config["database"]["user"], config["database"]["name"], config["database"]["password"], logger)
+    db_mngr = DatabaseManager(config["database"], logger=logger)
 
     # Get epochs to fetch
     database_epoch = get_last_epoch_processed(db_mngr) + 1

@@ -31,10 +31,7 @@ class DataRequestReport(object):
         if database:
             self.witnet_database = database
         elif database_config:
-            db_user = database_config["user"]
-            db_name = database_config["name"]
-            db_pass = database_config["password"]
-            self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, logger=self.logger)
+            self.witnet_database = WitnetDatabase(database_config, logger=self.logger)
         else:
             self.witnet_database = None
 
