@@ -154,7 +154,7 @@ def main():
 
     config = toml.load(options.config_file)
 
-    db_mngr = DatabaseManager(config["database"]["user"], config["database"]["name"], config["database"]["password"], None)
+    db_mngr = DatabaseManager(config["database"])
 
     if options.list:
         list_TAPI(db_mngr)

@@ -3,12 +3,15 @@ import psycopg2.extras
 import sys
 
 class DatabaseManager(object):
-    def __init__(self, db_user, db_name, db_pass, logger=None):
-        self.logger = logger
+    def __init__(self, db_config, named_cursor=False, logger=None):
+        self.db_user = db_config["user"]
+        self.db_name = db_config["name"]
+        self.db_pass = db_config["password"]
+        self.fetch_rows = db_config["fetch_rows"]
 
-        self.db_user = db_user
-        self.db_name = db_name
-        self.db_pass = db_pass
+        self.named_cursor = named_cursor
+
+        self.logger = logger
 
         self.connect()
 
@@ -18,7 +21,11 @@ class DatabaseManager(object):
                 self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
             else:
                 self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name)
-            self.cursor = self.connection.cursor()
+            if self.named_cursor:
+                self.cursor = self.connection.cursor("cursor")
+                self.cursor.itersize = self.fetch_rows # Limit number of rows fetched
+            else:
+                self.cursor = self.connection.cursor()
         except psycopg2.OperationalError as e:
             str_error = str(e).replace("\n", "").replace("\t", " ")
             if self.logger:
@@ -37,8 +44,18 @@ class DatabaseManager(object):
             else:
                 sys.stdout.write("Terminating database manager\n")
         self.connection.commit()
-        self.cursor.close()
+        # Cannot close a named cursor once commit has been called
+        if not self.named_cursor:
+            self.cursor.close()
         self.connection.close()
+
+    def reset_cursor(self):
+        self.cursor.close()
+        if self.named_cursor:
+            self.cursor = self.connection.cursor("cursor")
+            self.cursor.itersize = 1000 # Limit number of rows fetched
+        else:
+            self.cursor = self.connection.cursor()
 
     def sql_insert_one(self, sql, data):
         try:
@@ -65,7 +82,10 @@ class DatabaseManager(object):
     def sql_return_all(self, sql):
         try:
             self.cursor.execute(sql)
-            return self.cursor.fetchall()
+            if self.named_cursor:
+                return self.cursor
+            else:
+                return self.cursor.fetchall()
         except Exception as e:
             if self.logger:
                 self.logger.error("Could not execute SQL statement '" + str(sql) + "', error: " + str(e))

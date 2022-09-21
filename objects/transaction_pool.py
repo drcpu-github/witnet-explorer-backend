@@ -7,10 +7,7 @@ from transactions.value_transfer import ValueTransfer
 
 class TransactionPool(object):
     def __init__(self, database_config, log_queue):
-        db_user = database_config["user"]
-        db_name = database_config["name"]
-        db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=log_queue, log_label="db-pool")
+        self.witnet_database = WitnetDatabase(database_config, log_queue=log_queue, log_label="db-pool")
 
     def insert_empty_lists(self, start_timestamp, stop_timestamp, lst):
         # Edge case where there are no transactions

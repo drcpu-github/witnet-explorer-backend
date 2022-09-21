@@ -6,10 +6,7 @@ from node.witnet_node import WitnetNode
 
 class Blockchain(object):
     def __init__(self, database_config, node_config, consensus_constants, log_queue):
-        db_user = database_config["user"]
-        db_name = database_config["name"]
-        db_pass = database_config["password"]
-        self.witnet_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=log_queue, log_label="db-blockchain")
+        self.witnet_database = WitnetDatabase(database_config, log_queue=log_queue, log_label="db-blockchain")
 
         # Connect to node pool
         self.witnet_node = WitnetNode(node_config, log_queue=log_queue, log_label="node-blockchain")

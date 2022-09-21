@@ -54,12 +54,11 @@ class BlockExplorer(object):
 
         # Get configuration to connect to the database
         self.database_config = config["database"]
-        db_user, db_name, db_pass = self.database_config["user"], self.database_config["name"], self.database_config["password"]
 
         # Create database objects
-        self.insert_blocks_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-insert")
-        self.confirm_blocks_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-confirm")
-        self.insert_pending_database = WitnetDatabase(db_user, db_name, db_pass, log_queue=self.log_queue, log_label="db-pending")
+        self.insert_blocks_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-insert")
+        self.confirm_blocks_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-confirm")
+        self.insert_pending_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-pending")
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
