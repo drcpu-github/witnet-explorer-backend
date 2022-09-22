@@ -11,13 +11,13 @@ from util.database_manager import DatabaseManager
 from util.witnet_functions import calculate_block_reward
 
 class Address(object):
-    def __init__(self, address, database_config, node_config, consensus_constants, logging_queue=None):
+    def __init__(self, address, config, consensus_constants, logging_queue=None):
         # Set address
         self.address = address.strip()
 
         # Save configs
-        self.database_config = database_config
-        self.node_config = node_config
+        self.database_config = config["database"]
+        self.node_config = config["node-pool"]
 
         # Save consensus constants
         self.consensus_constants = consensus_constants
@@ -92,8 +92,6 @@ class Address(object):
 
     def get_value_transfer_txns_in(self, limit, epoch):
         # get value transfers arriving at our address
-        start = time.time()
-
         sql = """
             SELECT
                 value_transfer_txns.txn_hash,
@@ -153,8 +151,6 @@ class Address(object):
 
     def get_value_transfer_txns_out(self, limit, epoch):
         # get value transfers starting at our address
-        start = time.time()
-
         sql = """
             SELECT
                 value_transfer_txns.txn_hash,
@@ -232,8 +228,6 @@ class Address(object):
             return value_transfers
 
     def get_blocks(self, limit, epoch):
-        start = time.time()
-
         sql = """
             SELECT
                 blocks.block_hash,
@@ -278,8 +272,6 @@ class Address(object):
         }
 
     def get_data_requests_solved(self, limit, epoch):
-        start = time.time()
-
         sql = """
             SELECT
                 data_request_txns.collateral,
@@ -350,8 +342,6 @@ class Address(object):
         }
 
     def get_data_requests_launched(self, limit, epoch):
-        start = time.time()
-
         sql = """
             SELECT
                 data_request_txns.txn_hash,
