@@ -20,3 +20,5 @@ engine/data/*
 caching/plots/*
 
 **/*.json
+
+test/*
