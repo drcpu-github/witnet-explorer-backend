@@ -27,6 +27,7 @@ from transactions.mint import Mint
 from transactions.value_transfer import ValueTransfer
 
 from util.memcached import calculate_timeout
+from util.socket_manager import SocketManager
 
 class NodeManager(object):
     def __init__(self, config, log_queue):
@@ -41,6 +42,9 @@ class NodeManager(object):
         self.log_queue = log_queue
         self.configure_logging_process(self.log_queue, "node-manager")
         self.logger = logging.getLogger("node-manager")
+
+        # Save full configuration
+        self.config = config
 
         # Get configuration to connect to the node pool
         self.node_config = config["node-pool"]
@@ -553,10 +557,6 @@ class NodeManager(object):
 
         return status
 
-    ##############################################################
-    #   API endpoint functions which should not employ caching   #
-    ##############################################################
-
     def get_address(self, address_value, tab, limit, epoch):
         self.logger.info(f"get_address({address_value}, {tab}, {limit}, {epoch})")
 
@@ -568,22 +568,66 @@ class NodeManager(object):
             return {"error": "tab value is not valid"}
         # integers are sanitized already by Flask argument parsing
 
-        address = Address(address_value, self.database_config, self.node_config, self.consensus_constants, self.log_queue)
+        address = Address(address_value, self.config, self.consensus_constants, logging_queue=self.log_queue)
+
+        config = self.config["api"]["caching"]["scripts"]["addresses"]
+        address_caching_server = SocketManager(config["host"], config["port"], config["default_timeout"])
+        address_caching_server.send_request({"method": "track", "addresses": [address_value], "id": 1})
 
         if tab == "details":
             return address.get_details()
         elif tab == "value_transfers":
-            address.connect_to_database()
-            return address.get_value_transfers(limit, epoch)
+            # Try to fetch the result from the cache
+            cached_value_transfers = cache.get(f"{address_value}_value-transfers")
+            # Return cached version if found (fast)
+            if cached_value_transfers:
+                self.logger.info(f"Found value transfers for {address_value} in cache")
+                return cached_value_transfers
+            # Query the database and build the requested view (slow)
+            else:
+                self.logger.info(f"Did not find value transfers for {address_value} in cache, querying database")
+                address.connect_to_database()
+                return address.get_value_transfers(limit, epoch)
         elif tab == "blocks":
-            address.connect_to_database()
-            return address.get_blocks(limit, epoch)
+            # Try to fetch the result from the cache
+            cached_blocks = cache.get(f"{address_value}_blocks")
+            # Return cached version if found (fast)
+            if cached_blocks:
+                self.logger.info(f"Found blocks for {address_value} in cache")
+                return cached_blocks
+            # Query the database and build the requested view (slow)
+            else:
+                self.logger.info(f"Did not find blocks for {address_value} in cache, querying database")
+                address.connect_to_database()
+                return address.get_blocks(limit, epoch)
         elif tab == "data_requests_solved":
-            address.connect_to_database()
-            return address.get_data_requests_solved(limit, epoch)
+            # Try to fetch the result from the cache
+            cached_data_requests_solved = cache.get(f"{address_value}_data-requests-solved")
+            # Return cached version if found (fast)
+            if cached_data_requests_solved:
+                self.logger.info(f"Found data requests solved for {address_value} in cache")
+                return cached_data_requests_solved
+            # Query the database and build the requested view (slow)
+            else:
+                self.logger.info(f"Did not find data requests solved for {address_value} in cache, querying database")
+                address.connect_to_database()
+                return address.get_data_requests_solved(limit, epoch)
         elif tab == "data_requests_launched":
-            address.connect_to_database()
-            return address.get_data_requests_launched(limit, epoch)
+            # Try to fetch the result from the cache
+            cached_data_requests_launched = cache.get(f"{address_value}_data-requests-launched")
+            # Return cached version if found (fast)
+            if cached_data_requests_launched:
+                self.logger.info(f"Found data requests launched for {address_value} in cache")
+                return cached_data_requests_launched
+            # Query the database and build the requested view (slow)
+            else:
+                self.logger.info(f"Did not find data requests launched for {address_value} in cache, querying database")
+                address.connect_to_database()
+                return address.get_data_requests_launched(limit, epoch)
+
+    ##############################################################
+    #   API endpoint functions which should not employ caching   #
+    ##############################################################
 
     def get_utxos(self, address):
         self.logger.info(f"get_utxos({address})")
