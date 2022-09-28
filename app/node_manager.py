@@ -1,8 +1,12 @@
 import logging
 import logging.handlers
+import os
 import pylibmc
 import psycopg2
+import time
 import toml
+
+from flask import send_file
 
 from app.cache import cache
 
@@ -569,7 +573,7 @@ class NodeManager(object):
         if not self.sanitize_input(address_value, "alphanumeric"):
             self.logger.warning(f"Invalid value for address: {address_value}")
             return {"error": "address is not an alphanumeric value"}
-        if not tab in ("details", "value_transfers", "blocks", "data_requests_solved", "data_requests_launched"):
+        if not tab in ("details", "value_transfers", "blocks", "data_requests_solved", "data_requests_launched", "reputation"):
             self.logger.warning(f"Invalid value for tab: {tab}")
             return {"error": "tab value is not valid"}
         # integers are sanitized already by Flask argument parsing
@@ -630,6 +634,21 @@ class NodeManager(object):
                 self.logger.info(f"Did not find data requests launched for {address_value} in cache, querying database")
                 address.connect_to_database()
                 return address.get_data_requests_launched(limit, epoch)
+        elif tab == "reputation":
+            plot_dir = self.config["api"]["caching"]["scripts"]["addresses"]["plot_directory"]
+            reputation_plot = os.path.join(plot_dir, f"{address_value}.png")
+            # Check if the reputation plot exists
+            if os.path.exists(reputation_plot):
+                st = os.stat(reputation_plot)
+                # Found a recently generated reputation plot, return it
+                if time.time() - st.st_mtime < 3600:
+                    return send_file(reputation_plot, mimetype="image/png")
+                # Reputation plot is older than an hour and is likely incorrect, the user should reload the page later
+                else:
+                    return {"error": "No reputation plot generated yet, try again later."}
+            # Could not find reputation plot despite already launching a generation request, the user should reload the page later
+            else:
+                return {"error": "No reputation plot generated yet, try again later."}
 
     ##############################################################
     #   API endpoint functions which should not employ caching   #
