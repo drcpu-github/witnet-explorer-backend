@@ -4,6 +4,8 @@ import re
 
 from transactions.transaction import Transaction
 
+from util.helper_functions import calculate_priority
+
 class DataRequest(Transaction):
     def process_transaction(self, call_from):
         if self.json_txn == {}:
@@ -41,9 +43,8 @@ class DataRequest(Transaction):
         # Minimum consensus percentage
         self.txn_details["consensus_percentage"] = self.json_txn["body"]["dr_output"]["min_consensus_percentage"]
 
-        # Calculate total fee (payed to witnesses and mining nodes)
-        # Total fee = number of witnesses multiplied by the reward + total number of commits and reveals multiplied by its fee + tally fee (1)
-        self.txn_details["fee"] = sum(input_values) - sum(output_values)
+        # Calculate fees (payed to witnesses and mining nodes)
+        self.txn_details["dro_fee"], self.txn_details["miner_fee"] = self.calculate_fees(self.txn_details["witnesses"], self.txn_details["witness_reward"], self.txn_details["commit_and_reveal_fee"], input_values, output_values)
 
         # Requested data request collateral
         self.txn_details["collateral"] = max(self.collateral_minimum, self.json_txn["body"]["dr_output"]["collateral"])
@@ -168,10 +169,10 @@ class DataRequest(Transaction):
             for input_value, (input_txn, input_idx) in zip(input_values, input_utxos):
                 input_utxo_values.append([input_value, bytearray(input_txn).hex(), input_idx])
 
-            txn_fee = sum(input_values) - sum(output_values)
+            dro_fee, miner_fee = self.calculate_fees(witnesses, witness_reward, commit_and_reveal_fee, input_values, output_values)
             txn_weight = weight
             # Get an integer value for the weighted fee
-            txn_priority = max(1, txn_fee // txn_weight)
+            txn_priority = calculate_priority(miner_fee, txn_weight)
 
             # Add kinds, urls, bodies and translate scripts
             # psycopg2 does not handle arrays of enums very well
@@ -214,7 +215,8 @@ class DataRequest(Transaction):
             block_hash = ""
             addresses = []
             input_utxo_values = []
-            txn_fee = 0
+            dro_fee = 0
+            miner_fee = 0
             txn_weight = 0
             txn_priority = 0
             witnesses = 0
@@ -237,7 +239,8 @@ class DataRequest(Transaction):
             "block_hash": block_hash,
             "addresses": addresses,
             "input_utxos": input_utxo_values,
-            "fee": txn_fee,
+            "miner_fee": miner_fee,
+            "dro_fee": dro_fee,
             "weight": txn_weight,
             "priority": txn_priority,
             "witnesses": witnesses,
@@ -252,6 +255,17 @@ class DataRequest(Transaction):
             "txn_time": txn_time,
             "status": txn_status,
         }
+
+    def calculate_fees(self, witnesses, witness_reward, commit_and_reveal_fee, input_values, output_values):
+        # DRO fee = number of witnesses multiplied by their reward + total number of commits and reveals multiplied by its fee + tally fee (1)
+        # The commit fees, reveal fees and tally fee go to the miners including the transactions
+        # The witness reward goes to the witnesses solving a data request
+        dro_fee = witnesses * (witness_reward + 2 * commit_and_reveal_fee) + 1
+        # Miner fee = the sum of input values minus the sum of output values minus the DRO fee
+        # This fee goes to the miner who picks the data request from the memory pool and includes it in a block
+        # This fee is divided by the transaction weight and determines the priority for being executed (included in a block)
+        miner_fee = sum(input_values) - sum(output_values) - dro_fee
+        return dro_fee, miner_fee
 
     def translate_script(self, script):
         translation = ""

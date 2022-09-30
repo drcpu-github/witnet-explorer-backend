@@ -30,6 +30,8 @@ from transactions.value_transfer import ValueTransfer
 
 from util.socket_manager import SocketManager
 
+from util.helper_functions import calculate_priority
+
 class BlockExplorer(object):
     def __init__(self, config, log_queue):
         error_retry = config["explorer"]["error_retry"]
@@ -412,24 +414,17 @@ class BlockExplorer(object):
                     if txn_details == {}:
                         continue
 
-                    data_request_fee = txn_details["fee"]
-                    data_request_size = txn_details["weight"]
+                    data_request_fee = txn_details["miner_fee"]
+                    data_request_weight = txn_details["weight"]
 
-                    mapped_data_requests[transaction] = (data_request_fee, data_request_size)
+                    mapped_data_requests[transaction] = (data_request_fee, data_request_weight)
 
-                # Round the fee to the nearest integer but handle the actual zero-fee transactions and round-to-zero fee transactions differently
-                if data_request_fee == 0:
-                    witness_fee_per_unit = 0
-                elif round(data_request_fee / data_request_size) == 0:
-                    witness_fee_per_unit = 1
+                # Create a histogram of request priorities
+                priority = calculate_priority(data_request_fee, data_request_weight, round_priority=True)
+                if priority in data_requests:
+                    data_requests[priority] += 1
                 else:
-                    witness_fee_per_unit = round(data_request_fee / data_request_size)
-
-                # Create a histogram
-                if witness_fee_per_unit in data_requests:
-                    data_requests[witness_fee_per_unit] += 1
-                else:
-                    data_requests[witness_fee_per_unit] = 1
+                    data_requests[priority] = 1
 
                 # If less than 3 seconds are left until the next interval, break out of the loop and leave the transactions for the next iteration
                 if time.time() + 3 > next_poll_interval:
@@ -456,23 +451,16 @@ class BlockExplorer(object):
                         continue
 
                     value_transfer_fee = txn_details["fee"]
-                    value_transfer_size = txn_details["weight"]
+                    value_transfer_weight = txn_details["weight"]
 
-                    mapped_value_transfers[transaction] = (value_transfer_fee, value_transfer_size)
-
-                # Round the fee to the nearest integer but handle the actual zero-fee transactions and round-to-zero fee transactions differently
-                if value_transfer_fee == 0:
-                    vtt_fee_per_unit = 0
-                elif round(value_transfer_fee / value_transfer_size) == 0:
-                    vtt_fee_per_unit = 1
-                else:
-                    vtt_fee_per_unit = round(value_transfer_fee / value_transfer_size)
+                    mapped_value_transfers[transaction] = (value_transfer_fee, value_transfer_weight)
 
                 # Create a histogram
-                if vtt_fee_per_unit in value_transfers:
-                    value_transfers[vtt_fee_per_unit] += 1
+                priority = calculate_priority(value_transfer_fee, value_transfer_weight, round_priority=True)
+                if priority in value_transfers:
+                    value_transfers[priority] += 1
                 else:
-                    value_transfers[vtt_fee_per_unit] = 1
+                    value_transfers[priority] = 1
 
                 # If less than 3 seconds are left until the next interval, break out of the loop and leave the transactions for the next iteration
                 if time.time() + 3 > next_poll_interval:

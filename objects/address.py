@@ -8,7 +8,7 @@ from transactions.reveal import translate_reveal
 from transactions.tally import translate_tally
 
 from util.database_manager import DatabaseManager
-from util.witnet_functions import calculate_block_reward
+from util.helper_functions import calculate_block_reward
 
 class Address(object):
     def __init__(self, address, config, consensus_constants, logging_queue=None):
@@ -386,6 +386,7 @@ class Address(object):
                 timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
 
                 # Calculate total fee of the data request (witnesses * witness_reward + mining fees per transaction)
+                # Note that this is the sum of the DRO and miner fees to display how much that data request payed in total
                 total_fee = sum(input_values) - sum(output_values)
 
                 # Count the total number of error committers and liar_addresses
