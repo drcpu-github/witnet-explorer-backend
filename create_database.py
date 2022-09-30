@@ -156,7 +156,7 @@ def create_tables(connection, cursor):
         """CREATE TABLE IF NOT EXISTS addresses (
             address CHAR(42) PRIMARY KEY,
             label VARCHAR(64),
-            id SERIAL NOT NULL
+            id INT GENERATED ALWAYS AS IDENTITY
         );""",
 
         """CREATE TABLE IF NOT EXISTS hashes (
@@ -271,7 +271,7 @@ def create_tables(connection, cursor):
         );""",
 
         """CREATE TABLE IF NOT EXISTS tapi (
-            id SMALLSERIAL,
+            id SMALLINT GENERATED ALWAYS AS IDENTITY,
             title VARCHAR NOT NULL,
             description VARCHAR NOT NULL,
             start_epoch INT NOT NULL,
