@@ -186,3 +186,8 @@ def status():
 def send():
     test = request.args.get("test", default=False, type=bool)
     return node.send_vtt(request.data.decode("utf-8"), test)
+
+@api.route("/priority")
+def priority():
+    priority_type = request.args.get("type", default="", type=str)
+    return node.get_priority(priority_type=priority_type)

@@ -644,6 +644,30 @@ class NodeManager(object):
             else:
                 return {"error": "could not generate reputation plot, try again later"}
 
+    def get_priority(self, priority_type=""):
+        self.logger.info(f"get_priority({priority_type})")
+
+        if priority_type not in ("", "drt", "vtt"):
+            self.logger.warning(f"Invalid value for priority type: {priority_type}")
+            return {"error": "invalid priority type, valid types are '', 'drt', 'vtt'"}
+
+        priority = cache.get(f"priority")
+        if not priority:
+            self.logger.info(f"Could not find 'priority' in memcached cache")
+            priority = self.witnet_node.get_priority()
+            if "result" in priority:
+                priority = priority["result"]
+                cache.set(f"priority", priority, timeout=calculate_timeout(self.cache_config["views"]["priority"]["timeout"]))
+            else:
+                self.logger.warning(f"Transaction priority returned invalid result, cannot cache it")
+        else:
+            self.logger.info(f"Found 'priority' in memcached cache")
+
+        if priority_type == "":
+            return priority
+        else:
+            return {key: priority[key] for key in priority.keys() if key.startswith(priority_type)}
+
     ##############################################################
     #   API endpoint functions which should not employ caching   #
     ##############################################################

@@ -180,6 +180,12 @@ class WitnetNode(object):
                 self.logger.warn(f"VTT {vtt} does not pass the regex test")
             return {"error": "invalid VTT format"}
 
+    def get_priority(self):
+        if self.logger:
+            self.logger.info("get_priority()")
+        request = {"jsonrpc": "2.0", "method": "priority", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def execute_request(self, request):
         WitnetNode.request_id += 1
         if self.request_timeout:
