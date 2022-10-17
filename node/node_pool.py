@@ -164,7 +164,10 @@ class NodePool(object):
                 continue
 
             # Parse request
-            request = json.loads(request)
+            try:
+                request = json.loads(request)
+            except json.decoder.JSONDecodeError:
+                continue
             request_id = request["id"]
 
             # Log the complete request
