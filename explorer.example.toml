@@ -216,3 +216,7 @@ timeout = 15
 # timeout: configure timeout (in seconds) for the status view function
 [api.caching.views.status]
 timeout = 15
+
+# timeout: configure timeout (in seconds) for the priority view function
+[api.caching.views.priority]
+timeout = 15
