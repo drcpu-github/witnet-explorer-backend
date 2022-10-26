@@ -187,8 +187,7 @@ class BlockExplorer(object):
             next_poll_interval = (int(time.time() / checkpoints_period) + 1) * checkpoints_period + 1
 
             # Get TAPI periods
-            sql = "SELECT start_epoch, stop_epoch, bit FROM tapi"
-            tapi_periods = self.insert_blocks_database.sql_return_all(sql)
+            tapi_periods = self.get_tapi_periods(self.insert_blocks_database)
 
             # Get all new blockchain digests
             blockchain = self.insert_blocks_node.get_blockchain(epoch=last_epoch + 1)
@@ -250,8 +249,7 @@ class BlockExplorer(object):
             next_poll_interval = (int(time.time() / checkpoints_period) + 1) * checkpoints_period + 5
 
             # Get TAPI epochs
-            sql = "SELECT start_epoch, stop_epoch, bit FROM tapi"
-            tapi_periods = self.confirm_blocks_database.sql_return_all(sql)
+            tapi_periods = self.get_tapi_periods(self.confirm_blocks_database)
 
             # Fetch all unconfirmed epoch data from the queue
             while not unconfirmed_blocks_queue.empty():
@@ -510,6 +508,20 @@ class BlockExplorer(object):
                 caching_server.send_request(request)
             except ConnectionRefusedError:
                 logger.warning(f"Could not recreate socket, will try again next {request['method']} request")
+
+    def get_tapi_periods(self, database):
+        # Get TAPI periods
+        sql = """
+            SELECT
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit
+            FROM
+                wips
+            WHERE
+                tapi_bit IS NOT NULL
+        """
+        return database.sql_return_all(sql)
 
 def select_logging_level(level):
     if level.lower() == "debug":
