@@ -107,19 +107,24 @@ class TapiList(Client):
                 id,
                 title,
                 description,
-                start_epoch,
-                stop_epoch,
-                bit,
-                urls
-            FROM tapi
-            ORDER BY id ASC
+                urls,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit
+            FROM
+                wips
+            WHERE
+                tapi_bit IS NOT NULL
+            ORDER BY
+                id
+            ASC
         """
         tapis = self.witnet_database.sql_return_all(sql)
 
         self.tapi_data = {}
         for tapi in tapis:
             # Save TAPI metadata
-            tapi_id, title, description, start_epoch, stop_epoch, bit, urls = tapi
+            tapi_id, title, description, urls, start_epoch, stop_epoch, bit = tapi
 
             # Check if we already saved a (partial) TAPI object
             local_tapi_data = self.memcached_client.get(f"tapi-{tapi_id}")
@@ -133,12 +138,12 @@ class TapiList(Client):
                     "tapi_id": tapi_id,
                     "title": title,
                     "description": description,
+                    "urls": urls,
                     "start_epoch": start_epoch,
                     "start_time": self.start_time + (start_epoch + 1) * self.epoch_period,
                     "stop_epoch": stop_epoch,
                     "stop_time": self.start_time + (stop_epoch + 1) * self.epoch_period,
                     "bit": bit,
-                    "urls": urls,
                     "accept": [],
                     "rates": [],
                     "relative_acceptance_rate": 0,
@@ -203,15 +208,12 @@ class TapiList(Client):
                 self.memcached_client.set(f"tapi-{tapi_id}", tapi)
             except pylibmc.TooBig as e:
                 self.logger.warning("Could not save items in cache because the item size exceeded 1MB")
+        self.memcached_client.set("tapis-cached", list(self.tapi_data.keys()))
 
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file", help="Specify a configuration file")
     options, args = parser.parse_args()
-
-    if options.config_file == None:
-        sys.stderr.write("Need to specify a configuration file!\n")
-        sys.exit(1)
 
     # Load config file
     config = toml.load(options.config_file)

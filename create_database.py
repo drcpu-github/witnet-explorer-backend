@@ -270,14 +270,15 @@ def create_tables(connection, cursor):
             num_txns INT ARRAY NOT NULL
         );""",
 
-        """CREATE TABLE IF NOT EXISTS tapi (
+        """CREATE TABLE IF NOT EXISTS wips (
             id SMALLINT GENERATED ALWAYS AS IDENTITY,
             title VARCHAR NOT NULL,
             description VARCHAR NOT NULL,
-            start_epoch INT NOT NULL,
-            stop_epoch INT NOT NULL,
-            bit SMALLINT NOT NULL,
-            urls VARCHAR ARRAY NOT NULL
+            urls VARCHAR ARRAY NOT NULL,
+            activation_epoch INT,
+            tapi_start_epoch INT,
+            tapi_stop_epoch INT,
+            tapi_bit SMALLINT
         );""",
 
         """CREATE TABLE IF NOT EXISTS reputation (

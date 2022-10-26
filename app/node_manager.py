@@ -478,33 +478,31 @@ class NodeManager(object):
     def init_tapi(self):
         self.logger.info(f"init_tapi()")
 
-        counter = 1
         all_tapis = {}
-        while True:
-            tapi = cache.get(f"tapi-{counter}")
-            if not tapi:
-                break
-            self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
-            all_tapis[counter] = tapi
-            counter += 1
+        tapis_cached = cache.get("tapis-cached")
+        if tapis_cached:
+            for counter in tapis_cached:
+                tapi = cache.get(f"tapi-{counter}")
+                self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
+                all_tapis[counter] = tapi
+
         if all_tapis == {}:
-            self.logger.info(f"No tapis found in memcached cache")
+            self.logger.info(f"No tapi's found in memcached cache")
 
         return all_tapis
 
     def update_tapi(self):
         self.logger.info(f"update_tapi()")
 
-        counter = 1
         updated_tapis = {}
-        while True:
-            tapi = cache.get(f"tapi-{counter}")
-            if not tapi:
-                break
-            self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
-            if tapi[counter]["active"]:
-                updated_tapis[counter] = tapi
-            counter += 1
+        tapis_cached = cache.get("tapis-cached")
+        if tapis_cached:
+            for counter in tapis_cached:
+                tapi = cache.get(f"tapi-{counter}")
+                self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
+                if tapi["active"]:
+                    updated_tapis[counter] = tapi
+
         if updated_tapis == {}:
             self.logger.info(f"No active or future tapis found in memcached cache")
 
