@@ -197,7 +197,7 @@ node_timeout = 60
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 [api.caching.scripts.tapi_list]
-cron = "* * * * *"
+cron = "*/5 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/tapi_list.log"
 
