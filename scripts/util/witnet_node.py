@@ -1,1 +1,0 @@
-../../node/witnet_node.py
