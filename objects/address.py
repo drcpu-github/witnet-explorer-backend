@@ -282,14 +282,13 @@ class Address(object):
                 tally_txns.epoch,
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses,
-                tally_txns.success,
-                blocks.reverted
+                tally_txns.success
             FROM commit_txns
             LEFT JOIN data_request_txns ON
                 commit_txns.data_request_txn_hash=data_request_txns.txn_hash
             LEFT JOIN reveal_txns ON
                 commit_txns.data_request_txn_hash=reveal_txns.data_request_txn_hash
-                AND
+            AND
                 commit_txns.txn_address=reveal_txns.txn_address
             LEFT JOIN tally_txns ON
                 commit_txns.data_request_txn_hash=tally_txns.data_request_txn_hash
@@ -297,10 +296,14 @@ class Address(object):
                 tally_txns.epoch=blocks.epoch
             WHERE
                 commit_txns.txn_address='%s'
+            AND
+                blocks.reverted=false
+            AND
+                tally_txns.success IS NOT NULL
         """ % self.address
         if epoch > 0:
-            sql += " AND commit_txns.epoch > %s" % epoch
-        sql += " ORDER BY commit_txns.epoch DESC"
+            sql += " AND tally_txns.epoch > %s" % epoch
+        sql += " ORDER BY tally_txns.epoch DESC"
         if limit > 0 and epoch == 0:
             sql += " LIMIT %s" % limit
         result = self.db_mngr.sql_return_all(sql)
@@ -308,11 +311,7 @@ class Address(object):
         solved_data_request_txns = []
         if result:
             for data_request in result:
-                collateral, witness_reward, data_request_txn_hash, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success, block_reverted = data_request
-
-                # Check if any of the values is None which would indicate this data request was not completed (or incorrectly processed)
-                if error_addresses == None or liar_addresses == None or success == None or block_reverted == None:
-                    continue
+                collateral, witness_reward, data_request_txn_hash, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
 
                 # Calculate timestamp
                 timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
@@ -328,9 +327,6 @@ class Address(object):
 
                 # Check if we were marked as a liar
                 liar = self.address in liar_addresses
-
-                # Check if there was an error in the tally or if it was reverted (and not redone)
-                success = success and not block_reverted
 
                 solved_data_request_txns.append((success, data_request_txn_hash.hex(), tally_epoch, timestamp, collateral, witness_reward, translated_reveal, error, liar))
 
