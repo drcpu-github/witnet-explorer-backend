@@ -1,7 +1,3 @@
-#####################################################################################
-# Data request protobuf encoding based on https://github.com/parodyBit/witnet_tools #
-#####################################################################################
-
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
