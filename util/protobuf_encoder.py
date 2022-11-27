@@ -137,16 +137,22 @@ class RADRetrieve:
 
     @classmethod
     def from_json(cls, data):
+        _url: str = ''
+        if 'url' in data:
+            _url = data['url']
+
         _body: bytes = b''
-        _headers: list = []
         if 'body' in data:
             _body = bytes(data['body'])
+
+        _headers: list = []
         if 'headers' in data:
-            for key in data["headers"]:
-                _headers.append(StringPair(left=key, right=data["headers"][key]))
+            for key in data['headers']:
+                _headers.append(StringPair(left=key, right=data['headers'][key]))
+
         return RADRetrieve(
             kind=RADType.from_json(data['kind']),
-            url=data['url'],
+            url=_url,
             script=bytes(data['script']),
             body=_body,
             headers=_headers
@@ -497,7 +503,6 @@ class ProtobufEncoder(object):
                                     {
                                         "script": [0x80],
                                         "kind": "RNG",
-                                        "url": ''
                                     },
                                 ],
                                 "aggregate": {
