@@ -111,7 +111,7 @@ class Blocks(Client):
 
     def build_block(self, block_hash, epoch):
         # Build block
-        block = Block(self.consensus_constants, block_hash=block_hash, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
+        block = Block(self.consensus_constants, block_hash=block_hash, logger=self.logger, database=self.witnet_database, database_config=self.config["database"], node_config=self.node_config)
         json_block = block.process_block("api")
         if "error" in json_block:
             self.logger.warning(f"Could not fetch block {block_hash} for epoch {epoch}")

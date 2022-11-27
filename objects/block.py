@@ -37,10 +37,12 @@ class Block(object):
         if database:
             self.witnet_database = database
         elif database_config:
-            self.database_config = database_config
             self.witnet_database = WitnetDatabase(database_config, logger=self.logger)
         else:
             self.witnet_database = None
+
+        if database_config:
+            self.database_config = database_config
 
         self.node_config = node_config
 

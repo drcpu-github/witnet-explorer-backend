@@ -10,6 +10,8 @@ from util.socket_manager import SocketManager
 
 class Client(object):
     def __init__(self, config, node=False, timeout=0, database=False, memcached_client=False, consensus_constants=False):
+        self.config = config
+
         # Connect to node pool
         if node:
             try:
