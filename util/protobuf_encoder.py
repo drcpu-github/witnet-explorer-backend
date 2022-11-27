@@ -362,6 +362,8 @@ class ProtobufEncoder(object):
                 self.transaction = transaction["transaction"]
             if "DataRequest" in self.transaction:
                 self.dr_output = DataRequestOutput.from_json(self.transaction["DataRequest"]["body"]["dr_output"])
+            if "body" in self.transaction and "dr_output" in self.transaction["body"]:
+                self.dr_output = DataRequestOutput.from_json(self.transaction["body"]["dr_output"])
 
     def get_bytecode_RAD_request(self, epoch: int):
         assert self.dr_output, "Transaction not set"

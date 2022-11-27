@@ -7,6 +7,8 @@ from blockchain.witnet_database import WitnetDatabase
 
 from node.witnet_node import WitnetNode
 
+from objects.wip import WIP
+
 from util.address_generator import AddressGenerator
 from util.protobuf_encoder import ProtobufEncoder
 from util.radon_translator import RadonTranslator
@@ -45,7 +47,9 @@ class Transaction(object):
         self.address_generator = AddressGenerator("wit")
 
         # Create Protobuf encoder
-        self.protobuf_encoder = ProtobufEncoder()
+        self.protobuf_encoder = None
+        if database_config != None:
+            self.protobuf_encoder = ProtobufEncoder(WIP(database_config=database_config))
 
         # Create Radon translator
         self.translator = RadonTranslator()
@@ -57,24 +61,29 @@ class Transaction(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def set_transaction(self, txn_hash, txn_weight=0, json_txn=None):
+    def set_transaction(self, txn_hash="", txn_epoch=0, txn_weight=0, json_txn=None):
         self.txn_hash = txn_hash
 
         self.txn_details = {}
         self.txn_details["txn_hash"] = txn_hash
+        if txn_epoch > 0:
+            self.txn_details["epoch"] = txn_epoch
 
         if json_txn:
             self.json_txn = json_txn
-            self.txn_details["weight"] = txn_weight
+            if txn_weight > 0:
+                self.txn_details["weight"] = txn_weight
         else:
             self.json_txn = self.get_transaction_from_node(txn_hash)
             if "error" in self.json_txn:
                 self.json_txn = {}
                 self.txn_details["weight"] = 0
             else:
-                self.txn_details["weight"] = self.json_txn["weight"]
+                if self.json_txn["weight"] > 0:
+                    self.txn_details["weight"] = self.json_txn["weight"]
 
-        self.protobuf_encoder.set_transaction(self.json_txn)
+        if self.protobuf_encoder:
+            self.protobuf_encoder.set_transaction(self.json_txn)
 
     def calculate_addresses(self, signatures):
         addresses = []

@@ -37,6 +37,7 @@ class Block(object):
         if database:
             self.witnet_database = database
         elif database_config:
+            self.database_config = database_config
             self.witnet_database = WitnetDatabase(database_config, logger=self.logger)
         else:
             self.witnet_database = None
@@ -188,59 +189,65 @@ class Block(object):
 
     def process_mint_txn(self):
         txn_hash = self.block["txns_hashes"]["mint"]
+        txn_epoch = self.block_epoch
         json_txn = self.block["txns"]["mint"]
         block_signature = self.block["block_sig"]["public_key"]
         mint = Mint(self.consensus_constants, logger=self.logger)
-        mint.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
+        mint.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, json_txn=json_txn)
         return mint.process_transaction(block_signature)
 
     def process_value_transfer_txns(self, call_from):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
+            txn_epoch = self.block_epoch
             value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["value_transfer"], self.block["txns_weights"]["value_transfer"])):
                 json_txn = self.block["txns"]["value_transfer_txns"][i]
-                value_transfer.set_transaction(txn_hash=txn_hash, txn_weight=txn_weight, json_txn=json_txn)
+                value_transfer.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, txn_weight=txn_weight, json_txn=json_txn)
                 value_transfer_txns.append(value_transfer.process_transaction(call_from))
         return value_transfer_txns
 
     def process_data_request_txns(self, call_from):
         data_request_transactions = []
         if len(self.block["txns_hashes"]["data_request"]) > 0:
-            data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
+            txn_epoch = self.block_epoch
+            data_request = DataRequest(self.consensus_constants, logger=self.logger, database_config=self.database_config, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["data_request"], self.block["txns_weights"]["data_request"])):
                 json_txn = self.block["txns"]["data_request_txns"][i]
-                data_request.set_transaction(txn_hash=txn_hash, txn_weight=txn_weight, json_txn=json_txn)
+                data_request.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, txn_weight=txn_weight, json_txn=json_txn)
                 data_request_transactions.append(data_request.process_transaction(call_from))
         return data_request_transactions
 
     def process_commit_txns(self, call_from):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
+            txn_epoch = self.block_epoch
             commit = Commit(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["commit"]):
                 json_txn = self.block["txns"]["commit_txns"][i]
-                commit.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
+                commit.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, json_txn=json_txn)
                 commit_transactions.append(commit.process_transaction(call_from))
         return commit_transactions
 
     def process_reveal_txns(self, call_from):
         reveal_transactions = []
         if len(self.block["txns_hashes"]["reveal"]) > 0:
+            txn_epoch = self.block_epoch
             reveal = Reveal(self.consensus_constants, logger=self.logger)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["reveal"]):
                 json_txn = self.block["txns"]["reveal_txns"][i]
-                reveal.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
+                reveal.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, json_txn=json_txn)
                 reveal_transactions.append(reveal.process_transaction(call_from))
         return reveal_transactions
 
     def process_tally_txns(self, call_from):
         tally_transactions = []
         if len(self.block["txns_hashes"]["tally"]) > 0:
+            txn_epoch = self.block_epoch
             tally = Tally(self.consensus_constants, logger=self.logger)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["tally"]):
                 json_txn = self.block["txns"]["tally_txns"][i]
-                tally.set_transaction(txn_hash=txn_hash, json_txn=json_txn)
+                tally.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, json_txn=json_txn)
                 tally_transactions.append(tally.process_transaction(call_from))
         return tally_transactions
 

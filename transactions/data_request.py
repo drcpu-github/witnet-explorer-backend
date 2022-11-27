@@ -109,13 +109,14 @@ class DataRequest(Transaction):
         if call_from == "api":
             self.txn_details["tally_reducer"] = self.translate_reducer(self.txn_details["tally_reducer"])
 
-        self.txn_details["RAD_bytes_hash"], self.txn_details["data_request_bytes_hash"] = self.get_bytecode_hashes()
+        if "epoch" in self.txn_details:
+            self.txn_details["RAD_bytes_hash"], self.txn_details["data_request_bytes_hash"] = self.get_bytecode_hashes()
 
         return self.txn_details
 
     def get_bytecode_hashes(self):
-        RAD_bytes_hash, _ = self.protobuf_encoder.get_bytecode_RAD_request()
-        data_request_bytes_hash, _ = self.protobuf_encoder.get_bytecode_data_request()
+        RAD_bytes_hash, _ = self.protobuf_encoder.get_bytecode_RAD_request(self.txn_details["epoch"])
+        data_request_bytes_hash, _ = self.protobuf_encoder.get_bytecode_data_request(self.txn_details["epoch"])
         return RAD_bytes_hash, data_request_bytes_hash
 
     def get_transaction_from_database(self, data_request_hash):
