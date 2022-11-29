@@ -101,11 +101,17 @@ Each of the processes requires a TOML-based configuration file. An example confi
 
 ## Request response caching through memcached
 
-For the explorer to properly function, API request responses can be cached using a Memcached instance. It is possible to prebuild and cache certain request responses using the scripts in the `caching` directory. These scripts will fetch and process data from the PostgreSQL backend database. They will store the resulting JSON in a memcached instance. This greatly speeds up the responses for some of the API endpoints which require complicated queries. These scripts can be run using cronjobs.
+For the explorer to properly function, API request responses can be cached using a Memcached instance. It is possible to prebuild and cache certain request responses using the scripts in the `caching` directory. These scripts will fetch and process data from the PostgreSQL backend database. They will store the resulting JSON in a memcached instance. This greatly speeds up the responses for some of the API endpoints which require complicated queries. all except one of these scripts can be run using cronjobs.
 
 The logging parameters and frequency of the different cron jobs are defined in the `explorer.example.toml` configuration file under the `[api.caching]` (sub-)categories.
 
 This repository also contains a simple script `install_cron.py` which can be executed once upon cloning this repository and which will set up the cronjobs. Note that the execution of these jobs requires that the PostgreSQL daemon, memcached daemon and node_pool are already running.
+
+The only caching script which cannot be run as a cronjob is the address query caching script. This is a server-like script which continously runs. The explorer and API processes will communicate with this process over sockets to determine for which addresses query responses can be prebuilt and cached. This process can be started as follows:
+```
+screen -S addresses -L -Logfile screen-addresses.log
+cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m caching.addresses --config /path/to/explorer/backend/explorer.toml
+```
 
 ## Scripts
 
