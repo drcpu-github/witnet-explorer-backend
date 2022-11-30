@@ -648,12 +648,13 @@ class NodeManager(object):
             else:
                 return {"error": "No reputation plot generated yet, try again later."}
 
-    def get_priority(self, priority_type=""):
+    def get_priority(self, priority_type="all"):
         self.logger.info(f"get_priority({priority_type})")
 
-        if priority_type not in ("", "drt", "vtt"):
+        valid_priority_types = ("all", "drt", "vtt")
+        if priority_type not in valid_priority_types:
             self.logger.warning(f"Invalid value for priority type: {priority_type}")
-            return {"error": "invalid priority type, valid types are '', 'drt', 'vtt'"}
+            return {"error": f"invalid priority type, valid types are: {', '.join(valid_priority_types)}"}
 
         priority = cache.get(f"priority")
         if not priority:
@@ -667,7 +668,7 @@ class NodeManager(object):
         else:
             self.logger.info(f"Found 'priority' in memcached cache")
 
-        if priority_type == "":
+        if priority_type == "all":
             return priority
         else:
             return {key: priority[key] for key in priority.keys() if key.startswith(priority_type)}
