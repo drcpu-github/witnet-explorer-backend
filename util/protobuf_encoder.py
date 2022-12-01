@@ -573,7 +573,12 @@ class ProtobufEncoder(object):
                             "commit_and_reveal_fee": 1000000,
                             "data_request": {
                                 "aggregate": {
-                                    "filters": [{"op": 5, "args": [0xfa, 0x3f, 0xc0, 0x00, 0x00]}],
+                                    "filters": [
+                                        {
+                                            "op": 5,
+                                            "args": [0xfa, 0x3f, 0xc0, 0x00, 0x00]
+                                        }
+                                    ],
                                     "reducer": 3
                                 },
                                 "retrieve": [
@@ -582,11 +587,24 @@ class ProtobufEncoder(object):
                                         "script": [0x86, 0x18, 0x77, 0x82, 0x18, 0x66, 0x64, 0x64, 0x61, 0x74, 0x61, 0x82, 0x18, 0x66, 0x64, 0x70, 0x61, 0x69, 0x72, 0x82, 0x18, 0x64, 0x6b, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x30, 0x50, 0x72, 0x69, 0x63, 0x65, 0x82, 0x18, 0x57, 0x1a, 0x00, 0x0f, 0x42, 0x40, 0x18, 0x5b],
                                         "url": "https://api.thegraph.com/subgraphs/name/sushiswap/matic-exchange",
                                         "body": [0x7b, 0x22, 0x71, 0x75, 0x65, 0x72, 0x79, 0x22, 0x3a, 0x22, 0x7b, 0x70, 0x61, 0x69, 0x72, 0x28, 0x69, 0x64, 0x3a, 0x5c, 0x22, 0x30, 0x78, 0x31, 0x30, 0x32, 0x64, 0x33, 0x39, 0x62, 0x63, 0x32, 0x39, 0x33, 0x34, 0x37, 0x32, 0x64, 0x63, 0x39, 0x61, 0x63, 0x33, 0x65, 0x36, 0x61, 0x30, 0x61, 0x39, 0x32, 0x36, 0x31, 0x61, 0x38, 0x33, 0x38, 0x62, 0x33, 0x62, 0x63, 0x36, 0x64, 0x37, 0x5c, 0x22, 0x29, 0x7b, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x30, 0x50, 0x72, 0x69, 0x63, 0x65, 0x7d, 0x7d, 0x22, 0x7d],
-                                        "headers": [["Content-Type", "application/json"]]
+                                        "headers": [
+                                            ["Content-Type", "application/json"]
+                                        ]
                                     }
                                 ],
-                            "tally": {"filters": [{"op": 5, "args": [0xfa, 0x40, 0x20, 0x00, 0x00]}], "reducer": 3},
-                            "time_lock": 0}, "min_consensus_percentage": 51, "witness_reward": 1000000,
+                                "tally": {
+                                    "filters": [
+                                        {
+                                            "op": 5,
+                                            "args": [0xfa, 0x40, 0x20, 0x00, 0x00]
+                                        }
+                                    ],
+                                    "reducer": 3
+                                },
+                                "time_lock": 0
+                            },
+                            "min_consensus_percentage": 51,
+                            "witness_reward": 1000000,
                             "witnesses": 10
                         },
                         "inputs": [],
