@@ -80,7 +80,7 @@ class TransactionPool(object):
 
         return lst_dict, unique_fee_categories
 
-    def get_mempool_transactions(self):
+    def get_historical_mempool(self):
         timestamp = int(time.time())
         timestamp_stop = int(timestamp / 10) * 10
         timestamp_start = int((timestamp - 24 * 60 * 60) / 60) * 60
@@ -96,7 +96,7 @@ class TransactionPool(object):
                 timestamp > %s
             ORDER BY timestamp ASC
         """ % timestamp_start
-        pending_data_requests = self.witnet_database.sql_return_all(sql)
+        mempool_data_requests = self.witnet_database.sql_return_all(sql)
 
         sql = """
             SELECT
@@ -108,21 +108,21 @@ class TransactionPool(object):
                 timestamp > %s
             ORDER BY timestamp ASC
         """ % timestamp_start
-        pending_value_transfers = self.witnet_database.sql_return_all(sql)
+        mempool_value_transfers = self.witnet_database.sql_return_all(sql)
 
         # Loop over the values and check if they're spaced by 60 seconds
         # If they are not, there were no pending transactions, add empty lists
-        pending_data_requests = self.insert_empty_lists(timestamp_start, timestamp_stop, pending_data_requests)
-        pending_value_transfers = self.insert_empty_lists(timestamp_start, timestamp_stop, pending_value_transfers)
+        mempool_data_requests = self.insert_empty_lists(timestamp_start, timestamp_stop, mempool_data_requests)
+        mempool_value_transfers = self.insert_empty_lists(timestamp_start, timestamp_stop, mempool_value_transfers)
 
         # Transform list to a list of dicts and get a set of unique fees
-        pending_data_requests, data_request_fees = self.transform_to_dict(pending_data_requests)
-        pending_value_transfers, value_transfer_fees = self.transform_to_dict(pending_value_transfers)
+        mempool_data_requests, data_request_fees = self.transform_to_dict(mempool_data_requests)
+        mempool_value_transfers, value_transfer_fees = self.transform_to_dict(mempool_value_transfers)
 
         return {
-            "pending_data_requests": pending_data_requests,
+            "mempool_data_requests": mempool_data_requests,
             "data_request_fees": data_request_fees,
-            "pending_value_transfers": pending_value_transfers,
+            "mempool_value_transfers": mempool_value_transfers,
             "value_transfer_fees": value_transfer_fees,
             "last_updated": timestamp
         }

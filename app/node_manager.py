@@ -468,18 +468,34 @@ class NodeManager(object):
 
         return network
 
-    def get_mempool_transactions(self):
-        self.logger.info("get_mempool_transactions()")
+    def get_mempool(self, key):
+        self.logger.info(f"get_mempool({key})")
 
-        mempool_transactions = cache.get(f"mempool_transactions")
-        if not mempool_transactions:
-            self.logger.info(f"Could not find 'mempool_transactions' in memcached cache")
-            mempool_transactions = self.transaction_pool.get_mempool_transactions()
-            cache.set(f"mempool_transactions", mempool_transactions, timeout=calculate_timeout(self.cache_config["views"]["pending"]["timeout"]))
+        if key not in (
+            "live",
+            "history",
+        ):
+            self.logger.warning(f"Invalid key for mempool API endpoint requested")
+            return {"error": "invalid key for mempool API endpoint requested"}
+
+        if key == "live":
+            mempool = self.witnet_node.get_mempool()
+            if "result" in mempool:
+                self.logger.info(f"Fetched live mempool from node")
+                mempool = mempool["result"]
+            else:
+                self.logger.warning(f"Could not fetch the live mempool")
+                mempool = {"error": "could not fetch the live mempool"}
         else:
-            self.logger.info(f"Found 'mempool_transactions' in memcached cache")
+            mempool = cache.get(f"mempool")
+            if not mempool:
+                self.logger.info(f"Could not find 'mempool' in memcached cache")
+                mempool = self.transaction_pool.get_historical_mempool()
+                cache.set(f"mempool", mempool, timeout=calculate_timeout(self.cache_config["views"]["pending"]["timeout"]))
+            else:
+                self.logger.info(f"Found 'mempool' in memcached cache")
 
-        return mempool_transactions
+        return mempool
 
     def init_tapi(self):
         self.logger.info(f"init_tapi()")

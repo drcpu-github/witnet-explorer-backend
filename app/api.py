@@ -144,9 +144,10 @@ def balance_list():
 def network():
     return node.get_network()
 
-@api.route("/pending")
-def get_transaction_pool():
-    return node.get_mempool_transactions()
+@api.route("/mempool")
+def get_mempool():
+    key = request.args.get("key", default="live", type=str)
+    return node.get_mempool(key)
 
 @api.route('/blockchain')
 def blockchain():
