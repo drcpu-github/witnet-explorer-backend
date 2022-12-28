@@ -91,6 +91,7 @@ def create_enums(connection, cursor):
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'retrieve_kind') THEN
                     CREATE TYPE retrieve_kind AS ENUM (
+                        'Unknown',
                         'HTTP-GET',
                         'HTTP-POST',
                         'RNG'
