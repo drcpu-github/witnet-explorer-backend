@@ -1,16 +1,32 @@
 # Backend for the Witnet Explorer
-This repository contains all code to run the backend for the Witnet Explorer. The explorer is currently hosted at [witnet.network](https://witnet.network).
+This repository contains all code to run the backend for the Witnet Explorer. The explorer is currently hosted at [witnet.network](https://witnet.network). It is built using a Nginx / Memcached / Flask stack.
 
 ## Dependencies
 
 You will have to install following dependencies to run the explorer locally:
 ```
-sudo apt-get install git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin
+sudo apt-get install git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin libxml2-dev libxslt1-dev libgd-dev
+```
+
+## Install the most recent Nginx version (optional)
+
+The Nginx installation from above dependency list is likely not the most recent one. While it is optional to use the most recent version, it is certainly advised. Download the [most recent Nginx version](http://nginx.org/en/download.html):
+```
+wget https://nginx.org/download/nginx-1.22.1.tar.gz
+tar xzvf nginx-1.22.1.tar.gz
+cd nginx-1.22.1
+```
+
+Configure, compile and install the downloaded version:
+```
+./configure --user=www-data --group=adm --with-cc-opt='-g -O2 -fdebug-prefix-map=/build/nginx-7KvRN5/nginx-1.18.0=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' --with-ld-opt='-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -fPIC' --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --http-log-path=/var/log/nginx/access.log --error-log-path=/var/log/nginx/error.log --modules-path=/usr/lib/nginx/modules --lock-path=/var/lock/nginx.lock --pid-path=/var/run/nginx.pid --http-client-body-temp-path=/var/lib/nginx/body --http-fastcgi-temp-path=/var/lib/nginx/fastcgi --http-proxy-temp-path=/var/lib/nginx/proxy --http-scgi-temp-path=/var/lib/nginx/scgi --http-uwsgi-temp-path=/var/lib/nginx/uwsgi --with-debug --with-threads --with-compat --with-pcre-jit --with-http_addition_module --with-http_auth_request_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_image_filter_module=dynamic --with-http_realip_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_xslt_module=dynamic --with-stream=dynamic --with-stream_ssl_module --with-mail=dynamic --with-mail_ssl_module
+make
+sudo make install
 ```
 
 ## Python3 dependencies - virtual environment
 
-It is advised to start the explorer from within a virtual environment and you'll have to install following dependencies in the environment:
+It is advised to start the explorer from within a virtual environment. You can install all dependencies using the `requirements.txt` file:
 ```
 virtualenv env
 source env/bin/activate
