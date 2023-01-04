@@ -1,0 +1,15 @@
+[Unit]
+Description=Nginxlog Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=always
+ExecStart=/usr/local/bin/prometheus-nginxlog-exporter \
+    -config-file=/etc/prometheus/nginxlog_exporter/config.hcl
+
+[Install]
+WantedBy=multi-user.target

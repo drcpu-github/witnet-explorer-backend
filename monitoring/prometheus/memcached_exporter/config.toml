@@ -1,0 +1,27 @@
+# server: IP address of the running memcached server, defaults to localhost
+# user: username for the memcached server, can be left empty
+# password: password for the memcached server, can be left empty
+[memcached]
+server = "127.0.0.1:11211"
+user = "<user>"
+password = "<password>"
+
+# sleep: how often are new statistics queried
+# port: the port on which Prometheus will be listening
+# stats: set to "all" or a list of statistics to save
+[prometheus]
+sleep = 30
+port = 9150
+stats = [
+    "total_items",
+    "cmd_get",
+    "cmd_set",
+    "get_hits",
+    "get_expired",
+    "evictions",
+    "bytes_read",
+    "bytes_written",
+    "curr_items",
+    "bytes",
+    "curr_connections",
+]

@@ -1,0 +1,40 @@
+# rpc: a list of ip:port addresses for Witnet nodes
+[nodes]
+rpc = [
+    "127.0.0.1:21338",
+]
+
+# processes: a list of process identifiers and the amount of required processes
+[[processes]]
+name = "blockchain.explorer"
+amount = 5
+
+[[processes]]
+name = "caching.addresses"
+amount = 1
+
+[[processes]]
+name = "node.node_pool"
+amount = 1
+
+[[processes]]
+name = "gunicorn"
+amount = 1
+
+[[processes]]
+name = "nginx"
+amount = 1
+
+[[processes]]
+name = "postgres"
+amount = 1
+
+[[processes]]
+name = "memcached"
+amount = 1
+
+# sleep: how often are new statistics queried
+# port: the port on which Prometheus will be listening
+[prometheus]
+sleep = 60
+port = 9200

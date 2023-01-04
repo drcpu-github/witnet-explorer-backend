@@ -1,0 +1,15 @@
+[Unit]
+Description=Explorer Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=always
+ExecStart=/home/witnet/explorer/env/bin/python3 /usr/local/bin/process_exporter.py \
+    --config=/etc/prometheus/process_exporter/config.toml
+
+[Install]
+WantedBy=multi-user.target
