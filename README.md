@@ -5,7 +5,7 @@ This repository contains all code to run the backend for the Witnet Explorer. Th
 
 You will have to install following dependencies to run the explorer locally:
 ```
-sudo apt-get install git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin libxml2-dev libxslt1-dev libgd-dev
+sudo apt-get install git python3 python3-pip python3-virtualenv python3-psycopg2 nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin libpcre3-dev libxml2-dev libxslt1-dev libgd-dev
 ```
 
 ## Install the most recent Nginx version (optional)
