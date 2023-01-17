@@ -12,6 +12,8 @@ from app.cache import cache
 
 from blockchain.witnet_database import WitnetDatabase
 
+from caching.network_stats import aggregate_nodes
+
 from engine.trs import TRS
 
 from node.consensus_constants import ConsensusConstants
@@ -30,6 +32,7 @@ from transactions.tally import Tally
 from transactions.mint import Mint
 from transactions.value_transfer import ValueTransfer
 
+from util.helper_functions import sanitize_input
 from util.memcached import calculate_timeout
 from util.socket_manager import SocketManager
 
@@ -85,23 +88,6 @@ class NodeManager(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def sanitize_input(self, input_value, required_type):
-        if required_type == "bool":
-            return input_value in (True, False)
-        elif required_type == "hexadecimal":
-            try:
-                int(input_value, 16)
-                return True
-            except ValueError:
-                return False
-        elif required_type == "alpha":
-            return input_value.isalpha()
-        elif required_type == "alphanumeric":
-            return input_value.isalnum()
-        elif required_type == "numeric":
-            return input_value.isnumeric()
-        return False
-
     def is_transaction_pending(self, hash_value):
         transactions_pool = self.witnet_node.get_mempool()
         if "error" in transactions_pool:
@@ -135,6 +121,39 @@ class NodeManager(object):
     def pretty_hash_type(self, hash_type):
         return hash_type.replace("_", " ").replace("txn", "transaction")
 
+    def get_ids_to_addresses(self):
+        sql = """
+            SELECT
+                address,
+                id
+            FROM
+                addresses
+        """
+        addresses = self.witnet_database.sql_return_all(sql)
+
+        # Transform list of data to dictionary
+        ids_to_addresses = {}
+        if addresses:
+            for address, address_id in addresses:
+                ids_to_addresses[address_id] = address
+
+        return ids_to_addresses
+
+    def translate_address_ids(self, id_value):
+        # Fetch an id to address mapping
+        ids_to_addresses = self.get_ids_to_addresses()
+
+        # Translate address ids to addresses
+        top_100_mapped = []
+        for address_id, value in id_value:
+            if address_id not in ids_to_addresses:
+                self.logger.warning(f"Could not find address value for id {address_id}")
+                top_100_mapped.append([address_id, value])
+            else:
+                top_100_mapped.append([ids_to_addresses[address_id], value])
+
+        return top_100_mapped
+
     #######################################################
     #   API endpoint functions which can employ caching   #
     #######################################################
@@ -150,11 +169,11 @@ class NodeManager(object):
             self.logger.warning(f"Invalid hash length ({len(hash_value)}): {hash_value}")
             return {"error": "incorrect hexadecimal hash length"}
 
-        if not self.sanitize_input(hash_value, "hexadecimal"):
+        if not sanitize_input(hash_value, "hexadecimal"):
             self.logger.warning(f"Invalid value for hash: {hash_value}")
             return {"error": "hash is not a hexadecimal value"}
 
-        if not self.sanitize_input(simple, "bool"):
+        if not sanitize_input(simple, "bool"):
             self.logger.warning(f"Invalid value for simple: {simple}")
             return {"error": "simple is not a boolean value"}
 
@@ -275,7 +294,7 @@ class NodeManager(object):
             self.logger.warning(f"Invalid epoch length ({len(str(epoch))})")
             return {"error": "invalid epoch length"}
 
-        if not self.sanitize_input(str(epoch), "numeric"):
+        if not sanitize_input(str(epoch), "numeric"):
             self.logger.warning(f"Invalid value for epoch: {epoch}")
             return {"error": "argument is not a numeric value"}
 
@@ -402,7 +421,7 @@ class NodeManager(object):
             else:
                 self.logger.info(f"Found 'reputation' in memcached cache")
         else:
-            if not self.sanitize_input(epoch, "numeric"):
+            if not sanitize_input(epoch, "numeric"):
                 self.logger.warning(f"Invalid value for epoch: {epoch}")
                 return {"error": "epoch is not a numerical value"}
 
@@ -449,24 +468,201 @@ class NodeManager(object):
 
         return balance_list
 
-    def get_network(self):
-        self.logger.info("get_network()")
+    def get_network(self, key, start_epoch=None, stop_epoch=None):
+        self.logger.info(f"get_network({key}, {start_epoch}, {stop_epoch})")
 
-        network = cache.get(f"network")
-        if not network:
-            self.logger.error(f"Could not find 'network' in memcached cache")
-            network = {
-                "rollback_rows": [],
-                "unique_miners": 0,
-                "unique_dr_solvers": 0,
-                "top_100_miners": [],
-                "top_100_dr_solvers": [],
-                "last_updated": 0
+        key_mapping = {
+            "list-rollbacks": "network_list-rollbacks",
+            "num-unique-miners": "network_miners",
+            "num-unique-data-request-solvers": "network_data-request-solvers",
+            "top-100-miners": "network_miners",
+            "top-100-data-request-solvers": "network_data-request-solvers",
+            "percentile-staking-balances": "network_percentile-staking-balances",
+            "histogram-data-requests": "network_data-requests",
+            "histogram-data-request-composition": "network_data-requests",
+            "histogram-data-request-witness": "network_data-requests",
+            "histogram-data-request-lie-rate": "network_lie-rates",
+            "histogram-data-request-collateral": "network_data-requests",
+            "histogram-data-request-reward": "network_data-requests",
+            "histogram-trs-data": "network_trs-data",
+            "histogram-value-transfers": "network_value-transfers",
+        }
+
+        last_updated_timestamp = cache.get("network_last-updated")
+        if not last_updated_timestamp:
+            last_updated_timestamp = 0
+
+        aggregation_epochs = self.config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
+
+        # ARS and TRS balances do not require a start and stop epoch
+        if key == "percentile-staking-balances":
+            response = cache.get(key_mapping[key])
+            if response == None:
+                return {"error": "could not fetch balance percentiles, try again later"}
+            return {
+                "last_updated": last_updated_timestamp,
+                "aggregation": aggregation_epochs,
+                "values": response["percentiles"],
+                "data": response,
             }
         else:
-            self.logger.info(f"Found 'network' in memcached cache")
+            # If below keys are requested and no epochs are defined, return the statistics for the whole network lifetime
+            if key in (
+                "num-unique-miners",
+                "num-unique-data-request-solvers",
+                "top-100-miners",
+                "top-100-data-request-solvers",
+            ) and start_epoch == None and stop_epoch == None:
+                data = cache.get(f"network_{key}")
+                if data == None:
+                    return {"error": f"could not fetch {key}, try again later"}
+                else:
+                    if key.startswith("top-100"):
+                        data = self.translate_address_ids(data)
+                    return {
+                        "last_updated": last_updated_timestamp,
+                        "aggregation": aggregation_epochs,
+                        "data": data,
+                    }
 
-        return network
+            # If rollbacks are requested without epochs, return the 100 most recent
+            if key == "list-rollbacks" and start_epoch == None and stop_epoch == None:
+                data = cache.get(f"network_{key}")
+                if data == None:
+                    return {"error": f"could not fetch {key}, try again later"}
+                else:
+                    return {
+                        "last_updated": last_updated_timestamp,
+                        "aggregation": aggregation_epochs,
+                        "data": data[:100],
+                    }
+
+            # A different statistic is requested and / or a start or stop epoch are defined
+
+            # If we need to calculate a start or stop epoch, fetch the latest confirmed one from the database
+            _, last_confirmed_epoch = self.witnet_database.get_last_block()
+
+            # Start epoch given: use the aggregation period to floor it
+            if start_epoch != None:
+                start_epoch = int(int(start_epoch) / aggregation_epochs) * aggregation_epochs
+            # No start epoch given: use the aggregation period surrounding the last confirmed epoch
+            else:
+                # Return the last 60 aggregation periods worth of data
+                # This is roughly one month at the default aggregation period of 1000 epochs
+                if key.startswith("histogram-"):
+                    start_epoch = int(last_confirmed_epoch / aggregation_epochs - 59) * aggregation_epochs
+                # Return only the last aggregation period's data
+                else:
+                    start_epoch = int(last_confirmed_epoch / aggregation_epochs) * aggregation_epochs
+
+            # Stop epoch given: use the aggregation period to ceil it
+            if stop_epoch != None:
+                if int(stop_epoch) > last_confirmed_epoch:
+                    stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
+                else:
+                    stop_epoch = int(int(stop_epoch) / aggregation_epochs + 1) * aggregation_epochs
+            # No stop epoch given: use the aggregation period surrounding the last confirmed epoch
+            else:
+                stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
+
+            # If the parameters were passed in the wrong order (or partially calculated), swap them
+            if start_epoch > stop_epoch:
+                start_epoch, stop_epoch = stop_epoch, start_epoch
+
+            # Need at least a difference of one day worth of epochs between the start and stop epoch
+            if start_epoch == stop_epoch:
+                start_epoch -= aggregation_epochs
+
+            # The list-rollbacks key requires special handling since it is not saved as periodic data
+            if key == "list-rollbacks":
+                rollbacks = cache.get(key_mapping[key])
+                if rollbacks == None:
+                    return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": [start_epoch, stop_epoch],
+                    "data": [r for r in rollbacks if r[2] >= start_epoch and r[1] <= stop_epoch],
+                }
+
+            # Fetch all required data
+            period_start, data = [], []
+            for start in range(start_epoch, stop_epoch, aggregation_epochs):
+                temp_data = cache.get(f"{key_mapping[key]}_{start}_{start + aggregation_epochs}")
+                if temp_data == None:
+                    return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
+                period_start.append(start)
+                data.append(temp_data)
+
+            # Aggregate depending on the requested key
+            if key in ("num-unique-miners", "top-100-miners", "num-unique-data-request-solvers", "top-100-data-request-solvers"):
+                num_unique, top_100 = aggregate_nodes(data)
+                if key in ("num-unique-miners", "num-unique-data-request-solvers"):
+                    return {
+                        "last_updated": last_updated_timestamp,
+                        "aggregation": aggregation_epochs,
+                        "period": [start_epoch, stop_epoch],
+                        "data": num_unique,
+                    }
+                else:
+                    top_100_mapped = self.translate_address_ids(top_100)
+                    return {
+                        "last_updated": last_updated_timestamp,
+                        "aggregation": aggregation_epochs,
+                        "period": [start_epoch, stop_epoch],
+                        "data": top_100_mapped,
+                    }
+
+            if key == "histogram-data-requests":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "data": [[d[0], d[1]] for d in data],
+                }
+
+            if key == "histogram-data-request-composition":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "data": [[d[0], d[2], d[3], d[4]] for d in data],
+                }
+
+            if key == "histogram-data-request-witness":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "values": sorted(list(set(int(k) for d in data for k in d[5].keys()))),
+                    "data": [d[5] for d in data],
+                }
+
+            if key == "histogram-data-request-reward":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "values": sorted(list(set(int(k) for d in data for k in d[6].keys()))),
+                    "data": [d[6] for d in data],
+                }
+
+            if key == "histogram-data-request-collateral":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "values": sorted(list(set(int(k) for d in data for k in d[7].keys()))),
+                    "data": [d[7] for d in data],
+                }
+
+            if key in ("histogram-value-transfers", "histogram-trs-data", "histogram-data-request-lie-rate"):
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "data": data,
+                }
 
     def get_mempool(self, key):
         self.logger.info(f"get_mempool({key})")
@@ -584,7 +780,7 @@ class NodeManager(object):
     def get_address(self, address_value, tab, limit, epoch):
         self.logger.info(f"get_address({address_value}, {tab}, {limit}, {epoch})")
 
-        if not self.sanitize_input(address_value, "alphanumeric"):
+        if not sanitize_input(address_value, "alphanumeric"):
             self.logger.warning(f"Invalid value for address: {address_value}")
             return {"error": "address is not an alphanumeric value"}
         if not tab in ("details", "value_transfers", "blocks", "data_requests_solved", "data_requests_launched", "reputation"):
@@ -696,7 +892,7 @@ class NodeManager(object):
     def get_utxos(self, address):
         self.logger.info(f"get_utxos({address})")
 
-        if not self.sanitize_input(address, "alphanumeric"):
+        if not sanitize_input(address, "alphanumeric"):
             self.logger.warning(f"Invalid value for address: {address}")
             return {"error": "address is not an alphanumeric value"}
 

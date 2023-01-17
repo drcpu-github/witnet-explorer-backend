@@ -9,7 +9,7 @@ from node.witnet_node import WitnetNode
 from util.socket_manager import SocketManager
 
 class Client(object):
-    def __init__(self, config, node=False, timeout=0, database=False, memcached_client=False, consensus_constants=False):
+    def __init__(self, config, node=False, timeout=0, database=False, named_cursor=False, memcached_client=False, consensus_constants=False):
         self.config = config
 
         # Connect to node pool
@@ -23,7 +23,7 @@ class Client(object):
         # Connect to database
         if database:
             try:
-                self.witnet_database = WitnetDatabase(config["database"], logger=self.logger)
+                self.witnet_database = WitnetDatabase(config["database"], named_cursor=named_cursor, logger=self.logger)
             except psycopg2.OperationalError:
                 self.logger.error(f"Could not connect to the database!")
                 sys.exit(2)

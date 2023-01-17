@@ -159,11 +159,13 @@ log_file = "/path/to/logs/home_stats.log"
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # log_file: specify logging file name
 # node_timeout: overwrite the default node timeout to fetch big amounts of data from a node
+# aggregation_epochs: number of epochs for which statistics are aggregated
 [api.caching.scripts.network_stats]
 cron = "0 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/network_stats.log"
 node_timeout = 60
+aggregation_epochs = 1000
 
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)

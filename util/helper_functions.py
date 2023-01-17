@@ -16,3 +16,26 @@ def calculate_priority(fee, weight, round_priority=False):
             return round(fee / weight)
     else:
         return fee / weight
+
+# Check input type
+def sanitize_input(input_value, required_type):
+    if required_type == "bool":
+        return input_value in (True, False)
+    elif required_type == "hexadecimal":
+        try:
+            int(input_value, 16)
+            return True
+        except ValueError:
+            return False
+    elif required_type == "alpha":
+        return input_value.isalpha()
+    elif required_type == "alphanumeric":
+        return input_value.isalnum()
+    elif required_type == "numeric":
+        return input_value.isnumeric()
+    elif required_type == "positive_integer":
+        try:
+            return int(input_value) >= 0
+        except ValueError:
+            return False
+    return False

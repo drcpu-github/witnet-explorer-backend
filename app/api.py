@@ -8,16 +8,18 @@ import sys
 import time
 import toml
 
-from multiprocessing import Process
-from multiprocessing import Queue
-
 from flask import Blueprint
 from flask import Response
 from flask import request
 
+from multiprocessing import Process
+from multiprocessing import Queue
+
 from app.node_manager import NodeManager
 
 from .gunicorn_config import TOML_CONFIG
+
+from util.helper_functions import sanitize_input
 
 from util.logger import select_logging_level
 
@@ -142,14 +144,52 @@ def balance_list():
 
 @api.route("/network")
 def network():
-    return node.get_network()
+    key = request.args.get("key")
+
+    # Validate key value
+    if key not in (
+        "list-rollbacks",                       # Return a list of rollbacks
+
+        "num-unique-miners",                    # Return the number of unique miners
+        "num-unique-data-request-solvers",      # Return the number of unique data request solvers
+
+        "top-100-miners",                       # Return the top 100 of miners
+        "top-100-data-request-solvers",         # Return the top 100 of data request solvers
+
+        "percentile-staking-balances",           # Return a map of percentiles of the current staking balances of ARS / TRS nodes
+
+        "histogram-data-requests",              # Return a histogram of data requests per day
+        "histogram-data-request-composition",   # Return a histogram of data request composition per day (HTTP-GET, HTTP-POST, RNG)
+        "histogram-data-request-witness",       # Return a histogram of number of requested witnesses per day
+        "histogram-data-request-lie-rate",      # Return a histogram of the lie rate per day
+        "histogram-data-request-collateral",    # Return a histogram of requested collateral per day
+        "histogram-data-request-reward",        # Return a histogram of rewards per day
+        "histogram-trs-data",                   # Return a histogram of the average TRS size per day
+        "histogram-value-transfers",            # Return a histogram of value transfers per day
+    ):
+        return {"error": f"invalid key ({key}) requested"}
+
+    start_epoch = request.args.get("start-epoch")
+    stop_epoch = request.args.get("stop-epoch")
+
+    # Epoch parameters are not required for below options
+    if key == "percentile-staking-balances":
+        start_epoch, stop_epoch = None, None
+
+    # Make sure that start_epoch and stop_epoch are numbers
+    if start_epoch != None and not sanitize_input(start_epoch, "positive_integer"):
+        return {"error": f"start_epoch ({start_epoch}) is not a positive integer value"}
+    if stop_epoch != None and not sanitize_input(stop_epoch, "positive_integer"):
+        return {"error": f"stop_epoch ({stop_epoch}) is not a positive integer value"}
+
+    return node.get_network(key, start_epoch, stop_epoch)
 
 @api.route("/mempool")
 def get_mempool():
     key = request.args.get("key", default="live", type=str)
     return node.get_mempool(key)
 
-@api.route('/blockchain')
+@api.route("/blockchain")
 def blockchain():
     action = request.args.get("action", default="init", type=str)
     block = request.args.get("block", default=-100, type=int)
