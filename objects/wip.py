@@ -194,6 +194,8 @@ class WIP(object):
         for wip in self.wips:
             wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
 
+            print(f"Checking TAPI signals for {title}")
+
             if tapi_bit == None:
                 continue
 
@@ -211,22 +213,37 @@ class WIP(object):
                     epoch
                 ASC
             """ % (tapi_start_epoch, tapi_stop_epoch)
-
             result = self.db_mngr.sql_return_all(sql)
+
+            signals = []
             for db_block in result:
                 epoch, block_hash, tapi_signals, confirmed = db_block
                 if confirmed and tapi_signals == None:
-                    print(f"Updating TAPI signal for epoch {epoch}")
+                    print(f"Fetching TAPI signal for epoch {epoch}")
 
                     block = witnet_node.get_block(bytes(block_hash).hex())
                     if type(block) is dict and "error" in block:
                         sys.stderr.write(f"Could not fetch block: {block}\n")
                         continue
 
-                    tapi_signals = block["result"]["block_header"]["signals"]
+                    signals.append([block["result"]["block_header"]["signals"], epoch])
 
-                    sql = "UPDATE blocks SET tapi_signals=%s WHERE epoch=%s" % (tapi_signals, epoch)
-                    self.db_mngr.sql_update_table(sql)
+            if len(signals) > 0:
+                print(f"Updating TAPI signals for {title}")
+                sql = """
+                    UPDATE
+                        blocks
+                    SET
+                        tapi_signals=update.tapi_signals
+                    FROM (VALUES %s)
+                    AS update(
+                        tapi_signals,
+                        epoch
+                    )
+                    WHERE
+                        blocks.epoch=update.epoch
+                """
+                self.db_mngr.sql_execute_many(sql, signals)
 
     def is_wip_active(self, epoch, wip_title):
         # Find TAPI of interest based on its title
