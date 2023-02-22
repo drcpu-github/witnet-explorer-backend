@@ -517,10 +517,14 @@ class NetworkStats(Client):
 
             # Create data structure
             self.lie_rates_period[per_period_key][0] += witnesses
-            self.lie_rates_period[per_period_key][1] += len(error_addresses)
-            if len(liar_addresses) > 0:
+            if error_addresses:
+                self.lie_rates_period[per_period_key][1] += len(error_addresses)
+            if liar_addresses and len(liar_addresses) > 0:
                 self.lie_rates_period[per_period_key][2] += witnesses - reveals
-            self.lie_rates_period[per_period_key][3] += max(0, len(liar_addresses) - (witnesses - reveals))
+                num_liar_addresses = len(liar_addresses)
+            else:
+                num_liar_addresses = 0
+            self.lie_rates_period[per_period_key][3] += max(0, num_liar_addresses - (witnesses - reveals))
 
     def get_trs_data_per_period(self, reset):
         master_key = "network_trs-data"
