@@ -125,6 +125,8 @@ plot_directory = "/path/to/plots"
 # processes: the number of concurrent processes which can be used to query the database for API call results
 # jit_timeout: timeout for address data cached when an address is queried from the API
 # update_timeout: timeout for monitored address which is recached when an update is triggered through the explorer
+# address_stack_file: file to persist the address stack and load after a restart
+# concurrent_request_timeout: timeout before track requests for the same address are processed
 [api.caching.scripts.addresses]
 host = "127.0.0.1"
 port = 22820
@@ -136,6 +138,8 @@ cache_size = 100
 processes = 4
 jit_timeout = 20 # 20 seconds
 update_timeout = 86400 # 1 day
+address_stack_file = "/path/to/address_stack.json"
+concurrent_request_timeout = 15
 
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
