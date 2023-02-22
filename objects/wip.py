@@ -276,6 +276,24 @@ class WIP(object):
     def is_wip0021_active(self, epoch):
         return self.is_wip_active(epoch, wip_title="WIP0020-0021")
 
+    def is_wip0022_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0022")
+
+    def is_wip0023_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0023")
+
+    def is_wip0024_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0024")
+
+    def is_wip0025_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0025")
+
+    def is_wip0026_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0026")
+
+    def is_wip0027_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0027")
+
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
