@@ -22,7 +22,7 @@ class TapiList(Client):
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period
 
-    def collect_acceptance_data(self, start_epoch, stop_epoch, blocks):
+    def collect_acceptance_data(self, start_epoch, stop_epoch, tapi_bit, blocks):
         # Fetch the last epoch
         _, last_epoch = self.witnet_database.get_last_block(confirmed=False)
 
@@ -38,7 +38,7 @@ class TapiList(Client):
         # Loop over the available blocks and process those
         previous_epoch = start_epoch
         for block in blocks:
-            epoch, tapi_accept, confirmed, reverted = block
+            epoch, tapi_signals, confirmed, reverted = block
 
             # If the previous block was more than 1 epoch ago, extrapolate TAPI acceptance to 0 (reject) for rollbacks
             if epoch > previous_epoch + 1:
@@ -46,7 +46,11 @@ class TapiList(Client):
 
             # If the block was confirmed, check TAPI acceptance
             if confirmed and not reverted:
-                acceptance_data.append(1 if tapi_accept else 0)
+                if tapi_signals == None:
+                    accept = 0
+                else:
+                    accept = (tapi_signals & (1 << tapi_bit)) >> tapi_bit
+                acceptance_data.append(accept)
 
             # If the block was reverted, hardcode TAPI as not accepted
             if reverted:
@@ -165,7 +169,7 @@ class TapiList(Client):
                 sql = """
                     SELECT
                         epoch,
-                        tapi_accept,
+                        tapi_signals,
                         confirmed,
                         reverted
                     FROM blocks
@@ -174,7 +178,7 @@ class TapiList(Client):
                     ORDER BY epoch ASC
                 """ % (start_epoch, stop_epoch - 1)
                 block_data = self.witnet_database.sql_return_all(sql)
-                self.tapi_data[tapi_id]["accept"] = self.collect_acceptance_data(start_epoch, stop_epoch, block_data)
+                self.tapi_data[tapi_id]["accept"] = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
 
                 # Create summary statistics
                 tapi_period_length = stop_epoch - start_epoch

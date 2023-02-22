@@ -201,7 +201,7 @@ class WIP(object):
                 SELECT
                     epoch,
                     block_hash,
-                    tapi_accept,
+                    tapi_signals,
                     confirmed
                 FROM
                     blocks
@@ -214,8 +214,8 @@ class WIP(object):
 
             result = self.db_mngr.sql_return_all(sql)
             for db_block in result:
-                epoch, block_hash, tapi_accept, confirmed = db_block
-                if confirmed and tapi_accept == None:
+                epoch, block_hash, tapi_signals, confirmed = db_block
+                if confirmed and tapi_signals == None:
                     print(f"Updating TAPI signal for epoch {epoch}")
 
                     block = witnet_node.get_block(bytes(block_hash).hex())
@@ -223,10 +223,9 @@ class WIP(object):
                         sys.stderr.write(f"Could not fetch block: {block}\n")
                         continue
 
-                    tapi_signal = block["result"]["block_header"]["signals"]
-                    tapi_accept = (tapi_signal & (1 << tapi_bit)) != 0
+                    tapi_signals = block["result"]["block_header"]["signals"]
 
-                    sql = "UPDATE blocks SET tapi_accept=%s WHERE epoch=%s" % (tapi_accept, epoch)
+                    sql = "UPDATE blocks SET tapi_signals=%s WHERE epoch=%s" % (tapi_signals, epoch)
                     self.db_mngr.sql_update_table(sql)
 
     def is_wip_active(self, epoch, wip_title):

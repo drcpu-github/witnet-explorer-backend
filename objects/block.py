@@ -126,7 +126,7 @@ class Block(object):
             "commit_txns": self.process_commit_txns(call_from),
             "reveal_txns": self.process_reveal_txns(call_from),
             "tally_txns": self.process_tally_txns(call_from),
-            "tapi_accept": self.process_tapi_signals(),
+            "tapi_signals": self.process_tapi_signals(),
         }
 
         if call_from == "api":
@@ -168,7 +168,7 @@ class Block(object):
             reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_hash"].append(reveal["txn_hash"])
         self.block["reveal_txns"] = reveals_for_data_request
 
-        del self.block["tapi_accept"]
+        del self.block["tapi_signals"]
 
     def process_details(self):
         try:
@@ -254,17 +254,14 @@ class Block(object):
         return tally_transactions
 
     def process_tapi_signals(self):
-        is_tapi, tapi_bit = False, -1
+        is_tapi = False
         for start_epoch, stop_epoch, bit in self.tapi_periods:
             if self.block_epoch >= start_epoch and self.block_epoch <= stop_epoch:
                 is_tapi = True
-                tapi_bit = bit
                 break
 
         if is_tapi:
-            tapi_signal = self.block["block_header"]["signals"]
-            tapi_accept = (tapi_signal & (1 << tapi_bit)) != 0
-            return tapi_accept
+            return self.block["block_header"]["signals"]
         else:
             return None
 

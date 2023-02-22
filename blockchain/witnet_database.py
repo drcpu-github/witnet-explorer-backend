@@ -69,7 +69,7 @@ class WitnetDatabase(object):
                 block_json["details"]["vt_weight"],
                 block_json["details"]["block_weight"],
                 epoch,
-                block_json["tapi_accept"],
+                block_json["tapi_signals"],
                 confirmed,
             ))
         # If it does, generate an update statement
@@ -353,7 +353,7 @@ class WitnetDatabase(object):
                     vt_weight,
                     block_weight,
                     epoch,
-                    tapi_accept,
+                    tapi_signals,
                     confirmed
                 ) VALUES %s
             """
