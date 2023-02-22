@@ -1,8 +1,12 @@
 import optparse
+import os
 import pylibmc
 import sys
 import time
 import toml
+
+import matplotlib.pyplot as plt
+import matplotlib.colors
 
 from caching.client import Client
 
@@ -10,6 +14,10 @@ from util.logger import configure_logger
 
 class TapiList(Client):
     def __init__(self, config):
+        self.plot_dir = config["api"]["caching"]["plot_directory"]
+        if not os.path.exists(self.plot_dir):
+            os.makedirs(self.plot_dir)
+
         # Setup logger
         log_filename = config["api"]["caching"]["scripts"]["tapi_list"]["log_file"]
         log_level = config["api"]["caching"]["scripts"]["tapi_list"]["level_file"]
@@ -30,7 +38,7 @@ class TapiList(Client):
 
         # This TAPI has not started yet
         if last_epoch < start_epoch:
-            return last_epoch, acceptance_data
+            return acceptance_data
 
         # If the initial x blocks since the TAPI start epoch were rolled back, append 0 to indicate reject
         acceptance_data.extend([0] * max(0, blocks[0][0] - start_epoch))
@@ -63,6 +71,15 @@ class TapiList(Client):
 
         return acceptance_data
 
+    def create_acceptance_plot(self, title, acceptance):
+        # Colors for reject and accept
+        cmap = matplotlib.colors.ListedColormap(["#12243a", "#0bb1a5"])
+        # Transform acceptance list to 2D array
+        columns = 480
+        acceptance_2d = [acceptance[i : i + columns] for i in range(0, len(acceptance), columns)]
+        # Save the figure
+        plt.imsave(os.path.join(self.plot_dir, title), acceptance_2d, cmap=cmap)
+
     def create_summary(self, tapi_period_length, acceptance):
         # Periodic acceptance rates per 1000 epochs
         rates = []
@@ -84,18 +101,6 @@ class TapiList(Client):
         global_acceptance_rate = acceptance.count(1) / tapi_period_length * 100
 
         return rates, relative_acceptance_rate, global_acceptance_rate
-
-    def compress_acceptance_data(self, acceptance_data):
-        accept_int = []
-        # Transform all binary data to 32-bit ints except the last (incomplete) number
-        for i in range(0, len(acceptance_data) - 32, 32):
-            accept_int.append(int("".join(str(n) for n in acceptance_data[i : i + 32]), 2))
-        # Keep the last number in binary
-        if len(acceptance_data) % 32 == 0:
-            accept_int.append("".join(str(n) for n in acceptance_data[-32:]))
-        else:
-            accept_int.append("".join(str(n) for n in acceptance_data[-(len(acceptance_data) % 32):]))
-        return accept_int
 
     def collect_tapi_data(self):
         start = time.perf_counter()
@@ -148,7 +153,6 @@ class TapiList(Client):
                     "stop_epoch": stop_epoch,
                     "stop_time": self.start_time + (stop_epoch + 1) * self.epoch_period,
                     "bit": bit,
-                    "accept": [],
                     "rates": [],
                     "relative_acceptance_rate": 0,
                     "global_acceptance_rate": 0,
@@ -178,14 +182,14 @@ class TapiList(Client):
                     ORDER BY epoch ASC
                 """ % (start_epoch, stop_epoch - 1)
                 block_data = self.witnet_database.sql_return_all(sql)
-                self.tapi_data[tapi_id]["accept"] = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
+                acceptance_data = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
+
+                # Create a static acceptance data plot
+                self.create_acceptance_plot(f"tapi-{tapi_id}.png", acceptance_data)
 
                 # Create summary statistics
                 tapi_period_length = stop_epoch - start_epoch
-                self.tapi_data[tapi_id]["rates"], self.tapi_data[tapi_id]["relative_acceptance_rate"], self.tapi_data[tapi_id]["global_acceptance_rate"] = self.create_summary(tapi_period_length, self.tapi_data[tapi_id]["accept"])
-
-                # Compress acceptance data which greatly reduces bandwidth consumption
-                self.tapi_data[tapi_id]["accept"] = self.compress_acceptance_data(self.tapi_data[tapi_id]["accept"])
+                self.tapi_data[tapi_id]["rates"], self.tapi_data[tapi_id]["relative_acceptance_rate"], self.tapi_data[tapi_id]["global_acceptance_rate"] = self.create_summary(tapi_period_length, acceptance_data)
 
                 # Mark this tapi as active
                 if last_epoch < stop_epoch:
