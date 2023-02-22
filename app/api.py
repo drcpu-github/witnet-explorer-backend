@@ -211,13 +211,7 @@ def utxos():
 
 @api.route("/tapi")
 def get_tapi():
-    action = request.args.get("action", default="init", type=str)
-    if action == "init":
-        return node.init_tapi()
-    elif action == "update":
-        return node.update_tapi()
-    else:
-        return {"error": "invalid TAPI action"}
+    return node.get_tapi()
 
 @api.route("/status")
 def status():
