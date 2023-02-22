@@ -110,14 +110,14 @@ class DataRequest(Transaction):
             self.txn_details["tally_reducer"] = self.translate_reducer(self.txn_details["tally_reducer"])
 
         if "epoch" in self.txn_details:
-            self.txn_details["RAD_bytes_hash"], self.txn_details["data_request_bytes_hash"] = self.get_bytecode_hashes()
+            self.txn_details["RAD_bytes_hash"], self.txn_details["DRO_bytes_hash"] = self.get_bytecode_hashes()
 
         return self.txn_details
 
     def get_bytecode_hashes(self):
-        RAD_bytes_hash, _ = self.protobuf_encoder.get_bytecode_RAD_request(self.txn_details["epoch"])
-        data_request_bytes_hash, _ = self.protobuf_encoder.get_bytecode_data_request(self.txn_details["epoch"])
-        return RAD_bytes_hash, data_request_bytes_hash
+        RAD_bytes_hash, _ = self.protobuf_encoder.get_RAD_bytecode(self.txn_details["epoch"])
+        DRO_bytes_hash, _ = self.protobuf_encoder.get_DRO_bytecode(self.txn_details["epoch"])
+        return RAD_bytes_hash, DRO_bytes_hash
 
     def get_transaction_from_database(self, data_request_hash):
         sql = """
@@ -127,7 +127,7 @@ class DataRequest(Transaction):
                 blocks.confirmed,
                 blocks.reverted,
                 data_request_txns.txn_hash,
-                data_request_txns.data_request_bytes_hash,
+                data_request_txns.DRO_bytes_hash,
                 data_request_txns.RAD_bytes_hash,
                 data_request_txns.input_addresses,
                 data_request_txns.input_values,
@@ -157,11 +157,11 @@ class DataRequest(Transaction):
         result = self.witnet_database.sql_return_one(sql)
 
         if result:
-            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, data_request_bytes_hash, RAD_bytes_hash, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, kinds, urls, bodies, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
+            block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, DRO_bytes_hash, RAD_bytes_hash, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, kinds, urls, bodies, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result
 
             block_hash = block_hash.hex()
             txn_hash = txn_hash.hex()
-            data_request_bytes_hash = data_request_bytes_hash.hex()
+            DRO_bytes_hash = DRO_bytes_hash.hex()
             RAD_bytes_hash = RAD_bytes_hash.hex()
 
             addresses = list(set(input_addresses))
@@ -212,7 +212,7 @@ class DataRequest(Transaction):
         else:
             txn_hash = ""
             RAD_bytes_hash = ""
-            data_request_bytes_hash = ""
+            DRO_bytes_hash = ""
             block_hash = ""
             addresses = []
             input_utxo_values = []
@@ -236,7 +236,7 @@ class DataRequest(Transaction):
             "type": "data_request_txn",
             "txn_hash": txn_hash,
             "RAD_bytes_hash": RAD_bytes_hash,
-            "data_request_bytes_hash": data_request_bytes_hash,
+            "DRO_bytes_hash": DRO_bytes_hash,
             "block_hash": block_hash,
             "addresses": addresses,
             "input_utxos": input_utxo_values,

@@ -141,7 +141,7 @@ class WitnetDatabase(object):
     def insert_data_request_txn(self, txn_details, epoch):
         txn_hash = bytearray.fromhex(txn_details["txn_hash"])
         RAD_bytes_hash = bytearray.fromhex(txn_details["RAD_bytes_hash"])
-        data_request_bytes_hash = bytearray.fromhex(txn_details["data_request_bytes_hash"])
+        DRO_bytes_hash = bytearray.fromhex(txn_details["DRO_bytes_hash"])
 
         # Check if data request txn exists
         # If it does not, generate an insert statement
@@ -175,7 +175,7 @@ class WitnetDatabase(object):
                 txn_details["tally_filters"],
                 txn_details["tally_reducer"],
                 RAD_bytes_hash,
-                data_request_bytes_hash,
+                DRO_bytes_hash,
                 epoch,
             ))
         # If it does, generate an update statement
@@ -202,11 +202,11 @@ class WitnetDatabase(object):
 
         # Check if the data request bytes hash exists
         # If it does not, generate an insert statement
-        if not self.check_hash(data_request_bytes_hash):
+        if not self.check_hash(DRO_bytes_hash):
             # Insert data request bytes hash
             self.insert_hashes.append((
-                data_request_bytes_hash,
-                "data_request_bytes_hash",
+                DRO_bytes_hash,
+                "DRO_bytes_hash",
                 None,
             ))
 
@@ -423,7 +423,7 @@ class WitnetDatabase(object):
                     tally_filters,
                     tally_reducer,
                     RAD_bytes_hash,
-                    data_request_bytes_hash,
+                    DRO_bytes_hash,
                     epoch
                 ) VALUES %s
             """

@@ -77,7 +77,7 @@ def create_enums(connection, cursor):
                         'value_transfer_txn',
                         'data_request_txn',
                         'RAD_bytes_hash',
-                        'data_request_bytes_hash',
+                        'DRO_bytes_hash',
                         'commit_txn',
                         'reveal_txn',
                         'tally_txn'
@@ -224,7 +224,7 @@ def create_tables(connection, cursor):
             tally_filters filter ARRAY NOT NULL,
             tally_reducer INT ARRAY NOT NULL,
             RAD_bytes_hash BYTEA NOT NULL,
-            data_request_bytes_hash BYTEA NOT NULL,
+            DRO_bytes_hash BYTEA NOT NULL,
             epoch INT NOT NULL
         );""",
 

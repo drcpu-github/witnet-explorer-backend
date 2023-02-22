@@ -285,7 +285,7 @@ class NodeManager(object):
                     self.logger.info(f"Found a data request report for a {self.pretty_hash_type(hash_type)} with data request hash '{data_request_hash}' in memcached cache")
                 return data_request_report
 
-        if hash_type in ("RAD_bytes_hash", "data_request_bytes_hash"):
+        if hash_type in ("RAD_bytes_hash", "DRO_bytes_hash"):
             # Create data request history
             data_request_history = DataRequestHistory(self.consensus_constants, self.log_queue, self.database_config)
             # Data request histories change constantly, so we cannot employ simple hash-based caching only
