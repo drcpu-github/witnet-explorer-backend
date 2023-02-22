@@ -317,7 +317,7 @@ class Addresses(object):
                                 logger.warning("Missing argument 'use-log-scale' in reputation request")
                                 use_log_scale = False
                             logger.info(f"Queueing execution of plot_reputation({m_address})")
-                            plot_dir = config["api"]["caching"]["scripts"]["addresses"]["plot_directory"]
+                            plot_dir = config["api"]["caching"]["plot_directory"]
                             func_args = (logging_queue, address, False, plot_dir)
                             func_pool.apply_async(self.plot_reputation, args=func_args, callback=self.log_completed)
                         else:
