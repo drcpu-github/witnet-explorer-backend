@@ -177,7 +177,7 @@ def create_tables(connection, cursor):
             vt_weight INT NOT NULL,
             block_weight INT NOT NULL,
             epoch INT NOT NULL,
-            tapi_accept BOOLEAN,
+            tapi_signals INT,
             confirmed BOOLEAN NOT NULL,
             reverted BOOLEAN DEFAULT false
         );""",
