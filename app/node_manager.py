@@ -1,3 +1,5 @@
+import base64
+import io
 import logging
 import logging.handlers
 import os
@@ -7,6 +9,8 @@ import time
 import toml
 
 from flask import send_file
+
+from PIL import Image
 
 from app.cache import cache
 
@@ -44,6 +48,8 @@ class NodeManager(object):
             self.cache_config = config["api"]["caching"]
         else:
             assert False, "Need to specify a caching instance"
+
+        self.plot_dir = self.cache_config["plot_directory"]
 
         # Set up logger
         self.log_queue = log_queue
@@ -693,38 +699,42 @@ class NodeManager(object):
 
         return mempool
 
-    def init_tapi(self):
-        self.logger.info(f"init_tapi()")
+    def get_tapi(self):
+        self.logger.info(f"get_tapi()")
 
         all_tapis = {}
+        # Get auxiliary variable which defines the known TAPI's
         tapis_cached = cache.get("tapis-cached")
         if tapis_cached:
             for counter in tapis_cached:
+                # Fetch TAPI details from cache
                 tapi = cache.get(f"tapi-{counter}")
+                if not tapi:
+                    self.logger.error(f"Could not find 'tapi-{counter}' in memcached cache")
+                    all_tapis[counter] = {"error": "Could not find TAPI details"}
+                    continue
+
+                # Save TAPI details
                 self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
                 all_tapis[counter] = tapi
 
+                # Serialize TAPI plot to bytes (if found)
+                tapi_plot = os.path.join(self.plot_dir, f"tapi-{counter}.png")
+                if os.path.exists(tapi_plot):
+                    plot = Image.open(tapi_plot, mode="r")
+                    byte_arr = io.BytesIO()
+                    plot.save(byte_arr, format="PNG")
+                    encoded_plot = base64.encodebytes(byte_arr.getvalue()).decode("ascii")
+                    all_tapis[counter]["plot"] = encoded_plot
+                elif tapi["current_epoch"] < tapi["start_epoch"]:
+                    all_tapis[counter]["plot"] = "The TAPI did not start yet"
+                else:
+                    all_tapis[counter]["plot"] = "Could not find TAPI plot"
+
         if all_tapis == {}:
-            self.logger.info(f"No tapi's found in memcached cache")
+            self.logger.info(f"No TAPI's found in memcached cache")
 
         return all_tapis
-
-    def update_tapi(self):
-        self.logger.info(f"update_tapi()")
-
-        updated_tapis = {}
-        tapis_cached = cache.get("tapis-cached")
-        if tapis_cached:
-            for counter in tapis_cached:
-                tapi = cache.get(f"tapi-{counter}")
-                self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
-                if tapi["active"]:
-                    updated_tapis[counter] = tapi
-
-        if updated_tapis == {}:
-            self.logger.info(f"No active or future tapis found in memcached cache")
-
-        return updated_tapis
 
     def get_status(self):
         self.logger.info(f"get_status()")
@@ -845,8 +855,7 @@ class NodeManager(object):
                 address.connect_to_database()
                 return address.get_data_requests_launched(limit, epoch)
         elif tab == "reputation":
-            plot_dir = self.config["api"]["caching"]["scripts"]["addresses"]["plot_directory"]
-            reputation_plot = os.path.join(plot_dir, f"{address_value}.png")
+            reputation_plot = os.path.join(self.plot_dir, f"{address_value}.png")
             # Check if the reputation plot exists
             if os.path.exists(reputation_plot):
                 st = os.stat(reputation_plot)
