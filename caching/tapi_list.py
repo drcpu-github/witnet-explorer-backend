@@ -71,14 +71,48 @@ class TapiList(Client):
 
         return acceptance_data
 
-    def create_acceptance_plot(self, title, acceptance):
+    def create_acceptance_plot(self, tapi, acceptance):
+        epochs = len(acceptance)
+        self.logger.info(f"Plotting {epochs} epochs for TAPI {tapi['tapi_id']}")
+
         # Colors for reject and accept
         cmap = matplotlib.colors.ListedColormap(["#12243a", "#0bb1a5"])
-        # Transform acceptance list to 2D array
+
+        # Transform acceptance list to 2D array for plotting
+        # The matplotlib.imsave function can only plot 2D arrays where all rows have the same dimension
+        # We dynamically scale the number of epochs per row to maximize the data in a the 2D array
         columns = 480
-        acceptance_2d = [acceptance[i : i + columns] for i in range(0, len(acceptance), columns)]
-        # Save the figure
-        plt.imsave(os.path.join(self.plot_dir, title), acceptance_2d, cmap=cmap)
+        tapi_length = tapi["stop_epoch"] - tapi["start_epoch"]
+
+        # TAPI has finished or only one row of data can be shown
+        if len(acceptance) == tapi_length or len(acceptance) <= columns:
+            acceptance_2d = [acceptance[i : i + columns] for i in range(0, len(acceptance), columns)]
+            self.logger.info(f"Plotting the complete TAPI for {tapi['title']}")
+            plt.imsave(os.path.join(self.plot_dir, f"tapi-{tapi['tapi_id']}.png"), acceptance_2d, cmap=cmap)
+        # Scale the number of epochs per row
+        else:
+            # Find the best divider, minimizing the amount of epochs left out of the visualization
+            smallest_remainder, smallest_column_difference = epochs, epochs
+            # To prevent the figure size becoming too high or wide, only try divisions in a specified range
+            min_rows = int(epochs / (columns * 2) + 1)
+            max_rows = int(epochs / (columns / 2) + 1)
+            for rows in range(min_rows, max_rows):
+                remainder = epochs % rows
+                if remainder == 0:
+                    # For perfect dividers, find the one that creates a figure with a number of columns closest to the requested amount
+                    if abs(columns - int(epochs / rows)) < smallest_column_difference:
+                        smallest_column_difference = abs(columns - int(epochs / rows))
+                        dynamic_columns = int(epochs / rows)
+                elif remainder < smallest_remainder:
+                    smallest_remainder = remainder
+                    dynamic_columns = int(epochs / rows)
+            # Build the 2D array
+            acceptance_2d = [acceptance[i : i + dynamic_columns] for i in range(0, epochs, dynamic_columns)]
+            if len(acceptance_2d) >= 2 and len(acceptance_2d[-1]) != len(acceptance_2d[-2]):
+                acceptance_2d = acceptance_2d[:-1]
+            # Save the figure
+            self.logger.info(f"Plotting the TAPI for {tapi['title']} using dimensions {len(acceptance_2d)} x {dynamic_columns} ({remainder} epochs left out)")
+            plt.imsave(os.path.join(self.plot_dir, f"tapi-{tapi['tapi_id']}.png"), acceptance_2d, cmap=cmap)
 
     def create_summary(self, tapi_period_length, acceptance):
         # Periodic acceptance rates per 1000 epochs
@@ -167,7 +201,7 @@ class TapiList(Client):
             # Check if the TAPI is active
             if last_epoch > start_epoch and not finished:
                 status = "active" if last_epoch < stop_epoch else "finished"
-                self.logger.info(f"TAPI is {status}, collecting data between epochs {start_epoch} and {stop_epoch - 1}")
+                self.logger.info(f"TAPI {tapi_id} is {status}, collecting data between epochs {start_epoch} and {stop_epoch - 1}")
 
                 # Check TAPI acceptance for each epoch
                 sql = """
@@ -185,7 +219,7 @@ class TapiList(Client):
                 acceptance_data = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
 
                 # Create a static acceptance data plot
-                self.create_acceptance_plot(f"tapi-{tapi_id}.png", acceptance_data)
+                self.create_acceptance_plot(tapi, acceptance_data)
 
                 # Create summary statistics
                 tapi_period_length = stop_epoch - start_epoch
