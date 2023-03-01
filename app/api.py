@@ -226,3 +226,17 @@ def send():
 def priority():
     priority_type = request.args.get("type", default="", type=str)
     return node.get_priority(priority_type=priority_type)
+
+@api.route("/address_info")
+def address_info():
+    address = request.args.get("address", default=None)
+    if address == None:
+        return {"error": "address argument is required to query address info"}
+    else:
+        addresses = list(set(address.split(",")))
+        if len(addresses) > 10:
+            return {"error": "cannot query address info for more than 10 unique addresses in one call"}
+        address_infos = {}
+        for address in addresses:
+            address_infos[address] = node.get_address_info(address)
+        return address_infos

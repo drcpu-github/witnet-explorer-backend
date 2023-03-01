@@ -911,6 +911,44 @@ class NodeManager(object):
         else:
             return utxos
 
+    def get_address_info(self, address):
+        self.logger.info(f"get_address_info({address})")
+        sql = """
+            SELECT
+                address,
+                label,
+                active,
+                block,
+                mint,
+                value_transfer,
+                data_request,
+                commit,
+                reveal,
+                tally
+            FROM
+                addresses
+            WHERE
+                address='%s'
+        """ % address
+        address_data = self.witnet_database.sql_return_one(sql)
+        if address_data:
+            return {
+                "address": address_data[0],
+                "label": address_data[1] if address_data[1] else "",
+                "active": address_data[2],
+                "block": address_data[3],
+                "mint": address_data[4],
+                "value_transfer": address_data[5],
+                "data_request": address_data[6],
+                "commit": address_data[7],
+                "reveal": address_data[8],
+                "tally": address_data[9]
+            }
+        else:
+            return {
+                "error": "could not find address"
+            }
+
     def send_vtt(self, vtt, test):
         self.logger.info(f"send_vtt({vtt}, {test})")
         return self.witnet_node.send_vtt(vtt, test)
