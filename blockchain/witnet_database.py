@@ -316,6 +316,33 @@ class WitnetDatabase(object):
                 epoch,
             ))
 
+    def insert_addresses(self, addresses):
+        sql = """
+            INSERT INTO addresses(
+                address,
+                active,
+                block,
+                mint,
+                value_transfer,
+                data_request,
+                commit,
+                reveal,
+                tally
+            ) VALUES %s
+            ON CONFLICT ON CONSTRAINT
+                addresses_pkey
+            DO UPDATE SET
+                active = EXCLUDED.active,
+                block = addresses.block + EXCLUDED.block,
+                mint = addresses.mint + EXCLUDED.mint,
+                value_transfer = addresses.value_transfer + EXCLUDED.value_transfer,
+                data_request = addresses.data_request + EXCLUDED.data_request,
+                commit = addresses.commit + EXCLUDED.commit,
+                reveal = addresses.reveal + EXCLUDED.reveal,
+                tally = addresses.tally + EXCLUDED.tally
+        """
+        self.db_mngr.sql_execute_many(sql, addresses)
+
     def finalize(self, epoch=-1):
         if epoch == -1:
             epoch = self.last_epoch

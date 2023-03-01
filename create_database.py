@@ -155,9 +155,17 @@ def create_types(connection, cursor):
 def create_tables(connection, cursor):
     tables = [
         """CREATE TABLE IF NOT EXISTS addresses (
+            id INT GENERATED ALWAYS AS IDENTITY,
             address CHAR(42) PRIMARY KEY,
             label VARCHAR(64),
-            id INT GENERATED ALWAYS AS IDENTITY
+            active INT,
+            block INT,
+            mint INT,
+            value_transfer INT,
+            data_request INT,
+            commit INT,
+            reveal INT,
+            tally INT
         );""",
 
         """CREATE TABLE IF NOT EXISTS hashes (

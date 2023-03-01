@@ -52,6 +52,7 @@ class Block(object):
             self.block = self.get_block()
         else:
             self.block = block
+        self.block_json = None
 
         self.tapi_periods = tapi_periods
 
@@ -92,7 +93,8 @@ class Block(object):
 
         block = witnet_node.get_block(self.block_hash)
         if type(block) is dict and "error" in block:
-            self.logger.warning(f"Unable to fetch block {self.block_hash}: {block}")
+            if self.logger:
+                self.logger.warning(f"Unable to fetch block {self.block_hash}: {block}")
             return block
 
         return block["result"]
@@ -108,7 +110,7 @@ class Block(object):
 
         self.process_details()
 
-        self.block = {
+        self.block_json = {
             "type": "block",
             "details": {
                 "block_hash": self.block_hash,
@@ -132,16 +134,16 @@ class Block(object):
         if call_from == "api":
             self.process_block_for_api()
 
-        return self.block
+        return self.block_json
 
     def process_block_for_api(self):
         # Add number of commits and reveals
-        self.block["number_of_commits"] = len(self.block["commit_txns"])
-        self.block["number_of_reveals"] = len(self.block["reveal_txns"])
+        self.block_json["number_of_commits"] = len(self.block_json["commit_txns"])
+        self.block_json["number_of_reveals"] = len(self.block_json["reveal_txns"])
 
         # Group commits per data request
         commits_for_data_request = {}
-        for commit in self.block["commit_txns"]:
+        for commit in self.block_json["commit_txns"]:
             if not commit["data_request_txn_hash"] in commits_for_data_request:
                 commits_for_data_request[commit["data_request_txn_hash"]] = {
                     "collateral": commit["collateral"],
@@ -150,11 +152,11 @@ class Block(object):
                 }
             commits_for_data_request[commit["data_request_txn_hash"]]["txn_address"].append(commit["txn_address"])
             commits_for_data_request[commit["data_request_txn_hash"]]["txn_hash"].append(commit["txn_hash"])
-        self.block["commit_txns"] = commits_for_data_request
+        self.block_json["commit_txns"] = commits_for_data_request
 
         # Group reveals per data request
         reveals_for_data_request = {}
-        for reveal in self.block["reveal_txns"]:
+        for reveal in self.block_json["reveal_txns"]:
             if not reveal["data_request_txn_hash"] in reveals_for_data_request:
                 reveals_for_data_request[reveal["data_request_txn_hash"]] = {
                     "reveal_translation": [],
@@ -166,15 +168,16 @@ class Block(object):
             reveals_for_data_request[reveal["data_request_txn_hash"]]["success"].append(1 if reveal["success"] else 0)
             reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_address"].append(reveal["txn_address"])
             reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_hash"].append(reveal["txn_hash"])
-        self.block["reveal_txns"] = reveals_for_data_request
+        self.block_json["reveal_txns"] = reveals_for_data_request
 
-        del self.block["tapi_signals"]
+        del self.block_json["tapi_signals"]
 
     def process_details(self):
         try:
             self.block_epoch = self.block["block_header"]["beacon"]["checkpoint"]
         except KeyError:
-            self.logger.error(f"Unable to process block: {self.block}")
+            if self.logger:
+                self.logger.error(f"Unable to process block: {self.block}")
 
         self.dr_weight = self.block["dr_weight"]
         self.vt_weight = self.block["vt_weight"]
@@ -265,8 +268,75 @@ class Block(object):
         else:
             return None
 
+    def process_addresses(self):
+        address_dict = {}
+
+        if self.block_json == None:
+            self.process_block("explorer")
+
+        # Add block miner
+        address_dict[self.block_json["mint_txn"]["miner"]] = [1, 0, 0, 0, 0, 0, 0]
+
+        # Add all addresses from the mint transaction
+        for address in self.block_json["mint_txn"]["output_addresses"]:
+            if address not in address_dict:
+                address_dict[address] = [0, 1, 0, 0, 0, 0, 0]
+            else:
+                address_dict[address][1] += 1
+
+        # Add all addresses which are used as value transfer inputs or outputs
+        for value_transfer in self.block_json["value_transfer_txns"]:
+            for address in value_transfer["unique_input_addresses"]:
+                if address not in address_dict:
+                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
+                else:
+                    address_dict[address][2] += 1
+            for address in value_transfer["real_output_addresses"]:
+                if address not in address_dict:
+                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
+                else:
+                    address_dict[address][2] += 1
+
+        # Add all addresses which are used as inputs in a data request
+        data_request_txns = {}
+        for data_request_txn in self.block_json["data_request_txns"]:
+            data_request_txns[data_request_txn["txn_hash"]] = data_request_txn["unique_input_addresses"]
+            for address in data_request_txn["unique_input_addresses"]:
+                if address not in address_dict:
+                    address_dict[address] = [0, 0, 0, 1, 0, 0, 0]
+                else:
+                    address_dict[address][3] += 1
+
+        # Add the address which is used as an input in a commit
+        for commit in self.block_json["commit_txns"]:
+            address = commit["txn_address"]
+            if address not in address_dict:
+                address_dict[address] = [0, 0, 0, 0, 1, 0, 0]
+            else:
+                address_dict[address][4] += 1
+
+        # Add the address of a reveal
+        for reveal in self.block_json["reveal_txns"]:
+            address = reveal["txn_address"]
+            if address not in address_dict:
+                address_dict[address] = [0, 0, 0, 0, 0, 1, 0]
+            else:
+                address_dict[address][5] += 1
+
+        # Add all addresses involved in a tally
+        for tally in self.block_json["tally_txns"]:
+            address_set = set(tally["output_addresses"]) | set(tally["error_addresses"]) | set(tally["liar_addresses"])
+            for address in address_set:
+                if address not in address_dict:
+                    address_dict[address] = [0, 0, 0, 0, 0, 0, 1]
+                else:
+                    address_dict[address][6] += 1
+
+        return [[address, self.block_epoch] + address_dict[address] for address in address_dict]
+
     def return_block_error(self, message):
-        self.logger.warning(message)
+        if self.logger:
+            self.logger.warning(message)
         return {
             "type": "block",
             "error": message.lower(),

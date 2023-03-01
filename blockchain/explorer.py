@@ -90,6 +90,9 @@ class BlockExplorer(object):
         # Insert transactions
         self.insert_transactions(database, block_json, epoch)
 
+        addresses = block.process_addresses()
+        database.insert_addresses(addresses)
+
         # Finalize insertions and updates on every block
         database.finalize(epoch)
 
