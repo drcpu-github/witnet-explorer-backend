@@ -303,10 +303,11 @@ def create_tables(connection, cursor):
 
 def create_indexes(connection, cursor):
     indexes = [
-        "CREATE INDEX IF NOT EXISTS idx_commit_txn_address ON commit_txns (txn_address);",
-        "CREATE INDEX IF NOT EXISTS idx_commit_dr_hash ON commit_txns (data_request_txn_hash);",
-        "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns (txn_address);",
-        "CREATE INDEX IF NOT EXISTS idx_reveal_dr_hash ON reveal_txns (data_request_txn_hash);",
+        "CREATE INDEX IF NOT EXISTS idx_block_epoch ON blocks (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_commit_txn_address ON commit_txns USING HASH (txn_address);",
+        "CREATE INDEX IF NOT EXISTS idx_commit_dr_hash ON commit_txns USING HASH (data_request_txn_hash);",
+        "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns USING HASH (txn_address);",
+        "CREATE INDEX IF NOT EXISTS idx_reveal_dr_hash ON reveal_txns USING HASH (data_request_txn_hash);",
     ]
 
     for index in indexes:
