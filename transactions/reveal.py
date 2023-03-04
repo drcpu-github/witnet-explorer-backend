@@ -89,6 +89,10 @@ class Reveal(Transaction):
             if (found_confirmed or found_mined) and block_reverted:
                 continue
 
+            # No block found for this tally, most likely it was reverted and deleted
+            if block_hash is None:
+                continue
+
             reveals.append({
                 "block_hash": block_hash.hex(),
                 "txn_hash": txn_hash.hex(),

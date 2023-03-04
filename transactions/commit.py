@@ -91,6 +91,10 @@ class Commit(Transaction):
             if (found_confirmed or found_mined) and block_reverted:
                 continue
 
+            # No block found for this commit, most likely it was reverted and deleted
+            if block_hash is None:
+                continue
+
             commits.append({
                 "block_hash": block_hash.hex(),
                 "txn_hash": txn_hash.hex(),
