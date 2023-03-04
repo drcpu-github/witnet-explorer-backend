@@ -39,3 +39,12 @@ def sanitize_input(input_value, required_type):
         except ValueError:
             return False
     return False
+
+def sanitize_address(address):
+    if not address.startswith("wit1"):
+        return False
+    if len(address) != 42:
+        return False
+    if not sanitize_input(address, "alphanumeric"):
+        return False
+    return True

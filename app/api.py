@@ -207,6 +207,9 @@ def utxos():
         utxos = {}
         for address in addresses:
             utxos[address] = node.get_utxos(address)
+            # Short-circuit return when an error was encountered
+            if "error" in utxos[address]:
+                return utxos[address]
         return utxos
 
 @api.route("/tapi")
@@ -239,4 +242,7 @@ def address_info():
         address_infos = {}
         for address in addresses:
             address_infos[address] = node.get_address_info(address)
+            # Short-circuit return when an error was encountered
+            if "error" in address_infos[address]:
+                return address_infos[address]
         return address_infos

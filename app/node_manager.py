@@ -36,6 +36,7 @@ from transactions.tally import Tally
 from transactions.mint import Mint
 from transactions.value_transfer import ValueTransfer
 
+from util.helper_functions import sanitize_address
 from util.helper_functions import sanitize_input
 from util.memcached import calculate_timeout
 from util.socket_manager import SocketManager
@@ -790,9 +791,9 @@ class NodeManager(object):
     def get_address(self, address_value, tab, limit, epoch):
         self.logger.info(f"get_address({address_value}, {tab}, {limit}, {epoch})")
 
-        if not sanitize_input(address_value, "alphanumeric"):
+        if not sanitize_address(address_value):
             self.logger.warning(f"Invalid value for address: {address_value}")
-            return {"error": "address is not an alphanumeric value"}
+            return {"error": "invalid address"}
         if not tab in ("details", "value_transfers", "blocks", "data_requests_solved", "data_requests_launched", "reputation"):
             self.logger.warning(f"Invalid value for tab: {tab}")
             return {"error": "tab value is not valid"}
@@ -901,9 +902,9 @@ class NodeManager(object):
     def get_utxos(self, address):
         self.logger.info(f"get_utxos({address})")
 
-        if not sanitize_input(address, "alphanumeric"):
+        if not sanitize_address(address):
             self.logger.warning(f"Invalid value for address: {address}")
-            return {"error": "address is not an alphanumeric value"}
+            return {"error": "invalid address"}
 
         utxos = self.witnet_node.get_utxos(address)
         if "result" in utxos:
@@ -913,6 +914,11 @@ class NodeManager(object):
 
     def get_address_info(self, address):
         self.logger.info(f"get_address_info({address})")
+
+        if not sanitize_address(address):
+            self.logger.warning(f"Invalid value for address: {address}")
+            return {"error": "invalid address"}
+
         sql = """
             SELECT
                 address,
