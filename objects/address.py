@@ -69,6 +69,20 @@ class Address(object):
             eligibility = reputation["eligibility"]
             reputation = reputation["reputation"]
 
+        # Get label
+        label = ""
+        sql = """
+            SELECT
+                label
+            FROM
+                addresses
+            WHERE
+                address='%s'
+        """ % self.address
+        result = self.db_mngr.sql_return_one(sql)
+        if result:
+            label = result[0]
+
         return {
             "type": "address",
             "address": self.address,
@@ -76,6 +90,7 @@ class Address(object):
             "reputation": reputation,
             "eligibility": eligibility,
             "total_reputation": total_reputation,
+            "label": label,
         }
 
     def get_value_transfers(self, limit, epoch):

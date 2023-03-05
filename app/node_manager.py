@@ -806,6 +806,7 @@ class NodeManager(object):
         address_caching_server.send_request({"method": "track", "addresses": [address_value], "id": 1})
 
         if tab == "details":
+            address.connect_to_database()
             return address.get_details()
         elif tab == "value_transfers":
             # Try to fetch the result from the cache
