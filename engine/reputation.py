@@ -157,6 +157,7 @@ def main():
     db_mngr = DatabaseManager(config["database"], logger=logger)
 
     # Get epochs to fetch
+    logger.info(f"Fetching last processed epoch")
     database_epoch = get_last_epoch_processed(db_mngr) + 1
 
     if options.total_epochs:
@@ -165,6 +166,10 @@ def main():
         total_epochs = get_last_confirmed_epoch(db_mngr)
 
     # Create TRS
+    if options.load_trs:
+        logger.info(f"Creating TRS (loading from {config['engine']['json_file']})")
+    else:
+        logger.info(f"Creating TRS")
     trs = TRS(config["engine"]["json_file"], options.load_trs, db_mngr=db_mngr, logger=logger)
 
     # We always take the TRS epoch as start epoch because otherwise it's impossible to guarantee it's being built correctly
@@ -242,13 +247,16 @@ def main():
 
     # Print TRS at exit if requested via the command line
     if options.print_trs:
+        logger.info("Printing TRS")
         trs.print_trs()
 
     # Print statistics at exit if requested via the command line
     if options.print_statistics:
+        logger.info("Printing TRS statistics")
         trs.print_statistics()
 
     if options.persist_trs:
+        logger.info("Persisting TRS")
         trs.persist_trs()
 
     logger.info(f"Processed all data requests between epochs {start_epoch} and {total_epochs} in {time.perf_counter() - start_script:.2f}s")
