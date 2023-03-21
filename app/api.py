@@ -246,3 +246,7 @@ def address_info():
             if "error" in address_infos[address]:
                 return address_infos[address]
         return address_infos
+
+@api.route("/address_labels")
+def adress_labels():
+    return node.get_address_labels()

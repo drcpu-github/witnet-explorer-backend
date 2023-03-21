@@ -956,6 +956,24 @@ class NodeManager(object):
                 "error": "could not find address"
             }
 
+    def get_address_labels(self):
+        self.logger.info(f"get_address_labels()")
+
+        sql = """
+            SELECT
+                address,
+                label
+            FROM
+                addresses
+            WHERE
+                label IS NOT NULL
+        """
+        addresses = self.witnet_database.sql_return_all(sql)
+        if addresses:
+            return {address[0]: address[1] for address in addresses}
+        else:
+            return {}
+
     def send_vtt(self, vtt, test):
         self.logger.info(f"send_vtt({vtt}, {test})")
         return self.witnet_node.send_vtt(vtt, test)
