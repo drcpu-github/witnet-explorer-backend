@@ -42,7 +42,7 @@ class ProcessMonitor():
                 pass
 
         # If not enough (sub-)processes were found, assume the process is down
-        if required_processes > 1 and processes_found != required_processes:
+        if required_processes > 1 and processes_found < required_processes:
             self.runtime[idx] = 0
 
     def collect(self):
