@@ -245,6 +245,17 @@ class WIP(object):
                 """
                 self.db_mngr.sql_execute_many(sql, signals)
 
+    def get_activation_epoch(self, wip_title):
+        # Find TAPI of interest based on its title
+        for wip in self.wips:
+            if self.mockup:
+                wip_id, title, activation_epoch = wip
+            else:
+                wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
+            if wip_title == title:
+                return activation_epoch
+        return None
+
     def is_wip_active(self, epoch, wip_title):
         # Find TAPI of interest based on its title
         for wip in self.wips:

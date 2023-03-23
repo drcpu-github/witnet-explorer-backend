@@ -6,6 +6,8 @@ import toml
 
 from caching.client import Client
 
+from objects.wip import WIP
+
 from util.logger import configure_logger
 
 class HomeStats(Client):
@@ -21,6 +23,9 @@ class HomeStats(Client):
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period
+
+        wips = WIP(config["database"])
+        self.wip0027_activation_epoch = wips.get_activation_epoch("WIP0027")
 
         # Initialize previous variables
         self.current_epoch = int((time.time() - self.start_time) / self.epoch_period)
@@ -170,9 +175,36 @@ class HomeStats(Client):
             return self.previous_supply_info
         else:
             supply_info = supply_info["result"]
+
             supply_info["current_supply"] = supply_info["current_unlocked_supply"] + supply_info["current_locked_supply"]
             supply_info["total_supply"] = supply_info["maximum_supply"] - supply_info["blocks_missing_reward"]
+
+            sql = """
+                SELECT
+                    data_request_txns.collateral,
+                    tally_txns.liar_addresses
+                FROM
+                    data_request_txns
+                LEFT JOIN
+                    blocks
+                ON
+                    blocks.epoch = data_request_txns.epoch
+                LEFT JOIN
+                    tally_txns
+                ON
+                    data_request_txns.txn_hash = tally_txns.data_request_txn_hash
+                WHERE
+                    blocks.confirmed = true
+                AND
+                    blocks.epoch >= %s
+            """ % self.wip0027_activation_epoch
+            self.witnet_database.db_mngr.reset_cursor()
+            burn_rate_data = self.witnet_database.sql_return_all(sql)
+
+            supply_info["supply_burned_lies"] = sum(collateral * len(liar_addresses) for collateral, liar_addresses in burn_rate_data)
+
             self.previous_supply_info = supply_info
+
             return supply_info
 
     def get_latest_blocks(self):
