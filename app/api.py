@@ -126,6 +126,10 @@ def home():
 def supply_info():
     key = request.args.get("key", default="", type=str)
     supply_info = node.get_home(key)
+
+    if type(supply_info) is dict and "error" in supply_info:
+        return supply_info
+
     if key in ("blocks_minted", "blocks_missing", "current_time", "epoch", "in_flight_requests"):
         return str(supply_info)
     else:

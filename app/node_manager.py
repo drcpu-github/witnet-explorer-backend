@@ -360,6 +360,7 @@ class NodeManager(object):
             "maximum_supply",
             "current_supply",
             "total_supply",
+            "supply_burned_lies",
         ):
             return {"error": "invalid key for home API endpoint"}
 

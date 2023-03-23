@@ -177,7 +177,6 @@ class HomeStats(Client):
             supply_info = supply_info["result"]
 
             supply_info["current_supply"] = supply_info["current_unlocked_supply"] + supply_info["current_locked_supply"]
-            supply_info["total_supply"] = supply_info["maximum_supply"] - supply_info["blocks_missing_reward"]
 
             sql = """
                 SELECT
@@ -202,6 +201,8 @@ class HomeStats(Client):
             burn_rate_data = self.witnet_database.sql_return_all(sql)
 
             supply_info["supply_burned_lies"] = sum(collateral * len(liar_addresses) for collateral, liar_addresses in burn_rate_data)
+
+            supply_info["total_supply"] = supply_info["maximum_supply"] - supply_info["blocks_missing_reward"] - supply_info["supply_burned_lies"]
 
             self.previous_supply_info = supply_info
 
