@@ -490,6 +490,7 @@ class NodeManager(object):
             "histogram-data-request-composition": "network_data-requests",
             "histogram-data-request-witness": "network_data-requests",
             "histogram-data-request-lie-rate": "network_lie-rates",
+            "histogram-supply-burn-rate": "network_burn-rate",
             "histogram-data-request-collateral": "network_data-requests",
             "histogram-data-request-reward": "network_data-requests",
             "histogram-trs-data": "network_trs-data",
@@ -662,6 +663,14 @@ class NodeManager(object):
                     "period": period_start,
                     "values": sorted(list(set(int(k) for d in data for k in d[7].keys()))),
                     "data": [d[7] for d in data],
+                }
+
+            if key == "histogram-supply-burn-rate":
+                return {
+                    "last_updated": last_updated_timestamp,
+                    "aggregation": aggregation_epochs,
+                    "period": period_start,
+                    "data": [[d[0] / 1E9, d[1] / 1E9] for d in data],
                 }
 
             if key in ("histogram-value-transfers", "histogram-trs-data", "histogram-data-request-lie-rate"):

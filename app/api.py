@@ -166,6 +166,7 @@ def network():
         "histogram-data-request-composition",   # Return a histogram of data request composition per day (HTTP-GET, HTTP-POST, RNG)
         "histogram-data-request-witness",       # Return a histogram of number of requested witnesses per day
         "histogram-data-request-lie-rate",      # Return a histogram of the lie rate per day
+        "histogram-supply-burn-rate",           # Return a histogram of the supply burn rate per day
         "histogram-data-request-collateral",    # Return a histogram of requested collateral per day
         "histogram-data-request-reward",        # Return a histogram of rewards per day
         "histogram-trs-data",                   # Return a histogram of the average TRS size per day
