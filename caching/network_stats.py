@@ -7,6 +7,10 @@ import toml
 
 from caching.client import Client
 
+from objects.wip import WIP
+
+from util.helper_functions import calculate_block_reward
+
 from util.logger import configure_logger
 
 class NetworkStats(Client):
@@ -26,6 +30,8 @@ class NetworkStats(Client):
 
         # Granularity at which network statistics are aggregated
         self.aggregation_epochs = config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
+
+        self.wips = WIP(config["database"])
 
         self.last_update_time = int(time.time())
 
@@ -98,6 +104,11 @@ class NetworkStats(Client):
         self.logger.info("Collecting lie rate data per period")
         self.get_lie_rates_per_period(reset)
         self.logger.info(f"Calculated lie rate data for {len(self.lie_rates_period)} periods in {time.perf_counter() - start_inner:.2f}s")
+
+        start_inner = time.perf_counter()
+        self.logger.info("Collecting burn rate data per period")
+        self.get_burn_rate_per_period(reset)
+        self.logger.info(f"Calculated burn rate data for {len(self.burn_rate_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting TRS data per period")
@@ -526,6 +537,90 @@ class NetworkStats(Client):
                 num_liar_addresses = 0
             self.lie_rates_period[per_period_key][3] += max(0, num_liar_addresses - (witnesses - reveals))
 
+    def get_burn_rate_per_period(self, reset):
+        master_key = "network_burn-rate"
+
+        # Read data from cache (unless reset was set)
+        if not reset:
+            epoch, self.burn_rate_period = self.read_data_from_cache(master_key)
+        else:
+            epoch, self.burn_rate_period = 0, {}
+
+        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+
+        # Add all keys upfront to make sure periods without data are initialized as empty
+        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+            if key not in self.burn_rate_period:
+                self.burn_rate_period[key] = [
+                    0,  # Burn rate reverted blocks
+                    0,  # Burn rate data request lies
+                ]
+
+        # Fetch all blocks and data requests
+        sql = """
+            SELECT
+                blocks.epoch,
+                data_request_txns.txn_hash,
+                data_request_txns.collateral,
+                tally_txns.liar_addresses
+            FROM
+                blocks
+            LEFT JOIN
+                data_request_txns
+            ON
+                blocks.epoch = data_request_txns.epoch
+            LEFT JOIN
+                tally_txns
+            ON
+                data_request_txns.txn_hash = tally_txns.data_request_txn_hash
+            WHERE
+                blocks.confirmed = true
+            AND
+                blocks.epoch BETWEEN %s AND %s
+            ORDER BY
+                blocks.epoch
+            ASC
+        """ % (epoch, self.last_confirmed_epoch)
+        self.witnet_database.db_mngr.reset_cursor()
+        burn_rate_data = self.witnet_database.sql_return_all(sql)
+
+        if burn_rate_data == None:
+            return
+
+        next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
+        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+
+        previous_epoch = epoch
+        for epoch, txn_hash, collateral, liar_addresses in burn_rate_data:
+            # First calculate burn because of the reverted blocks
+            if epoch > previous_epoch + 1:
+                for e in range(previous_epoch + 1, epoch):
+                    # Check if the next aggregation period was reached
+                    if e >= next_aggregation_period:
+                        next_aggregation_period = int(e / self.aggregation_epochs + 1) * self.aggregation_epochs
+                        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+
+                    block_reward = calculate_block_reward(epoch, self.consensus_constants)
+                    self.burn_rate_period[per_period_key][0] += block_reward
+
+            previous_epoch = epoch
+
+            if not self.wips.is_wip0027_active(epoch):
+                continue
+
+            # Check if the next aggregation period was reached
+            if epoch >= next_aggregation_period:
+                next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
+                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+
+            # Add liar burn rate
+            if liar_addresses and len(liar_addresses) > 0:
+                num_liar_addresses = len(liar_addresses)
+            else:
+                collateral = 0
+                num_liar_addresses = 0
+            self.burn_rate_period[per_period_key][1] += num_liar_addresses * collateral
+
     def get_trs_data_per_period(self, reset):
         master_key = "network_trs-data"
 
@@ -754,6 +849,8 @@ class NetworkStats(Client):
         self.memcached_client.set_multi(self.data_requests_period)
 
         self.memcached_client.set_multi(self.lie_rates_period)
+
+        self.memcached_client.set_multi(self.burn_rate_period)
 
         self.memcached_client.set_multi(self.trs_data_period)
 
