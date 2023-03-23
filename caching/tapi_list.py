@@ -192,6 +192,7 @@ class TapiList(Client):
                     "global_acceptance_rate": 0,
                     "active": False,
                     "finished": False,
+                    "activated": False,
                     "current_epoch": last_epoch,
                     "last_updated": int(time.time())
                 }
@@ -232,6 +233,10 @@ class TapiList(Client):
                 else:
                     self.tapi_data[tapi_id]["active"] = False
                     self.tapi_data[tapi_id]["finished"] = True
+                    if self.tapi_data[tapi_id]["global_acceptance_rate"] >= 80:
+                        self.tapi_data[tapi_id]["activated"] = True
+                    else:
+                        self.tapi_data[tapi_id]["activated"] = False
 
                 # Save the current epoch per TAPI
                 self.tapi_data[tapi_id]["current_epoch"] = last_epoch

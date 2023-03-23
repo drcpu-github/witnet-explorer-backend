@@ -214,7 +214,8 @@ def utxos():
 
 @api.route("/tapi")
 def get_tapi():
-    return node.get_tapi()
+    return_all_tapis = request.args.get("all", default=False, type=bool)
+    return node.get_tapi(return_all_tapis)
 
 @api.route("/status")
 def status():

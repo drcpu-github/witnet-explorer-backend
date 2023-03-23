@@ -700,8 +700,8 @@ class NodeManager(object):
 
         return mempool
 
-    def get_tapi(self):
-        self.logger.info(f"get_tapi()")
+    def get_tapi(self, return_all_tapis):
+        self.logger.info(f"get_tapi({return_all_tapis})")
 
         all_tapis = {}
         # Get auxiliary variable which defines the known TAPI's
@@ -715,8 +715,13 @@ class NodeManager(object):
                     all_tapis[counter] = {"error": "Could not find TAPI details"}
                     continue
 
+                # Skip unactivated TAPIs unless requested otherwise
+                if not return_all_tapis and not tapi["activated"]:
+                    self.logger.debug(f"Not sending 'tapi-{counter}' as it was not activated")
+                    continue
+
                 # Save TAPI details
-                self.logger.info(f"Found 'tapi-{counter}' in memcached cache")
+                self.logger.debug(f"Found 'tapi-{counter}' in memcached cache")
                 all_tapis[counter] = tapi
 
                 # Serialize TAPI plot to bytes (if found)
@@ -735,6 +740,7 @@ class NodeManager(object):
         if all_tapis == {}:
             self.logger.info(f"No TAPI's found in memcached cache")
 
+        self.logger.info(f"Returning TAPI's {', '.join(str(key) for key in all_tapis.keys())}")
         return all_tapis
 
     def get_status(self):
