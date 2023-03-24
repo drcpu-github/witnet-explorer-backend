@@ -598,10 +598,18 @@ class NodeManager(object):
             period_start, data = [], []
             for start in range(start_epoch, stop_epoch, aggregation_epochs):
                 temp_data = cache.get(f"{key_mapping[key]}_{start}_{start + aggregation_epochs}")
-                if temp_data == None:
-                    return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
                 period_start.append(start)
                 data.append(temp_data)
+
+            # Remove the last item from the list if it was None
+            # This happens when the caching process did not run yet while the aggregation_epochs boundary was crossed
+            if data[-1] == None:
+                period_start = period_start[:-1]
+                data = data[:-1]
+
+            # If any other item is None, return an error
+            if any(d == None for d in data):
+                return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
 
             # Aggregate depending on the requested key
             if key in ("num-unique-miners", "top-100-miners", "num-unique-data-request-solvers", "top-100-data-request-solvers"):
