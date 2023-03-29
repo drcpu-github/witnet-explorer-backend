@@ -102,9 +102,17 @@ class Block(object):
     def process_block(self, call_from):
         assert call_from == "explorer" or call_from == "api"
 
+        if "error" in self.block:
+            return {
+                "type": "block",
+                "status": "error",
+                "error": self.block["error"],
+            }
+
         if "reason" in self.block:
             return {
                 "type": "block",
+                "status": "error",
                 "error": self.block["reason"],
             }
 
