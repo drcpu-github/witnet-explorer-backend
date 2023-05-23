@@ -278,7 +278,17 @@ class Addresses(object):
                         continue
                 # Request received from API
                 elif method == "track":
-                    functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-launched", "reputation", "utxos"]
+                    # On receiving a track request, check which data is still cached.
+                    # If it is still cached, do not update it, this should be done through update requests from the explorer
+                    functions = []
+                    all_functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-launched", "reputation", "utxos"]
+                    for function in all_functions:
+                        data = memcached_client.get(f"{addresses[0]}_{function}")
+                        if not data:
+                            logger.debug(f"{function} for {addresses[0]} not found in cache")
+                            functions.append(function)
+                        else:
+                            logger.debug(f"{function} for {addresses[0]} are still cached")
                     monitor_addresses = addresses * len(functions)
                 else:
                     logger.info(f"Unknown request method received: {method}")
@@ -317,7 +327,7 @@ class Addresses(object):
                                 use_log_scale = False
                             logger.info(f"Queueing execution of plot_reputation({m_address})")
                             plot_dir = config["api"]["caching"]["plot_directory"]
-                            func_args = (logging_queue, address, False, plot_dir)
+                            func_args = (logging_queue, address, False, plot_dir, timeout)
                             func_pool.apply_async(self.plot_reputation, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for utxos")
@@ -398,10 +408,15 @@ class Addresses(object):
 
         return logging_queue, f"Cached {label} data for {identity}"
 
-    def plot_reputation(self, logging_queue, address, use_log_scale, plot_dir):
+    def plot_reputation(self, logging_queue, address, use_log_scale, plot_dir, timeout):
         # Set up logger
         self.configure_logging_process(logging_queue, "function")
         logger = logging.getLogger("function")
+
+        # Create memcached client
+        cache_config = self.config["api"]["caching"]
+        servers = cache_config["server"].split(",")
+        memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
 
         identity = address.address
 
@@ -411,6 +426,8 @@ class Addresses(object):
         address.close_database_connection()
 
         if len(non_zero_reputation_regions) == 0:
+            # Cache dummy variable to indicate a reputation plot was recently created
+            memcached_client.set(f"{identity}_reputation", True, time=timeout)
             return logging_queue, f"Reputation plot for {identity} is empty"
 
         # Create plot
@@ -456,6 +473,9 @@ class Addresses(object):
         plt.close(fig)
 
         gc.collect()
+
+        # Cache dummy variable to indicate a reputation plot was recently created
+        memcached_client.set(f"{identity}_reputation", True, time=timeout)
 
         return logging_queue, f"Reputation plot for {identity} created"
 
