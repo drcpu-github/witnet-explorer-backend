@@ -22,3 +22,5 @@ caching/plots/*
 **/*.json
 
 test/*
+
+ignore/*
