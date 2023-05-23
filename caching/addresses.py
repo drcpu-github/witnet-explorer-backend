@@ -266,7 +266,7 @@ class Addresses(object):
                         continue
                     epoch = request["epoch"]
 
-                    # Check if addresses were tracked and had their views updated during this eoch
+                    # Check if addresses were tracked and had their views updated during this epoch
                     if epoch in epoch_addresses:
                         epoch = request["epoch"]
                         functions = epoch_addresses[epoch][0]
@@ -358,7 +358,8 @@ class Addresses(object):
     def log_completed(self, result):
         self.configure_logging_process(result[0], "function")
         logger = logging.getLogger("function")
-        logger.info(result[1])
+        if result[1]:
+            logger.info(result[1])
 
     def cache_address_data(self, logging_queue, label, address, address_function, timeout):
         # Set up logger
@@ -382,6 +383,7 @@ class Addresses(object):
             memcached_client.set(f"{identity}_{label.replace(' ', '-')}", address_data, time=timeout)
         except pylibmc.TooBig as e:
             logger.warning(f"Could not save {label} data for {identity} in the memcached instance because its size exceeded 1MB")
+            return logging_queue, None
 
         return logging_queue, f"Cached {label} data for {identity}"
 
