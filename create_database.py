@@ -316,6 +316,7 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_commit_dr_hash ON commit_txns USING HASH (data_request_txn_hash);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns USING HASH (txn_address);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_dr_hash ON reveal_txns USING HASH (data_request_txn_hash);",
+        "CREATE INDEX IF NOT EXISTS idx_reputation_address ON reputation USING HASH (address);",
     ]
 
     for index in indexes:
