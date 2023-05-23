@@ -8,6 +8,7 @@ from objects.block import Block
 
 from caching.client import Client
 
+from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
 
@@ -56,7 +57,7 @@ class Blocks(Client):
             ORDER BY
                 blocks.epoch
         """ % (block_cache_epoch, last_epoch)
-        blocks = self.witnet_database.sql_return_all(sql)
+        blocks = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(blocks)} blocks in {time.perf_counter() - start:.2f}s")
         self.logger.info(f"Building blocks starting at epoch {block_cache_epoch}")

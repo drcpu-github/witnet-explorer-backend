@@ -10,6 +10,7 @@ import matplotlib.colors
 
 from caching.client import Client
 
+from util.data_transformer import re_sql
 from util.logger import configure_logger
 
 class TapiList(Client):
@@ -162,7 +163,7 @@ class TapiList(Client):
                 id
             ASC
         """
-        tapis = self.witnet_database.sql_return_all(sql)
+        tapis = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.tapi_data = {}
         for tapi in tapis:
@@ -216,7 +217,7 @@ class TapiList(Client):
                         epoch BETWEEN %s and %s
                     ORDER BY epoch ASC
                 """ % (start_epoch, stop_epoch - 1)
-                block_data = self.witnet_database.sql_return_all(sql)
+                block_data = self.witnet_database.sql_return_all(re_sql(sql))
                 acceptance_data = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
 
                 # Create a static acceptance data plot

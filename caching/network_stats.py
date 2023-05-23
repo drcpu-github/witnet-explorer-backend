@@ -9,8 +9,8 @@ from caching.client import Client
 
 from objects.wip import WIP
 
+from util.data_transformer import re_sql
 from util.helper_functions import calculate_block_reward
-
 from util.logger import configure_logger
 
 class NetworkStats(Client):
@@ -68,7 +68,7 @@ class NetworkStats(Client):
                 1
         """
         self.witnet_database.db_mngr.reset_cursor()
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.witnet_database.sql_return_one(re_sql(sql))
 
         if result:
             return int(result[0])
@@ -183,7 +183,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        epoch_data = self.witnet_database.sql_return_all(sql)
+        epoch_data = self.witnet_database.sql_return_all(re_sql(sql))
 
         previous_epoch = epoch
         for epoch in epoch_data:
@@ -244,7 +244,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        miners = self.witnet_database.sql_return_all(sql)
+        miners = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.top_100_miners = []
 
@@ -313,7 +313,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        data_request_solvers = self.witnet_database.sql_return_all(sql)
+        data_request_solvers = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.top_100_data_request_solvers = []
 
@@ -394,7 +394,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        data_requests = self.witnet_database.sql_return_all(sql)
+        data_requests = self.witnet_database.sql_return_all(re_sql(sql))
 
         if data_requests == None:
             return
@@ -471,7 +471,7 @@ class NetworkStats(Client):
                 reveal_txns.data_request_txn_hash
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        reveal_data = self.witnet_database.sql_return_all(sql)
+        reveal_data = self.witnet_database.sql_return_all(re_sql(sql))
 
         number_of_reveals = {}
         for txn_hash, reveals in reveal_data:
@@ -504,7 +504,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        lie_rate_data = self.witnet_database.sql_return_all(sql)
+        lie_rate_data = self.witnet_database.sql_return_all(re_sql(sql))
 
         if lie_rate_data == None:
             return
@@ -582,7 +582,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        burn_rate_data = self.witnet_database.sql_return_all(sql)
+        burn_rate_data = self.witnet_database.sql_return_all(re_sql(sql))
 
         if burn_rate_data == None:
             return
@@ -661,7 +661,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        trs_data = self.witnet_database.sql_return_all(sql)
+        trs_data = self.witnet_database.sql_return_all(re_sql(sql))
 
         if trs_data == None:
             return
@@ -759,7 +759,7 @@ class NetworkStats(Client):
             ASC
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
-        value_transfers = self.witnet_database.sql_return_all(sql)
+        value_transfers = self.witnet_database.sql_return_all(re_sql(sql))
 
         if value_transfers == None:
             return

@@ -8,6 +8,7 @@ from objects.data_request_report import DataRequestReport
 
 from caching.client import Client
 
+from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
 
@@ -60,7 +61,7 @@ class DataRequestReports(Client):
             ORDER BY
                 blocks.epoch
         """ % (report_cache_epoch, self.last_epoch)
-        data_requests = self.witnet_database.sql_return_all(sql)
+        data_requests = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(data_requests)} data requests in {time.perf_counter() - start:.2f}s")
         self.logger.info(f"Building data request reports starting at epoch {report_cache_epoch}")
