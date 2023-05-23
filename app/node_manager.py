@@ -945,6 +945,11 @@ class NodeManager(object):
 
         self.try_send_request({"method": "track", "addresses": [address], "id": 2})
 
+        utxos = cache.get(f"{address}_utxos")
+        if utxos:
+            self.logger.info(f"Found UTXOs for {address} in cache")
+            return utxos
+
         utxos = self.witnet_node.get_utxos(address)
         if "result" in utxos:
             return utxos["result"]
