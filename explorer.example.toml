@@ -123,7 +123,9 @@ plot_directory = "/path/to/plots"
 # log_file: specify logging file name
 # cache_size: the number of tracked addresses for which API call results are updated and cached
 # processes: the number of concurrent processes which can be used to query the database for API call results
-# cache_timeout: timeout for address data cached when an address is queried from the API
+# views_timeout: timeout after which address views data (value transfers, data requests and blocks) is deleted from the cache
+# reputation_timeout: timeout after which reputation helper variable is deleted from the cache
+# utxos_timeout: timeout after which utxo data is deleted from the cache
 # address_stack_file: file to persist the address stack and load after a restart
 # concurrent_request_timeout: timeout before track requests for the same address are processed
 [api.caching.scripts.addresses]
@@ -135,7 +137,9 @@ level_stdout = "info"
 log_file = "/path/to/logs/address.log"
 cache_size = 100
 processes = 4
-cache_timeout = 86400 # 1 day
+views_timeout = 86400 # 1 day
+reputation_timeout = 3600 # 1 hour
+utxos_timeout = 3600 # 1 hour
 address_stack_file = "/path/to/address_stack.json"
 concurrent_request_timeout = 15
 

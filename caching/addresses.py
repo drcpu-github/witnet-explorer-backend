@@ -229,7 +229,9 @@ class Addresses(object):
                             logger.info(f"Removed all cached views for {address}")
 
                 # Data in the cache should timeout after some time to prevent stale data
-                timeout = config["api"]["caching"]["scripts"]["addresses"]["cache_timeout"]
+                views_timeout = config["api"]["caching"]["scripts"]["addresses"]["views_timeout"]
+                reputation_timeout = config["api"]["caching"]["scripts"]["addresses"]["reputation_timeout"]
+                utxos_timeout = config["api"]["caching"]["scripts"]["addresses"]["utxos_timeout"]
 
                 # Update cached address data on receiving a request from the explorer
                 if method == "update":
@@ -304,20 +306,20 @@ class Addresses(object):
                     try:
                         # Execute requested method asynchronously
                         if function == "blocks":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for blocks")
-                            func_args = (logging_queue, "blocks", address, address.get_blocks, timeout)
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
+                            func_args = (logging_queue, "blocks", address, address.get_blocks, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "value-transfers":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for value transfers")
-                            func_args = (logging_queue, "value transfers", address, address.get_value_transfers, timeout)
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
+                            func_args = (logging_queue, "value transfers", address, address.get_value_transfers, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-solved":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for solved data requests")
-                            func_args = (logging_queue, "data requests solved", address, address.get_data_requests_solved, timeout)
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
+                            func_args = (logging_queue, "data requests solved", address, address.get_data_requests_solved, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-launched":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for launched data requests")
-                            func_args = (logging_queue, "data requests launched", address, address.get_data_requests_launched, timeout)
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for launched data requests")
+                            func_args = (logging_queue, "data requests launched", address, address.get_data_requests_launched, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "reputation":
                             if "use-log-scale" in request:
@@ -327,11 +329,11 @@ class Addresses(object):
                                 use_log_scale = False
                             logger.info(f"Queueing execution of plot_reputation({m_address})")
                             plot_dir = config["api"]["caching"]["plot_directory"]
-                            func_args = (logging_queue, address, False, plot_dir, timeout)
+                            func_args = (logging_queue, address, False, plot_dir, reputation_timeout)
                             func_pool.apply_async(self.plot_reputation, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for utxos")
-                            func_args = (logging_queue, "utxos", address, address.get_utxos, timeout)
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
+                            func_args = (logging_queue, "utxos", address, address.get_utxos, utxos_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         else:
                             logger.warning(f"Unknown request method {function}")
