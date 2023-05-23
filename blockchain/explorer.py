@@ -133,6 +133,18 @@ class BlockExplorer(object):
             request = {"method": "update", "epoch": epoch, "function": "data-requests-launched", "addresses": list(data_request_addresses), "id": 4}
             self.try_send_request(logger, caching_server, request)
 
+        # Update the utxos for all addresses which were involved in a UTXO consuming / generating transaction
+        utxo_addresses = set()
+        utxo_addresses.update(set(block_json["mint_txn"]["output_addresses"]))
+        utxo_addresses.update(value_transfer_addresses)
+        utxo_addresses.update(data_request_addresses)
+        for commit in block_json["commit_txns"]:
+            utxo_addresses.add(commit["txn_address"])
+        utxo_addresses.update(tally_addresses)
+        if len(utxo_addresses) > 0:
+            request = {"method": "update", "epoch": epoch, "function": "utxos", "addresses": list(utxo_addresses), "id": 5}
+            self.try_send_request(logger, caching_server, request)
+
     def insert_transactions(self, database, block_json, epoch):
         # Insert mint transaction
         database.insert_mint_txn(block_json["mint_txn"], epoch)

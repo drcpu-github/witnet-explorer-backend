@@ -487,3 +487,8 @@ class Address(object):
                 non_zero_reputation_regions[-1].append(i)
 
         return non_zero_reputation, non_zero_reputation_regions
+
+    def get_utxos(self):
+        witnet_node = WitnetNode(self.node_config, logger=self.logger)
+        utxos = witnet_node.get_utxos(self.address)
+        return utxos

@@ -221,6 +221,7 @@ class Addresses(object):
                     if len(removed_addresses) > 0:
                         # Remove all cached views
                         for address in removed_addresses:
+                            memcached_client.delete(f"{address}-utxos")
                             memcached_client.delete(f"{address}-blocks")
                             memcached_client.delete(f"{address}-value-transfers")
                             memcached_client.delete(f"{address}-data-requests-solved")
@@ -268,7 +269,6 @@ class Addresses(object):
 
                     # Check if addresses were tracked and had their views updated during this epoch
                     if epoch in epoch_addresses:
-                        epoch = request["epoch"]
                         functions = epoch_addresses[epoch][0]
                         monitor_addresses = epoch_addresses[epoch][1]
                         logger.info(f"Received a request to {method} views for {monitor_addresses} in epoch {epoch}")
@@ -278,9 +278,8 @@ class Addresses(object):
                         continue
                 # Request received from API
                 elif method == "track":
-                    # Update all views upon receiving a request from the API
-                    functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-launched", "reputation"]
-                    monitor_addresses = addresses * 5
+                    functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-launched", "reputation", "utxos"]
+                    monitor_addresses = addresses * len(functions)
                 else:
                     logger.info(f"Unknown request method received: {method}")
                     continue
@@ -320,6 +319,10 @@ class Addresses(object):
                             plot_dir = config["api"]["caching"]["plot_directory"]
                             func_args = (logging_queue, address, False, plot_dir)
                             func_pool.apply_async(self.plot_reputation, args=func_args, callback=self.log_completed)
+                        elif function == "utxos":
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {timeout}) for utxos")
+                            func_args = (logging_queue, "utxos", address, address.get_utxos, timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         else:
                             logger.warning(f"Unknown request method {function}")
                     except AttributeError:
@@ -369,9 +372,17 @@ class Addresses(object):
         identity = address.address
 
         logger.info(f"Fetching {label} data for {identity}")
-        address.connect_to_database()
-        address_data = address_function(0, 0)
-        address.close_database_connection()
+        if label == "utxos":
+            address_data = address_function()
+            if "result" in address_data:
+                address_data = address_data["result"]
+            else:
+                logger.warning(f"Could not save {label} data for {identity} in the memcached instance: {address_data}")
+                return logging_queue, None
+        else:
+            address.connect_to_database()
+            address_data = address_function(0, 0)
+            address.close_database_connection()
 
         # Create memcached client
         cache_config = self.config["api"]["caching"]

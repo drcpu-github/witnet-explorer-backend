@@ -84,6 +84,9 @@ class NodeManager(object):
 
         self.TRS = TRS(config["engine"]["json_file"], False, db_config=self.database_config, logger=self.logger)
 
+        config = self.config["api"]["caching"]["scripts"]["addresses"]
+        self.address_caching_server = SocketManager(config["host"], config["port"], config["default_timeout"])
+
     ########################
     #   Helper functions   #
     ########################
@@ -160,6 +163,17 @@ class NodeManager(object):
                 top_100_mapped.append([ids_to_addresses[address_id], value])
 
         return top_100_mapped
+
+    def try_send_request(self, request):
+        try:
+            self.address_caching_server.send_request(request)
+        except ConnectionRefusedError:
+            self.logger.warning(f"Could not send {request['method']} request to address caching server")
+            try:
+                self.address_caching_server.recreate_socket()
+                self.address_caching_server.send_request(request)
+            except ConnectionRefusedError:
+                self.logger.warning(f"Could not recreate socket, will try again next {request['method']} request")
 
     #######################################################
     #   API endpoint functions which can employ caching   #
@@ -825,9 +839,7 @@ class NodeManager(object):
 
         address = Address(address_value, self.config, self.consensus_constants, logging_queue=self.log_queue)
 
-        config = self.config["api"]["caching"]["scripts"]["addresses"]
-        address_caching_server = SocketManager(config["host"], config["port"], config["default_timeout"])
-        address_caching_server.send_request({"method": "track", "addresses": [address_value], "id": 1})
+        self.try_send_request({"method": "track", "addresses": [address_value], "id": 1})
 
         if tab == "details":
             address.connect_to_database()
@@ -920,9 +932,9 @@ class NodeManager(object):
         else:
             return {key: priority[key] for key in priority.keys() if key.startswith(priority_type)}
 
-    ##############################################################
-    #   API endpoint functions which should not employ caching   #
-    ##############################################################
+    #####################################################################
+    #   API endpoint functions which should not employ direct caching   #
+    #####################################################################
 
     def get_utxos(self, address):
         self.logger.info(f"get_utxos({address})")
@@ -930,6 +942,8 @@ class NodeManager(object):
         if not sanitize_address(address):
             self.logger.warning(f"Invalid value for address: {address}")
             return {"error": "invalid address"}
+
+        self.try_send_request({"method": "track", "addresses": [address], "id": 2})
 
         utxos = self.witnet_node.get_utxos(address)
         if "result" in utxos:
