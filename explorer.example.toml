@@ -115,16 +115,15 @@ node_retries = 5
 # note: the cache.py file in the app directory contains a number of hardcoded memcached-specific settings
 plot_directory = "/path/to/plots"
 
-# host: IP address of the address JIT
-# port: RPC port on which the address JIT can be reached
+# host: IP address of the addresses caching process
+# port: RPC port on which the address caching process can be reached
 # default_timeout: timeout for a socket to receive a request response
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # level_stdout: log to stdout with the specified logging level (debug, info, warning, error or critical)
 # log_file: specify logging file name
 # cache_size: the number of tracked addresses for which API call results are updated and cached
 # processes: the number of concurrent processes which can be used to query the database for API call results
-# jit_timeout: timeout for address data cached when an address is queried from the API
-# update_timeout: timeout for monitored address which is recached when an update is triggered through the explorer
+# cache_timeout: timeout for address data cached when an address is queried from the API
 # address_stack_file: file to persist the address stack and load after a restart
 # concurrent_request_timeout: timeout before track requests for the same address are processed
 [api.caching.scripts.addresses]
@@ -136,8 +135,7 @@ level_stdout = "info"
 log_file = "/path/to/logs/address.log"
 cache_size = 100
 processes = 4
-jit_timeout = 20 # 20 seconds
-update_timeout = 86400 # 1 day
+cache_timeout = 86400 # 1 day
 address_stack_file = "/path/to/address_stack.json"
 concurrent_request_timeout = 15
 
