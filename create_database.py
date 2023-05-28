@@ -317,6 +317,8 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns USING HASH (txn_address);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_dr_hash ON reveal_txns USING HASH (data_request_txn_hash);",
         "CREATE INDEX IF NOT EXISTS idx_reputation_address ON reputation USING HASH (address);",
+        "CREATE INDEX IF NOT EXISTS idx_value_transfer_input_address ON value_transfer_txns USING GIN (input_addresses);",
+        "CREATE INDEX IF NOT EXISTS idx_value_transfer_output_address ON value_transfer_txns USING GIN (output_addresses);",
     ]
 
     for index in indexes:
