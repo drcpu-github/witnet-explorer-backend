@@ -319,6 +319,13 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_reputation_address ON reputation USING HASH (address);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_input_addresses ON value_transfer_txns USING GIN (input_addresses);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_output_addresses ON value_transfer_txns USING GIN (output_addresses);",
+        "CREATE INDEX IF NOT EXISTS idx_mint_txn_epoch ON mint_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_data_request_txn_epoch ON data_request_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_commit_txn_epoch ON commit_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_reveal_txn_epoch ON reveal_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_tally_txn_epoch ON tally_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_value_transfer_txn_epoch ON value_transfer_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_trs_epoch ON trs (epoch);",
     ]
 
     for index in indexes:
