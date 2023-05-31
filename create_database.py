@@ -313,12 +313,12 @@ def create_indexes(connection, cursor):
     indexes = [
         "CREATE INDEX IF NOT EXISTS idx_block_epoch ON blocks (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_commit_txn_address ON commit_txns USING HASH (txn_address);",
-        "CREATE INDEX IF NOT EXISTS idx_commit_dr_hash ON commit_txns USING HASH (data_request_txn_hash);",
+        "CREATE INDEX IF NOT EXISTS idx_commit_txn_data_request ON commit_txns USING HASH (data_request_txn_hash);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns USING HASH (txn_address);",
-        "CREATE INDEX IF NOT EXISTS idx_reveal_dr_hash ON reveal_txns USING HASH (data_request_txn_hash);",
+        "CREATE INDEX IF NOT EXISTS idx_reveal_txn_data_request ON reveal_txns USING HASH (data_request_txn_hash);",
         "CREATE INDEX IF NOT EXISTS idx_reputation_address ON reputation USING HASH (address);",
-        "CREATE INDEX IF NOT EXISTS idx_value_transfer_input_address ON value_transfer_txns USING GIN (input_addresses);",
-        "CREATE INDEX IF NOT EXISTS idx_value_transfer_output_address ON value_transfer_txns USING GIN (output_addresses);",
+        "CREATE INDEX IF NOT EXISTS idx_value_transfer_input_addresses ON value_transfer_txns USING GIN (input_addresses);",
+        "CREATE INDEX IF NOT EXISTS idx_value_transfer_output_addresses ON value_transfer_txns USING GIN (output_addresses);",
     ]
 
     for index in indexes:
