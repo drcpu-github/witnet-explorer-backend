@@ -314,7 +314,7 @@ class BlockExplorer(object):
                                 logger.warning(f"Unable to fetch block {blockchain[epoch]} for epoch {epoch}: {block['error']}")
                                 break
                             block = block["result"]
-                            block_json = self.insert_block(self.confirm_blocks_database, blockchain[epoch], block, epoch, tapi_periods, caching_server)
+                            block_json = self.insert_block(self.confirm_blocks_database, blockchain[epoch], block, epoch, tapi_periods)
 
                             # Update all cached views
                             request = {"method": "revert", "epoch": epoch, "id": 1}
