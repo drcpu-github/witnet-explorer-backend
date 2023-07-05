@@ -103,27 +103,30 @@ class NodeManager(object):
         if "error" in transactions_pool:
             return {
                 "txn_hash": hash_value,
-                "status": "Could not fetch pending transactions",
-                "type": "unknown transaction type",
+                "status": "error",
+                "message": "Sorry, I could not fetch the pending transactions",
                 "txn_time": 0,
                 "block_hash": "",
             }
         transactions_pool = transactions_pool["result"]
 
+        message = ""
         if hash_value in transactions_pool["data_request"]:
             status = "pending"
-            txn_type = "data_request_txn"
+            txn_type = "data request transaction"
         elif hash_value in transactions_pool["value_transfer"]:
             status = "pending"
-            txn_type = "value_transfer_txn"
+            txn_type = "value transfer transaction"
         else:
-            status = "unknown hash"
+            status = "error"
             txn_type = "unknown"
+            message = "Sorry, I could not find this transaction hash"
 
         return {
             "txn_hash": hash_value,
             "status": status,
             "type": txn_type,
+            "message": message,
             "txn_time": 0,
             "block_hash": "",
         }
@@ -184,23 +187,23 @@ class NodeManager(object):
 
         if hash_value.startswith("0x"):
             self.logger.warning(f"Invalid value for hash: {hash_value}")
-            return {"error": "hexadecimal hash should not start with 0x"}
+            return {"status": "error", "message": "A hexadecimal transaction hash should not start with 0x"}
 
         if len(hash_value) != 64:
             self.logger.warning(f"Invalid hash length ({len(hash_value)}): {hash_value}")
-            return {"error": "incorrect hexadecimal hash length"}
+            return {"status": "error", "message": "Incorrect hexadecimal transaction hash length"}
 
         if not sanitize_input(hash_value, "hexadecimal"):
             self.logger.warning(f"Invalid value for hash: {hash_value}")
-            return {"error": "hash is not a hexadecimal value"}
+            return {"status": "error", "message": "Transaction hash is not a hexadecimal value"}
 
         if not sanitize_input(simple, "bool"):
             self.logger.warning(f"Invalid value for simple: {simple}")
-            return {"error": "simple is not a boolean value"}
+            return {"status": "error", "message": "Value supplied for the simple parameter is not a boolean"}
 
         if amount not in range(1, 1000):
             self.logger.warning(f"Value of amount is bigger than 1000")
-            return {"error": "value of amount is bigger than 1000"}
+            return {"status": "error", "message": "Value of the amount parameter should be smaller than 1000"}
 
         hashed_item = cache.get(hash_value)
         if hashed_item:
@@ -306,7 +309,7 @@ class NodeManager(object):
             # Data request histories change constantly, so we cannot employ simple hash-based caching only
             return data_request_history.get_history(hash_type, hash_value, start, stop, amount)
 
-        return {"error": "unknown hash type"}
+        return {"status": "error", "message": "Unknown hash type"}
 
     def get_epoch(self, epoch):
         self.logger.info(f"get_epoch({epoch})")
