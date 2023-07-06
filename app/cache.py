@@ -3,6 +3,7 @@ import toml
 from flask_caching import Cache
 
 from .gunicorn_config import TOML_CONFIG
+from .gunicorn_config import threads
 
 config = toml.load(TOML_CONFIG)
 
@@ -14,6 +15,8 @@ if config["api"]["cache_server"] == "memcached":
         "CACHE_KEY_PREFIX": None,
         "CACHE_MEMCACHED_USERNAME": config["api"]["caching"]["user"],
         "CACHE_MEMCACHED_PASSWORD": config["api"]["caching"]["password"],
+        "CACHE_NUM_THREADS": threads * 2, # Threads used by the SASLMemcachedCache thread pool instance to serve concurrent requests
+        "CACHE_BLOCKING_POOL": True, # Set thread pool to blocking such that it always waits for a free thread and returns a value
         "CACHE_OPTIONS": {
             "behaviors": {
                 "tcp_nodelay": True, # Faster IO
