@@ -13,6 +13,13 @@ def execute_command(command):
         sys.exit(1)
     return stdout
 
+def check_version():
+    stdout = execute_command("psql --version")
+    major, minor = stdout.decode("utf-8").split()[2].split(".")
+    if int(major) < 15:
+        sys.stderr.write("Minimum required version of PostgreSQL is 15")
+        sys.exit(1)
+
 def create_user(user, password):
     # Check if user exists
     stdout = execute_command(f"sudo -u postgres psql -c \"SELECT 1 FROM pg_roles WHERE rolname='{user}'\"")
@@ -339,6 +346,8 @@ def main():
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)
+
+    check_version()
 
     create_user(config["database"]["user"], config["database"]["password"])
 
