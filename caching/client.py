@@ -24,6 +24,8 @@ class Client(object):
         if database:
             try:
                 self.witnet_database = WitnetDatabase(config["database"], named_cursor=named_cursor, logger=self.logger)
+                if named_cursor:
+                    self.witnet_database_client = WitnetDatabase(config["database"], named_cursor=False, logger=self.logger)
             except psycopg2.OperationalError:
                 self.logger.error(f"Could not connect to the database!")
                 sys.exit(2)

@@ -1,3 +1,4 @@
+import json
 import numpy
 import optparse
 import pylibmc
@@ -35,22 +36,9 @@ class NetworkStats(Client):
 
         self.last_update_time = int(time.time())
 
-        if reset:
-            self.last_processed_epoch = 0
-            self.last_processed_epoch_update = 0
-        else:
-            # Last processed epoch
-            self.last_processed_epoch = self.memcached_client.get("network_epoch")
-            if self.last_processed_epoch == None:
-                self.last_processed_epoch = 0
-            self.last_processed_epoch_update = 0
-
-        self.logger.info(f"Last processed epoch was {self.last_processed_epoch}")
-
         self.last_confirmed_epoch = self.get_last_confirmed_epoch()
         if self.last_confirmed_epoch == -1:
             self.logger.warning("Could not fetch last confirmed epoch")
-        self.last_confirmed_epoch_ceiled = int(self.last_confirmed_epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
 
     def get_last_confirmed_epoch(self):
         sql = """
@@ -81,92 +69,105 @@ class NetworkStats(Client):
         self.logger.info(f"Building network statistics")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting rollbacks")
+        self.logger.info("Calculating rollbacks")
         self.get_rollbacks(reset)
-        self.logger.info(f"Found {len(self.rollbacks)} rollbacks in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated {len(self.rollbacks)} rollbacks in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting miners per period")
+        self.logger.info("Calculating miner statistics")
         self.get_miners_per_period(reset)
-        self.logger.info(f"Found {self.num_unique_miners} miners in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated {self.unique_miners['amount']} miners in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting data request solvers per period")
+        self.logger.info("Calculating data request solver statistics")
         self.get_data_request_solvers_per_period(reset)
-        self.logger.info(f"Found {self.num_unique_data_request_solvers} data request solvers in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated {self.unique_data_request_solvers['amount']} data request solvers in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting data requests per period")
+        self.logger.info("Calculating data request statistics")
         self.get_data_requests_per_period(reset)
-        self.logger.info(f"Calculated data request for {len(self.data_requests_period)} periods in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated data request statistics for {len(self.data_requests_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting lie rate data per period")
+        self.logger.info("Calculating lie rate statistics")
         self.get_lie_rates_per_period(reset)
-        self.logger.info(f"Calculated lie rate data for {len(self.lie_rates_period)} periods in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated lie rate statistics for {len(self.lie_rates_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting burn rate data per period")
+        self.logger.info("Calculating burn rate statistics")
         self.get_burn_rate_per_period(reset)
-        self.logger.info(f"Calculated burn rate data for {len(self.burn_rate_period)} periods in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated burn rate statistics for {len(self.burn_rate_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting TRS data per period")
+        self.logger.info("Calculating TRS statistics")
         self.get_trs_data_per_period(reset)
-        self.logger.info(f"Calculated TRS data for {len(self.trs_data_period)} periods in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated TRS statistics for {len(self.trs_data_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting value transfers per period")
+        self.logger.info("Calculating value transfer statistics")
         self.get_value_transfers_per_period(reset)
-        self.logger.info(f"Collected value transfers {len(self.value_transfers_period)} for periods in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated value transfer statistics for {len(self.value_transfers_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Collecting staking statistics")
+        self.logger.info("Calculating staking statistics")
         self.get_staking_stats()
-        self.logger.info(f"Collected staking statistics in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(f"Calculated staking statistics in {time.perf_counter() - start_inner:.2f}s")
 
         self.logger.info(f"Built network stats in {time.perf_counter() - start_outer:.2f}s")
 
-    def construct_keys(self, key, epoch):
+    def construct_keys(self, from_epoch, to_epoch):
         keys = []
-        for period in range(0, epoch, self.aggregation_epochs):
-            keys.append(f"{key}_{period}_{period + self.aggregation_epochs}")
+        from_epoch = int(from_epoch / self.aggregation_epochs) * self.aggregation_epochs
+        to_epoch = int(to_epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
+        for period in range(from_epoch, to_epoch, self.aggregation_epochs):
+            keys.append((period, period + self.aggregation_epochs))
         return keys
 
-    def read_data_from_cache(self, key):
-        # Start at the epoch marking the start of an aggregation epoch
-        epoch = int(self.last_processed_epoch / self.aggregation_epochs) * self.aggregation_epochs
+    def read_from_database(self, stat, all_periods=False):
+        sql = """
+            SELECT
+                data
+            FROM
+                network_stats
+            WHERE
+                stat = 'epoch'
+        """
+        last_epoch = self.witnet_database_client.sql_return_one(re_sql(sql))
+        if not last_epoch:
+            last_epoch = 0
+        else:
+            last_epoch = last_epoch[0]
 
-        # Get previously saved periods
-        keys = self.construct_keys(key, epoch)
-        cached_data = self.memcached_client.get_multi(keys)
+        sql = """
+            SELECT
+                from_epoch,
+                to_epoch,
+                data
+            FROM
+                network_stats
+            WHERE
+                stat = '%s'
+        """ % stat
+        if not all_periods:
+            last_epoch_floored = int(last_epoch / self.aggregation_epochs) * self.aggregation_epochs
+            sql += """
+                AND
+                    from_epoch >= %s
+            """ % last_epoch_floored
+        stats_data = self.witnet_database_client.sql_return_all(re_sql(sql))
 
-        # Check if previous periods were deleted
-        keys_not_found = set(keys) - set(cached_data.keys())
-        if keys_not_found != set():
-            # Start at the lower bound of the earliest period which was deleted
-            min_epoch = min([int(key.split("_")[2]) for key in keys_not_found])
-            epoch = min(epoch, min_epoch)
-
-        return epoch, cached_data
+        return last_epoch, stats_data
 
     def get_rollbacks(self, reset):
-        master_key = "network_rollbacks"
-
-        # Temporary copy
-        epoch = self.last_processed_epoch
-
-        # Fetch previous rollbacks from the cache (unless reset was set)
-        self.rollbacks = None
+        # Fetch previous rollbacks (unless reset was set)
+        self.rollbacks = []
+        self.last_processed_epoch = 0
         if not reset:
-            self.rollbacks = self.memcached_client.get(master_key)
+            self.last_processed_epoch, rollbacks  = self.read_from_database("rollbacks", all_periods=True)
+            if rollbacks:
+                self.rollbacks = rollbacks[0][2]
 
-        # Rollbacks is not present in the cache anymore, reset last epoch
-        if not self.rollbacks:
-            epoch = 0
-            self.rollbacks = []
-
-        self.logger.info(f"Creating {master_key} statistic from epoch {int(epoch / self.aggregation_epochs) * self.aggregation_epochs} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating rollbacks statistics from epoch {self.last_processed_epoch} to {self.last_confirmed_epoch}")
 
         # Fetch all confirmed blocks
         sql = """
@@ -181,11 +182,11 @@ class NetworkStats(Client):
             ORDER BY
                 epoch
             ASC
-        """ % (epoch, self.last_confirmed_epoch)
+        """ % (self.last_processed_epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
         epoch_data = self.witnet_database.sql_return_all(re_sql(sql))
 
-        previous_epoch = epoch
+        previous_epoch = self.last_processed_epoch
         for epoch in epoch_data:
             epoch = epoch[0]
 
@@ -193,31 +194,35 @@ class NetworkStats(Client):
             if epoch > previous_epoch + 1:
                 # Calculate the timestamp of the rollback and its boundaries
                 timestamp = self.start_time + (previous_epoch + 1) * self.epoch_period
-                self.rollbacks.append((timestamp, previous_epoch + 1, epoch - 1, epoch - previous_epoch - 1))
+                self.rollbacks.append([timestamp, previous_epoch + 1, epoch - 1, epoch - previous_epoch - 1])
             previous_epoch = epoch
 
-            # Save the last seen epoch
-            if epoch > self.last_processed_epoch_update:
-                self.last_processed_epoch_update = epoch
+        # Save the last seen epoch
+        if epoch_data and epoch > self.last_processed_epoch:
+            self.last_processed_epoch = epoch
 
         # List rollbacks in reverse order
         self.rollbacks = sorted(self.rollbacks, reverse=True)
 
     def get_miners_per_period(self, reset):
-        master_key = "network_miners"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch = 0
+        self.unique_miners = {"amount": 0, "top-100": {}, "per-period": {}}
         if not reset:
-            epoch, self.unique_miners_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.unique_miners_period = 0, {}
+            epoch, miner_data = self.read_from_database("miners", all_periods=True)
+            for md in miner_data:
+                if md[0] != None and md[1] != None:
+                    self.unique_miners["per-period"][(md[0], md[1])] = md[2]
+                else:
+                    self.unique_miners["amount"] = md[2]["amount"]
+                    self.unique_miners["top-100"] = md[2]["top-100"]
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating miners statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
-            if key not in self.unique_miners_period:
-                self.unique_miners_period[key] = {}
+        for key in self.construct_keys(0, self.last_confirmed_epoch):
+            if key not in self.unique_miners["per-period"]:
+                self.unique_miners["per-period"][key] = {}
 
         # Fetch all confirmed mint transactions (as a proxy for blocks)
         sql = """
@@ -246,13 +251,14 @@ class NetworkStats(Client):
         self.witnet_database.db_mngr.reset_cursor()
         miners = self.witnet_database.sql_return_all(re_sql(sql))
 
-        self.top_100_miners = []
-
         if miners == None:
             return
 
+        updated_keys = []
+
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
+        updated_keys.append(per_period_key)
 
         for epoch, miner, miner_id in miners:
             if miner_id == None:
@@ -262,31 +268,38 @@ class NetworkStats(Client):
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
+                updated_keys.append(per_period_key)
 
             # Create histogram
-            if miner_id in self.unique_miners_period[per_period_key]:
-                self.unique_miners_period[per_period_key][miner_id] += 1
+            if miner_id in self.unique_miners["per-period"][per_period_key]:
+                self.unique_miners["per-period"][per_period_key][miner_id] += 1
             else:
-                self.unique_miners_period[per_period_key][miner_id] = 1
+                self.unique_miners["per-period"][per_period_key][miner_id] = 1
 
-        self.num_unique_miners, self.top_100_miners = aggregate_nodes(self.unique_miners_period.values())
+        self.unique_miners["amount"], self.unique_miners["top-100"] = aggregate_nodes(self.unique_miners["per-period"].values())
+
+        self.unique_miners["per-period"] = {per_period_key: self.unique_miners["per-period"][per_period_key] for per_period_key in self.unique_miners["per-period"].keys() if per_period_key in updated_keys}
 
     def get_data_request_solvers_per_period(self, reset):
-        master_key = "network_data-request-solvers"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch = 0
+        self.unique_data_request_solvers = {"amount": 0, "top-100": {}, "per-period": {}}
         if not reset:
-            epoch, self.unique_data_request_solvers_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.unique_data_request_solvers_period = 0, {}
+            epoch, solver_data = self.read_from_database("data_request_solvers", all_periods=True)
+            for sd in solver_data:
+                if sd[0] != None and sd[1] != None:
+                    self.unique_data_request_solvers["per-period"][(sd[0], sd[1])] = sd[2]
+                else:
+                    self.unique_data_request_solvers["amount"] = sd[2]["amount"]
+                    self.unique_data_request_solvers["top-100"] = sd[2]["top-100"]
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating data request solver statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
-            if key not in self.unique_data_request_solvers_period:
-                self.unique_data_request_solvers_period[key] = {}
+        for key in self.construct_keys(0, self.last_confirmed_epoch):
+            if key not in self.unique_data_request_solvers["per-period"]:
+                self.unique_data_request_solvers["per-period"][key] = {}
 
         # Fetch all confirmed commit transactions
         sql = """
@@ -315,13 +328,14 @@ class NetworkStats(Client):
         self.witnet_database.db_mngr.reset_cursor()
         data_request_solvers = self.witnet_database.sql_return_all(re_sql(sql))
 
-        self.top_100_data_request_solvers = []
-
         if data_request_solvers == None:
             return
 
+        updated_keys = []
+
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
+        updated_keys.append(per_period_key)
 
         for epoch, data_request_solver, data_request_solver_id in data_request_solvers:
             if data_request_solver_id == None:
@@ -331,29 +345,30 @@ class NetworkStats(Client):
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
+                updated_keys.append(per_period_key)
 
             # Create histogram
-            if data_request_solver_id in self.unique_data_request_solvers_period[per_period_key]:
-                self.unique_data_request_solvers_period[per_period_key][data_request_solver_id] += 1
+            if data_request_solver_id in self.unique_data_request_solvers["per-period"][per_period_key]:
+                self.unique_data_request_solvers["per-period"][per_period_key][data_request_solver_id] += 1
             else:
-                self.unique_data_request_solvers_period[per_period_key][data_request_solver_id] = 1
+                self.unique_data_request_solvers["per-period"][per_period_key][data_request_solver_id] = 1
 
-        self.num_unique_data_request_solvers, self.top_100_data_request_solvers = aggregate_nodes(self.unique_data_request_solvers_period.values())
+        self.unique_data_request_solvers["amount"], self.unique_data_request_solvers["top-100"] = aggregate_nodes(self.unique_data_request_solvers["per-period"].values())
+
+        self.unique_data_request_solvers["per-period"] = {per_period_key: self.unique_data_request_solvers["per-period"][per_period_key] for per_period_key in self.unique_data_request_solvers["per-period"].keys() if per_period_key in updated_keys}
 
     def get_data_requests_per_period(self, reset):
-        master_key = "network_data-requests"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch, self.data_requests_period = 0, {}
         if not reset:
-            epoch, self.data_requests_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.data_requests_period = 0, {}
+            epoch, data_requests_period = self.read_from_database("data_requests")
+            self.data_requests_period = {(drp[0], drp[1]): drp[2] for drp in data_requests_period}
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating data request statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.data_requests_period:
                 self.data_requests_period[key] = [
                     0,  # Amount of requests
@@ -400,13 +415,13 @@ class NetworkStats(Client):
             return
 
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
         for epoch, witnesses, witness_reward, collateral, kinds, success in data_requests:
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
             # Create data structure
             self.data_requests_period[per_period_key][0] += 1
@@ -435,18 +450,16 @@ class NetworkStats(Client):
                 self.data_requests_period[per_period_key][7][collateral] = 1
 
     def get_lie_rates_per_period(self, reset):
-        master_key = "network_lie-rates"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch, self.lie_rates_period = 0, {}
         if not reset:
-            epoch, self.lie_rates_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.lie_rates_period = 0, {}
+            epoch, lie_rates_period = self.read_from_database("data_requests")
+            self.lie_rates_period = {(lrp[0], lrp[1]): lrp[2] for lrp in lie_rates_period}
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating lie rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.lie_rates_period:
                 self.lie_rates_period[key] = [
                     0,  # Amount of requests
@@ -455,6 +468,7 @@ class NetworkStats(Client):
                     0,  # Amount of lies (out-of-consensus values)
                 ]
 
+        # Fetch reveal counts per data request
         sql = """
             SELECT
                 reveal_txns.data_request_txn_hash,
@@ -510,7 +524,7 @@ class NetworkStats(Client):
             return
 
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
         for epoch, txn_hash, witnesses, error_addresses, liar_addresses in lie_rate_data:
             txn_hash = txn_hash.hex()
@@ -524,7 +538,7 @@ class NetworkStats(Client):
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
             # Create data structure
             self.lie_rates_period[per_period_key][0] += witnesses
@@ -538,18 +552,16 @@ class NetworkStats(Client):
             self.lie_rates_period[per_period_key][3] += max(0, num_liar_addresses - (witnesses - reveals))
 
     def get_burn_rate_per_period(self, reset):
-        master_key = "network_burn-rate"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch, self.burn_rate_period = 0, {}
         if not reset:
-            epoch, self.burn_rate_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.burn_rate_period = 0, {}
+            epoch, burn_rate_period = self.read_from_database("data_requests")
+            self.burn_rate_period = {(brp[0], brp[1]): brp[2] for brp in burn_rate_period}
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating burn rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.burn_rate_period:
                 self.burn_rate_period[key] = [
                     0,  # Burn rate reverted blocks
@@ -588,7 +600,7 @@ class NetworkStats(Client):
             return
 
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
         previous_epoch = epoch
         for epoch, txn_hash, collateral, liar_addresses in burn_rate_data:
@@ -598,7 +610,7 @@ class NetworkStats(Client):
                     # Check if the next aggregation period was reached
                     if e >= next_aggregation_period:
                         next_aggregation_period = int(e / self.aggregation_epochs + 1) * self.aggregation_epochs
-                        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
                     block_reward = calculate_block_reward(epoch, self.consensus_constants)
                     self.burn_rate_period[per_period_key][0] += block_reward
@@ -611,7 +623,7 @@ class NetworkStats(Client):
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
             # Add liar burn rate
             if liar_addresses and len(liar_addresses) > 0:
@@ -622,18 +634,16 @@ class NetworkStats(Client):
             self.burn_rate_period[per_period_key][1] += num_liar_addresses * collateral
 
     def get_trs_data_per_period(self, reset):
-        master_key = "network_trs-data"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch, self.trs_data_period = 0, {}
         if not reset:
-            epoch, self.trs_data_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.trs_data_period = 0, {}
+            epoch, trs_data_period = self.read_from_database("trs")
+            self.trs_data_period = {(tdp[0], tdp[1]): tdp[2] for tdp in trs_data_period}
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating TRS statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.trs_data_period:
                 self.trs_data_period[key] = [
                     0,  # Amount of TRS nodes
@@ -642,7 +652,33 @@ class NetworkStats(Client):
                     0,  # Highest reputation of TRS nodes
                 ]
 
-        # Fetch all confirmed data requests and (part of) their metadata
+        # Fetch most recent reputation data prior to the first epoch
+        sql = """
+            SELECT
+                trs.reputations
+            FROM trs
+            LEFT JOIN
+                blocks
+            ON
+                blocks.epoch = trs.epoch
+            WHERE
+                blocks.confirmed = true
+            AND
+                blocks.epoch < %s
+            ORDER BY
+                blocks.epoch
+            DESC LIMIT 1
+        """ % epoch
+        self.witnet_database.db_mngr.reset_cursor()
+        previous_reputation = self.witnet_database.sql_return_one(re_sql(sql))
+        if not previous_reputation:
+            previous_reputation = []
+        else:
+            previous_reputation = previous_reputation[0]
+
+        previous_epoch = epoch
+
+        # Fetch reputation data
         sql = """
             SELECT
                 blocks.epoch,
@@ -666,16 +702,10 @@ class NetworkStats(Client):
         if trs_data == None:
             return
 
-        previous_epoch = epoch
-        previous_reputation = self.memcached_client.get("network_previous-reputation")
-        if previous_reputation == None:
-            previous_reputation = []
-
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
         epoch_counter = 0
-        self.previous_reputation = None
         for epoch, reputation in trs_data:
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
@@ -692,9 +722,7 @@ class NetworkStats(Client):
                 self.trs_data_period[per_period_key][1] /= self.aggregation_epochs
                 self.trs_data_period[per_period_key][2] /= self.aggregation_epochs
 
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
-
-                self.previous_reputation = previous_reputation
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
                 epoch_counter = 0
 
@@ -716,30 +744,25 @@ class NetworkStats(Client):
 
             epoch_counter += 1
 
-        if not self.previous_reputation:
-            self.previous_reputation = self.memcached_client.get("network_previous-reputation")
-
         self.trs_data_period[per_period_key][0] /= epoch_counter
         self.trs_data_period[per_period_key][1] /= epoch_counter
         self.trs_data_period[per_period_key][2] /= epoch_counter
 
     def get_value_transfers_per_period(self, reset):
-        master_key = "network_value-transfers"
-
-        # Read data from cache (unless reset was set)
+        # Read data from database (unless reset was set)
+        epoch, self.value_transfers_period = 0, {}
         if not reset:
-            epoch, self.value_transfers_period = self.read_data_from_cache(master_key)
-        else:
-            epoch, self.value_transfers_period = 0, {}
+            epoch, value_transfers_period = self.read_from_database("value_transfers")
+            self.value_transfers_period = {(vtp[0], vtp[1]): vtp[2] for vtp in value_transfers_period}
 
-        self.logger.info(f"Creating {master_key} statistic from epoch {epoch} to {self.last_confirmed_epoch}")
+        self.logger.info(f"Calculating value transfer statistics from epoch {epoch} to {self.last_confirmed_epoch}")
 
         # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(master_key, self.last_confirmed_epoch_ceiled):
+        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.value_transfers_period:
-                self.value_transfers_period[key] = 0
+                self.value_transfers_period[key] = [0]
 
-        # Fetch all confirmed data requests and (part of) their metadata
+        # Fetch value transfer data
         sql = """
             SELECT
                 blocks.epoch,
@@ -765,16 +788,16 @@ class NetworkStats(Client):
             return
 
         next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
         for epoch, value_transfer in value_transfers:
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-                per_period_key = f"{master_key}_{next_aggregation_period - self.aggregation_epochs}_{next_aggregation_period}"
+                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
             # Create data structure
-            self.value_transfers_period[per_period_key] += 1
+            self.value_transfers_period[per_period_key][0] += 1
 
     def get_staking_stats(self):
         # Find active and reputed identities
@@ -819,46 +842,72 @@ class NetworkStats(Client):
     def save_network(self):
         start = time.perf_counter()
 
-        self.logger.info("Saving all data in our memcached instance")
+        self.logger.info("Saving all data in our database instance")
 
-        # Can potentially exceed 1MB of storage, surround with a try-except
-        try:
-            self.memcached_client.set("network_list-rollbacks", self.rollbacks)
-        except pylibmc.TooBig:
-            self.logger.error("Could not save network_list-rollbacks in cache because the item size exceeded 1MB")
+        sql = """
+            INSERT INTO network_stats(
+                stat,
+                from_epoch,
+                to_epoch,
+                data
+            ) VALUES (%s, %s, %s, %s)
+            ON CONFLICT ON CONSTRAINT
+                network_stats_stat_from_epoch_to_epoch_key
+            DO UPDATE SET
+                data = EXCLUDED.data
+        """
 
-        try:
-            self.memcached_client.set("network_previous-reputation", self.previous_reputation)
-        except pylibmc.TooBig:
-            self.logger.error("Could not save previous_reputation in cache because the item size exceeded 1MB")
+        # Save single statistics since network inception
+        stats = [
+            ["epoch", self.last_processed_epoch],
+            ["rollbacks", self.rollbacks],
+            [
+                "miners",
+                {"amount": self.unique_miners["amount"], "top-100": self.unique_miners["top-100"]}
+            ],
+            [
+                "data_request_solvers",
+                {"amount": self.unique_data_request_solvers["amount"], "top-100": self.unique_data_request_solvers["top-100"]}
+            ],
+            ["staking", self.percentile_staking_balances],
+        ]
+        for lbl, stat in stats:
+            self.witnet_database_client.db_mngr.sql_insert_one(
+                re_sql(sql),
+                (lbl, None, None, json.dumps(stat))
+            )
 
-        # These objects cannot exceed 1MB by design
-        self.memcached_client.set("network_last-updated", self.last_update_time)
+        sql = """
+            INSERT INTO network_stats(
+                stat,
+                from_epoch,
+                to_epoch,
+                data
+            ) VALUES %s
+            ON CONFLICT ON CONSTRAINT
+                network_stats_stat_from_epoch_to_epoch_key
+            DO UPDATE SET
+                data = EXCLUDED.data
+        """
 
-        self.last_processed_epoch = self.last_processed_epoch_update
-        self.memcached_client.set("network_epoch", self.last_processed_epoch)
+        # Save per-period statistics
+        per_period_stats = [
+            ["miners", self.unique_miners["per-period"]],
+            ["data_request_solvers", self.unique_data_request_solvers["per-period"]],
+            ["data_requests", self.data_requests_period],
+            ["lie_rate", self.lie_rates_period],
+            ["burn_rate", self.burn_rate_period],
+            ["trs", self.trs_data_period],
+            ["value_transfers", self.value_transfers_period],
+        ]
+        for sn, pps in per_period_stats:
+            lst = [(sn, from_epoch, to_epoch, json.dumps(value)) for (from_epoch, to_epoch), value in pps.items()]
+            self.witnet_database_client.db_mngr.sql_execute_many(
+                re_sql(sql),
+                lst
+            )
 
-        self.memcached_client.set_multi(self.unique_miners_period)
-        self.memcached_client.set("network_top-100-miners", self.top_100_miners)
-        self.memcached_client.set("network_num-unique-miners", self.num_unique_miners)
-
-        self.memcached_client.set_multi(self.unique_data_request_solvers_period)
-        self.memcached_client.set("network_top-100-data-request-solvers", self.top_100_data_request_solvers)
-        self.memcached_client.set("network_num-unique-data-request-solvers", self.num_unique_data_request_solvers)
-
-        self.memcached_client.set_multi(self.data_requests_period)
-
-        self.memcached_client.set_multi(self.lie_rates_period)
-
-        self.memcached_client.set_multi(self.burn_rate_period)
-
-        self.memcached_client.set_multi(self.trs_data_period)
-
-        self.memcached_client.set_multi(self.value_transfers_period)
-
-        self.memcached_client.set("network_percentile-staking-balances", self.percentile_staking_balances)
-
-        self.logger.info(f"Saved all data in our memcached instance in {time.perf_counter() - start:.2f}s")
+        self.logger.info(f"Saved all data in our database instance in {time.perf_counter() - start:.2f}s")
 
 def aggregate_nodes(data):
     # Aggregate data of multiple periods

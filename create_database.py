@@ -120,6 +120,26 @@ def create_enums(connection, cursor):
             END
         $$;
         COMMIT;""",
+
+        """DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'network_stat') THEN
+                    CREATE TYPE network_stat AS ENUM (
+                        'epoch',
+                        'rollbacks',
+                        'miners',
+                        'data_request_solvers',
+                        'data_requests',
+                        'lie_rate',
+                        'burn_rate',
+                        'trs',
+                        'value_transfers',
+                        'staking'
+                    );
+                END IF;
+            END
+        $$;
+        COMMIT;""",
     ]
 
     for enum in enums:
@@ -308,6 +328,14 @@ def create_tables(connection, cursor):
             epoch INT PRIMARY KEY,
             addresses INT ARRAY NOT NULL,
             reputations INT ARRAY NOT NULL
+        );""",
+
+        """CREATE TABLE IF NOT EXISTS network_stats (
+            stat network_stat NOT NULL,
+            from_epoch INT,
+            to_epoch INT,
+            data JSONB NOT NULL,
+            UNIQUE NULLS NOT DISTINCT (stat, from_epoch, to_epoch)
         );""",
     ]
 
