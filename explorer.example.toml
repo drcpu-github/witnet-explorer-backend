@@ -230,3 +230,7 @@ timeout = 15
 # timeout: configure timeout (in seconds) for the priority view function
 [api.caching.views.priority]
 timeout = 15
+
+# timeout: configure timeout (in seconds) for the network stats view function
+[api.caching.views.network_stats]
+timeout = 900

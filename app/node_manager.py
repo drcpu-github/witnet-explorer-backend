@@ -17,6 +17,7 @@ from app.cache import cache
 from blockchain.witnet_database import WitnetDatabase
 
 from caching.network_stats import aggregate_nodes
+from caching.network_stats import read_from_database
 
 from engine.trs import TRS
 
@@ -159,11 +160,11 @@ class NodeManager(object):
         # Translate address ids to addresses
         top_100_mapped = []
         for address_id, value in id_value:
-            if address_id not in ids_to_addresses:
+            if int(address_id) not in ids_to_addresses:
                 self.logger.warning(f"Could not find address value for id {address_id}")
                 top_100_mapped.append([address_id, value])
             else:
-                top_100_mapped.append([ids_to_addresses[address_id], value])
+                top_100_mapped.append([ids_to_addresses[int(address_id)], value])
 
         return top_100_mapped
 
@@ -177,6 +178,43 @@ class NodeManager(object):
                 self.address_caching_server.send_request(request)
             except ConnectionRefusedError:
                 self.logger.warning(f"Could not recreate socket, will try again next {request['method']} request")
+
+    def calculate_network_start_stop_epoch(self, aggregation_epochs, start_epoch, stop_epoch, key):
+        # If we need to calculate a start or stop epoch, fetch the latest confirmed one from the database
+        _, last_confirmed_epoch = self.witnet_database.get_last_block()
+
+        # Start epoch given: use the aggregation period to floor it
+        if start_epoch != None:
+            start_epoch = int(int(start_epoch) / aggregation_epochs) * aggregation_epochs
+        # No start epoch given: use the aggregation period surrounding the last confirmed epoch
+        else:
+            # Return the last 60 aggregation periods worth of data
+            # This is roughly one month at the default aggregation period of 1000 epochs
+            if key.startswith("histogram-"):
+                start_epoch = int(last_confirmed_epoch / aggregation_epochs - 59) * aggregation_epochs
+            # Return only the last aggregation period's data
+            else:
+                start_epoch = int(last_confirmed_epoch / aggregation_epochs) * aggregation_epochs
+
+        # Stop epoch given: use the aggregation period to ceil it
+        if stop_epoch != None:
+            if int(stop_epoch) > last_confirmed_epoch:
+                stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
+            else:
+                stop_epoch = int(int(stop_epoch) / aggregation_epochs + 1) * aggregation_epochs
+        # No stop epoch given: use the aggregation period surrounding the last confirmed epoch
+        else:
+            stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
+
+        # If the parameters were passed in the wrong order (or partially calculated), swap them
+        if start_epoch > stop_epoch:
+            start_epoch, stop_epoch = stop_epoch, start_epoch
+
+        # Need at least a difference of one day worth of epochs between the start and stop epoch
+        if start_epoch == stop_epoch:
+            start_epoch -= aggregation_epochs
+
+        return start_epoch, stop_epoch
 
     #######################################################
     #   API endpoint functions which can employ caching   #
@@ -497,214 +535,198 @@ class NodeManager(object):
         self.logger.info(f"get_network({key}, {start_epoch}, {stop_epoch})")
 
         key_mapping = {
-            "list-rollbacks": "network_list-rollbacks",
-            "num-unique-miners": "network_miners",
-            "num-unique-data-request-solvers": "network_data-request-solvers",
-            "top-100-miners": "network_miners",
-            "top-100-data-request-solvers": "network_data-request-solvers",
-            "percentile-staking-balances": "network_percentile-staking-balances",
-            "histogram-data-requests": "network_data-requests",
-            "histogram-data-request-composition": "network_data-requests",
-            "histogram-data-request-witness": "network_data-requests",
-            "histogram-data-request-lie-rate": "network_lie-rates",
-            "histogram-supply-burn-rate": "network_burn-rate",
-            "histogram-data-request-collateral": "network_data-requests",
-            "histogram-data-request-reward": "network_data-requests",
-            "histogram-trs-data": "network_trs-data",
-            "histogram-value-transfers": "network_value-transfers",
+            "list-rollbacks": "rollbacks",
+            "num-unique-miners": "miners",
+            "num-unique-data-request-solvers": "data_request_solvers",
+            "top-100-miners": "miners",
+            "top-100-data-request-solvers": "data_request_solvers",
+            "percentile-staking-balances": "staking",
+            "histogram-data-requests": "data_requests",
+            "histogram-data-request-composition": "data_requests",
+            "histogram-data-request-witness": "data_requests",
+            "histogram-data-request-lie-rate": "lie_rate",
+            "histogram-supply-burn-rate": "burn_rate",
+            "histogram-data-request-collateral": "data_requests",
+            "histogram-data-request-reward": "data_requests",
+            "histogram-trs-data": "trs",
+            "histogram-value-transfers": "value_transfers",
         }
-
-        last_updated_timestamp = cache.get("network_last-updated")
-        if not last_updated_timestamp:
-            last_updated_timestamp = 0
 
         aggregation_epochs = self.config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
 
+        # Period to fetch data for depends on the requested data
+        if key == "percentile-staking-balances":
+            period = [None, None]
+        else:
+            if start_epoch == None and stop_epoch == None:
+                # These keys have a global statistic since network inception to return
+                if key in (
+                    "list-rollbacks",
+                    "num-unique-miners",
+                    "num-unique-data-request-solvers",
+                    "top-100-miners",
+                    "top-100-data-request-solvers",
+                ):
+                    period = [None, None]
+                # These keys do not, return the last 60 periods
+                else:
+                    period = self.calculate_network_start_stop_epoch(aggregation_epochs, start_epoch, stop_epoch, key)
+            else:
+                period = self.calculate_network_start_stop_epoch(aggregation_epochs, start_epoch, stop_epoch, key)
+
+        cache_key = f"{key}_{period[0]}_{period[1]}"
+        response = cache.get(cache_key)
+        if response:
+            self.logger.info(f"Found response for {cache_key} in cache")
+            return response
+
+        # Rollbacks are saved as a list in the database, so even if epochs are specified, retrieve the complete list
+        if key == "list-rollbacks":
+            rollback_period = period
+            period = [None, None]
+
+        last_epoch, stats_data = read_from_database(
+            key_mapping[key],
+            aggregation_epochs,
+            logger=self.logger,
+            database_config=self.database_config,
+            period=period,
+        )
+        last_updated_timestamp = self.start_time + (last_epoch + 1) * self.epoch_period
+
+        # Reset rollback period to the requested epochs
+        if key == "list-rollbacks":
+            period = rollback_period
+
         # ARS and TRS balances do not require a start and stop epoch
         if key == "percentile-staking-balances":
-            response = cache.get(key_mapping[key])
-            if response == None:
-                return {"error": "could not fetch balance percentiles, try again later"}
-            return {
+            stats_data = stats_data[0][2]
+            response = {
                 "last_updated": last_updated_timestamp,
                 "aggregation": aggregation_epochs,
-                "values": response["percentiles"],
-                "data": response,
+                "values": stats_data["percentiles"],
+                "data": {"ars": stats_data["ars"], "trs": stats_data["trs"]},
+            }
+        # If below keys are requested and no epochs are defined, return the statistics for the whole network lifetime
+        elif key in (
+            "num-unique-miners",
+            "num-unique-data-request-solvers",
+            "top-100-miners",
+            "top-100-data-request-solvers",
+        ) and start_epoch == None and stop_epoch == None:
+            if key.startswith("top-100"):
+                stats_data = stats_data[0][2]["top-100"]
+                stats_data = self.translate_address_ids(stats_data)
+            else:
+                stats_data = stats_data[0][2]["amount"]
+            response = {
+                "last_updated": last_updated_timestamp,
+                "aggregation": aggregation_epochs,
+                "data": stats_data,
+            }
+        # If rollbacks are requested without epochs, return all
+        elif key == "list-rollbacks" and start_epoch == None and stop_epoch == None:
+            stats_data = stats_data[0][2]
+            response = {
+                "last_updated": last_updated_timestamp,
+                "aggregation": aggregation_epochs,
+                "data": stats_data,
             }
         else:
-            # If below keys are requested and no epochs are defined, return the statistics for the whole network lifetime
-            if key in (
-                "num-unique-miners",
-                "num-unique-data-request-solvers",
-                "top-100-miners",
-                "top-100-data-request-solvers",
-            ) and start_epoch == None and stop_epoch == None:
-                data = cache.get(f"network_{key}")
-                if data == None:
-                    return {"error": f"could not fetch {key}, try again later"}
-                else:
-                    if key.startswith("top-100"):
-                        data = self.translate_address_ids(data)
-                    return {
-                        "last_updated": last_updated_timestamp,
-                        "aggregation": aggregation_epochs,
-                        "data": data,
-                    }
-
-            # If rollbacks are requested without epochs, return the 100 most recent
-            if key == "list-rollbacks" and start_epoch == None and stop_epoch == None:
-                data = cache.get(f"network_{key}")
-                if data == None:
-                    return {"error": f"could not fetch {key}, try again later"}
-                else:
-                    return {
-                        "last_updated": last_updated_timestamp,
-                        "aggregation": aggregation_epochs,
-                        "data": data[:100],
-                    }
-
-            # A different statistic is requested and / or a start or stop epoch are defined
-
-            # If we need to calculate a start or stop epoch, fetch the latest confirmed one from the database
-            _, last_confirmed_epoch = self.witnet_database.get_last_block()
-
-            # Start epoch given: use the aggregation period to floor it
-            if start_epoch != None:
-                start_epoch = int(int(start_epoch) / aggregation_epochs) * aggregation_epochs
-            # No start epoch given: use the aggregation period surrounding the last confirmed epoch
-            else:
-                # Return the last 60 aggregation periods worth of data
-                # This is roughly one month at the default aggregation period of 1000 epochs
-                if key.startswith("histogram-"):
-                    start_epoch = int(last_confirmed_epoch / aggregation_epochs - 59) * aggregation_epochs
-                # Return only the last aggregation period's data
-                else:
-                    start_epoch = int(last_confirmed_epoch / aggregation_epochs) * aggregation_epochs
-
-            # Stop epoch given: use the aggregation period to ceil it
-            if stop_epoch != None:
-                if int(stop_epoch) > last_confirmed_epoch:
-                    stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
-                else:
-                    stop_epoch = int(int(stop_epoch) / aggregation_epochs + 1) * aggregation_epochs
-            # No stop epoch given: use the aggregation period surrounding the last confirmed epoch
-            else:
-                stop_epoch = int(last_confirmed_epoch / aggregation_epochs + 1) * aggregation_epochs
-
-            # If the parameters were passed in the wrong order (or partially calculated), swap them
-            if start_epoch > stop_epoch:
-                start_epoch, stop_epoch = stop_epoch, start_epoch
-
-            # Need at least a difference of one day worth of epochs between the start and stop epoch
-            if start_epoch == stop_epoch:
-                start_epoch -= aggregation_epochs
-
             # The list-rollbacks key requires special handling since it is not saved as periodic data
             if key == "list-rollbacks":
-                rollbacks = cache.get(key_mapping[key])
-                if rollbacks == None:
-                    return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
-                return {
+                stats_data = stats_data[0][2]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": [start_epoch, stop_epoch],
-                    "data": [r for r in rollbacks if r[2] >= start_epoch and r[1] <= stop_epoch],
+                    "period": [period[0], period[1]],
+                    "data": [r for r in stats_data if r[2] >= period[0] and r[1] <= period[1]],
                 }
-
-            # Fetch all required data
-            period_start, data = [], []
-            for start in range(start_epoch, stop_epoch, aggregation_epochs):
-                temp_data = cache.get(f"{key_mapping[key]}_{start}_{start + aggregation_epochs}")
-                period_start.append(start)
-                data.append(temp_data)
-
-            # Remove the last item from the list if it was None
-            # This happens when the caching process did not run yet while the aggregation_epochs boundary was crossed
-            if data[-1] == None:
-                period_start = period_start[:-1]
-                data = data[:-1]
-
-            # If any other item is None, return an error
-            if any(d == None for d in data):
-                return {"error": f"could not fetch all data for {key} between epochs {start_epoch} and {stop_epoch}"}
-
             # Aggregate depending on the requested key
-            if key in ("num-unique-miners", "top-100-miners", "num-unique-data-request-solvers", "top-100-data-request-solvers"):
-                num_unique, top_100 = aggregate_nodes(data)
+            elif key in ("num-unique-miners", "top-100-miners", "num-unique-data-request-solvers", "top-100-data-request-solvers"):
+                num_unique, top_100 = aggregate_nodes([stats_data[i][2] for i in range(len(stats_data))])
                 if key in ("num-unique-miners", "num-unique-data-request-solvers"):
-                    return {
+                    response = {
                         "last_updated": last_updated_timestamp,
                         "aggregation": aggregation_epochs,
-                        "period": [start_epoch, stop_epoch],
+                        "period": [period[0], period[1]],
                         "data": num_unique,
                     }
                 else:
                     top_100_mapped = self.translate_address_ids(top_100)
-                    return {
+                    response = {
                         "last_updated": last_updated_timestamp,
                         "aggregation": aggregation_epochs,
-                        "period": [start_epoch, stop_epoch],
+                        "period": [period[0], period[1]],
                         "data": top_100_mapped,
                     }
-
-            if key == "histogram-data-requests":
-                return {
+            elif key == "histogram-data-requests":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "data": [[d[0], d[1]] for d in data],
+                    "period": [period[0], period[1]],
+                    "data": [[sd[0], sd[1]] for sd in stats_data],
                 }
-
-            if key == "histogram-data-request-composition":
-                return {
+            elif key == "histogram-data-request-composition":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "data": [[d[0], d[2], d[3], d[4]] for d in data],
+                    "period": [period[0], period[1]],
+                    "data": [[sd[0], sd[2], sd[3], sd[4]] for sd in stats_data],
                 }
-
-            if key == "histogram-data-request-witness":
-                return {
+            elif key == "histogram-data-request-witness":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "values": sorted(list(set(int(k) for d in data for k in d[5].keys()))),
-                    "data": [d[5] for d in data],
+                    "period": [period[0], period[1]],
+                    "values": sorted(list(set(int(k) for sd in stats_data for k in sd[5].keys()))),
+                    "data": [sd[5] for sd in stats_data],
                 }
-
-            if key == "histogram-data-request-reward":
-                return {
+            elif key == "histogram-data-request-reward":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "values": sorted(list(set(int(k) for d in data for k in d[6].keys()))),
-                    "data": [d[6] for d in data],
+                    "period": [period[0], period[1]],
+                    "values": sorted(list(set(int(k) for sd in stats_data for k in sd[6].keys()))),
+                    "data": [sd[6] for sd in stats_data],
                 }
-
-            if key == "histogram-data-request-collateral":
-                return {
+            elif key == "histogram-data-request-collateral":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "values": sorted(list(set(int(k) for d in data for k in d[7].keys()))),
-                    "data": [d[7] for d in data],
+                    "period": [period[0], period[1]],
+                    "values": sorted(list(set(int(k) for sd in stats_data for k in sd[7].keys()))),
+                    "data": [sd[7] for sd in stats_data],
                 }
-
-            if key == "histogram-supply-burn-rate":
-                return {
+            elif key == "histogram-supply-burn-rate":
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "data": [[d[0] / 1E9, d[1] / 1E9] for d in data],
+                    "period": [period[0], period[1]],
+                    "data": [[sd[0], sd[1]] for sd in stats_data],
                 }
-
-            if key in ("histogram-value-transfers", "histogram-trs-data", "histogram-data-request-lie-rate"):
-                return {
+            elif key in ("histogram-value-transfers", "histogram-trs-data", "histogram-data-request-lie-rate"):
+                stats_data = [stats_data[i][2] for i in range(len(stats_data))]
+                response = {
                     "last_updated": last_updated_timestamp,
                     "aggregation": aggregation_epochs,
-                    "period": period_start,
-                    "data": data,
+                    "period": [period[0], period[1]],
+                    "data": stats_data,
                 }
+
+        # Try to save the response in the cache
+        try:
+            cache.set(cache_key, response, timeout=calculate_timeout(self.cache_config["views"]["network_stats"]["timeout"]))
+        except pylibmc.TooBig as e:
+            self.logger.warning(f"Could not save {cache_key} in the memcached instance because its size exceeded 1MB")
+
+        return response
 
     def get_mempool(self, key):
         self.logger.info(f"get_mempool({key})")
