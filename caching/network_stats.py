@@ -6,6 +6,8 @@ import sys
 import time
 import toml
 
+from blockchain.witnet_database import WitnetDatabase
+
 from caching.client import Client
 
 from objects.wip import WIP
@@ -123,47 +125,12 @@ class NetworkStats(Client):
             keys.append((period, period + self.aggregation_epochs))
         return keys
 
-    def read_from_database(self, stat, all_periods=False):
-        sql = """
-            SELECT
-                data
-            FROM
-                network_stats
-            WHERE
-                stat = 'epoch'
-        """
-        last_epoch = self.witnet_database_client.sql_return_one(re_sql(sql))
-        if not last_epoch:
-            last_epoch = 0
-        else:
-            last_epoch = last_epoch[0]
-
-        sql = """
-            SELECT
-                from_epoch,
-                to_epoch,
-                data
-            FROM
-                network_stats
-            WHERE
-                stat = '%s'
-        """ % stat
-        if not all_periods:
-            last_epoch_floored = int(last_epoch / self.aggregation_epochs) * self.aggregation_epochs
-            sql += """
-                AND
-                    from_epoch >= %s
-            """ % last_epoch_floored
-        stats_data = self.witnet_database_client.sql_return_all(re_sql(sql))
-
-        return last_epoch, stats_data
-
     def get_rollbacks(self, reset):
         # Fetch previous rollbacks (unless reset was set)
         self.rollbacks = []
         self.last_processed_epoch = 0
         if not reset:
-            self.last_processed_epoch, rollbacks  = self.read_from_database("rollbacks", all_periods=True)
+            self.last_processed_epoch, rollbacks = read_from_database("rollbacks", self.aggregation_epochs, database=self.witnet_database_client, all_periods=True)
             if rollbacks:
                 self.rollbacks = rollbacks[0][2]
 
@@ -209,7 +176,7 @@ class NetworkStats(Client):
         epoch = 0
         self.unique_miners = {"amount": 0, "top-100": {}, "per-period": {}}
         if not reset:
-            epoch, miner_data = self.read_from_database("miners", all_periods=True)
+            epoch, miner_data = read_from_database("miners", self.aggregation_epochs, database=self.witnet_database_client, all_periods=True)
             for md in miner_data:
                 if md[0] != None and md[1] != None:
                     self.unique_miners["per-period"][(md[0], md[1])] = md[2]
@@ -286,7 +253,7 @@ class NetworkStats(Client):
         epoch = 0
         self.unique_data_request_solvers = {"amount": 0, "top-100": {}, "per-period": {}}
         if not reset:
-            epoch, solver_data = self.read_from_database("data_request_solvers", all_periods=True)
+            epoch, solver_data = read_from_database("data_request_solvers", self.aggregation_epochs, database=self.witnet_database_client, all_periods=True)
             for sd in solver_data:
                 if sd[0] != None and sd[1] != None:
                     self.unique_data_request_solvers["per-period"][(sd[0], sd[1])] = sd[2]
@@ -362,7 +329,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.data_requests_period = 0, {}
         if not reset:
-            epoch, data_requests_period = self.read_from_database("data_requests")
+            epoch, data_requests_period = read_from_database("data_requests", self.aggregation_epochs, database=self.witnet_database_client)
             self.data_requests_period = {(drp[0], drp[1]): drp[2] for drp in data_requests_period}
 
         self.logger.info(f"Calculating data request statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -453,7 +420,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.lie_rates_period = 0, {}
         if not reset:
-            epoch, lie_rates_period = self.read_from_database("data_requests")
+            epoch, lie_rates_period = read_from_database("data_requests", self.aggregation_epochs, database=self.witnet_database_client)
             self.lie_rates_period = {(lrp[0], lrp[1]): lrp[2] for lrp in lie_rates_period}
 
         self.logger.info(f"Calculating lie rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -462,7 +429,7 @@ class NetworkStats(Client):
         for key in self.construct_keys(epoch, self.last_confirmed_epoch):
             if key not in self.lie_rates_period:
                 self.lie_rates_period[key] = [
-                    0,  # Amount of requests
+                    0,  # Amount of witnessing acts
                     0,  # Amount of errors
                     0,  # Amount of lies (no reveals)
                     0,  # Amount of lies (out-of-consensus values)
@@ -555,7 +522,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.burn_rate_period = 0, {}
         if not reset:
-            epoch, burn_rate_period = self.read_from_database("data_requests")
+            epoch, burn_rate_period = read_from_database("data_requests", self.aggregation_epochs, database=self.witnet_database_client)
             self.burn_rate_period = {(brp[0], brp[1]): brp[2] for brp in burn_rate_period}
 
         self.logger.info(f"Calculating burn rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -637,7 +604,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.trs_data_period = 0, {}
         if not reset:
-            epoch, trs_data_period = self.read_from_database("trs")
+            epoch, trs_data_period = read_from_database("trs", self.aggregation_epochs, database=self.witnet_database_client)
             self.trs_data_period = {(tdp[0], tdp[1]): tdp[2] for tdp in trs_data_period}
 
         self.logger.info(f"Calculating TRS statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -752,7 +719,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.value_transfers_period = 0, {}
         if not reset:
-            epoch, value_transfers_period = self.read_from_database("value_transfers")
+            epoch, value_transfers_period = read_from_database("value_transfers", self.aggregation_epochs, database=self.witnet_database_client)
             self.value_transfers_period = {(vtp[0], vtp[1]): vtp[2] for vtp in value_transfers_period}
 
         self.logger.info(f"Calculating value transfer statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -909,6 +876,71 @@ class NetworkStats(Client):
 
         self.logger.info(f"Saved all data in our database instance in {time.perf_counter() - start:.2f}s")
 
+def read_from_database(
+    stat,
+    aggregation_epochs,
+    logger=None,
+    database=None,
+    database_config=None,
+    period=None,
+    all_periods=False
+):
+    if database == None:
+        if database_config == None:
+            if logger:
+                logger.error("Cannot create database connection")
+            return None, None
+        database = WitnetDatabase(database_config, logger=logger)
+
+    sql = """
+        SELECT
+            data
+        FROM
+            network_stats
+        WHERE
+            stat = 'epoch'
+    """
+    last_epoch = database.sql_return_one(re_sql(sql))
+    if not last_epoch:
+        last_epoch = 0
+    else:
+        last_epoch = last_epoch[0]
+
+    sql = """
+        SELECT
+            from_epoch,
+            to_epoch,
+            data
+        FROM
+            network_stats
+        WHERE
+            stat = '%s'
+    """ % stat
+    if period:
+        if period == [None, None]:
+            sql += """
+                AND
+                    from_epoch IS NULL
+                AND
+                    to_epoch IS NULL
+            """
+        else:
+            sql += """
+                AND
+                    from_epoch >= %s
+                AND
+                    to_epoch <= %s
+            """ % (period[0], period[1])
+    elif not all_periods:
+        last_epoch_floored = int(last_epoch / aggregation_epochs) * aggregation_epochs
+        sql += """
+            AND
+                from_epoch >= %s
+        """ % last_epoch_floored
+    stats_data = database.sql_return_all(re_sql(sql))
+
+    return last_epoch, stats_data
+
 def aggregate_nodes(data):
     # Aggregate data of multiple periods
     aggregated_nodes = {}
@@ -920,7 +952,7 @@ def aggregate_nodes(data):
                 aggregated_nodes[identity] += amount
 
     # Reverse sort and extract the top 100
-    top_100_aggregated_nodes = sorted(aggregated_nodes.items(), key=lambda l: l[1], reverse=True)[:100]
+    top_100_aggregated_nodes = sorted(aggregated_nodes.items(), key=lambda l: (l[1], int(l[0])), reverse=True)[:100]
 
     return len(aggregated_nodes), top_100_aggregated_nodes
 
