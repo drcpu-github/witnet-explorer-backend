@@ -6,8 +6,16 @@ import sys
 
 from util.database_manager import DatabaseManager
 
+
 class WitnetDatabase(object):
-    def __init__(self, db_config, named_cursor=False, logger=None, log_queue=None, log_label=None):
+    def __init__(
+        self,
+        db_config,
+        named_cursor=False,
+        logger=None,
+        log_queue=None,
+        log_label=None,
+    ):
         # Set up logger
         if logger:
             self.logger = logger
@@ -17,20 +25,22 @@ class WitnetDatabase(object):
         else:
             self.logger = None
 
-        self.db_mngr = DatabaseManager(db_config, named_cursor=named_cursor, logger=self.logger)
+        self.db_mngr = DatabaseManager(
+            db_config, named_cursor=named_cursor, logger=self.logger
+        )
 
         # Register types created for this database
         self.register_types()
 
         # Create arrays for all insert and update operations
-        self.insert_hashes, self.update_hashes = [], []
-        self.insert_blocks, self.update_blocks = [], []
-        self.insert_mint_txns = []
-        self.insert_value_transfer_txns, self.update_value_transfer_txns = [], []
-        self.insert_data_request_txns, self.update_data_request_txns = [], []
-        self.insert_commit_txns = []
-        self.insert_reveal_txns, self.update_reveal_txns = [], []
-        self.insert_tally_txns, self.update_tally_txns = [], []
+        self.hashes = []
+        self.blocks = []
+        self.mints = []
+        self.value_transfers = []
+        self.data_requests = []
+        self.commits = []
+        self.reveals = []
+        self.tallies = []
 
         self.last_epoch = 0
 
@@ -43,23 +53,19 @@ class WitnetDatabase(object):
     ###################################################
 
     def insert_block(self, block_json):
-        block_hash = bytearray.fromhex(block_json["details"]["block_hash"])
-        epoch = block_json["details"]["epoch"]
-        confirmed = block_json["details"]["confirmed"]
-
-        # Check if the block hash exists
-        # If it does, do not create an insert operation
-        if not self.check_hash(block_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                block_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(block_json["details"]["block_hash"]),
                 "block",
-                epoch,
-            ))
+                block_json["details"]["epoch"],
+            )
+        )
 
-            # Insert block
-            self.insert_blocks.append((
-                block_hash,
+        # Insert block
+        self.blocks.append(
+            (
+                bytearray.fromhex(block_json["details"]["block_hash"]),
                 len(block_json["value_transfer_txns"]),
                 len(block_json["data_request_txns"]),
                 len(block_json["commit_txns"]),
@@ -68,55 +74,47 @@ class WitnetDatabase(object):
                 block_json["details"]["dr_weight"],
                 block_json["details"]["vt_weight"],
                 block_json["details"]["block_weight"],
-                epoch,
+                block_json["details"]["epoch"],
                 block_json["tapi_signals"],
-                confirmed,
-            ))
-        # If it does, generate an update statement
-        else:
-            # Update the confirmed status of the block
-            self.update_blocks.append((
-                block_hash,
-                confirmed,
-            ))
+                block_json["details"]["confirmed"],
+            )
+        )
 
     def insert_mint_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        # Check if the mint txn hash exists
-        # If it does, ignore the insert operation
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "mint_txn",
                 epoch,
-            ))
+            )
+        )
 
-            # Insert transaction
-            self.insert_mint_txns.append((
-                txn_hash,
+        # Insert transaction
+        self.mints.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["miner"],
                 txn_details["output_addresses"],
                 txn_details["output_values"],
                 epoch,
-            ))
-        # Nothing to do if we see a mint transaction with a hash we already inserted
+            )
+        )
 
     def insert_value_transfer_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        # Check if value transfer txn exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "value_transfer_txn",
                 epoch,
-            ))
+            )
+        )
 
-            # Insert transaction
-            self.insert_value_transfer_txns.append((
-                txn_hash,
+        # Insert transaction
+        self.value_transfers.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -125,36 +123,44 @@ class WitnetDatabase(object):
                 txn_details["timelocks"],
                 txn_details["weight"],
                 epoch,
-            ))
-        # If it does, generate an update statement
-        else:
-            # Update epoch only for value transfer transactions that are restarted
-            self.update_hashes.append((
-                txn_hash,
-                epoch,
-            ))
-            self.update_value_transfer_txns.append((
-                txn_hash,
-                epoch,
-            ))
+            )
+        )
 
     def insert_data_request_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        RAD_bytes_hash = bytearray.fromhex(txn_details["RAD_bytes_hash"])
-        DRO_bytes_hash = bytearray.fromhex(txn_details["DRO_bytes_hash"])
-
-        # Check if data request txn exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash types
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "data_request_txn",
                 epoch,
-            ))
+            )
+        )
 
-            self.insert_data_request_txns.append((
-                txn_hash,
+        # RAD bytes hashes can be duplicated in a single epoch, only insert them once
+        RAD_bytes_hash = bytearray.fromhex(txn_details["RAD_bytes_hash"])
+        if (RAD_bytes_hash, "RAD_bytes_hash", None) not in self.hashes:
+            self.hashes.append(
+                (
+                    RAD_bytes_hash,
+                    "RAD_bytes_hash",
+                    None,
+                )
+            )
+
+        # DRO bytes hashes can be duplicated in a single epoch, only insert them once
+        DRO_bytes_hash = bytearray.fromhex(txn_details["DRO_bytes_hash"])
+        if (DRO_bytes_hash, "DRO_bytes_hash", None) not in self.hashes:
+            self.hashes.append(
+                (
+                    DRO_bytes_hash,
+                    "DRO_bytes_hash",
+                    None,
+                )
+            )
+
+        self.data_requests.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -177,116 +183,68 @@ class WitnetDatabase(object):
                 RAD_bytes_hash,
                 DRO_bytes_hash,
                 epoch,
-            ))
-        # If it does, generate an update statement
-        else:
-            # Update epoch only for data request transactions that are restarted
-            self.update_hashes.append((
-                txn_hash,
-                epoch,
-            ))
-            self.update_data_request_txns.append((
-                txn_hash,
-                epoch,
-            ))
-
-        # Check if the RAD bytes hash exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(RAD_bytes_hash):
-            # Insert RAD bytes hash
-            self.insert_hashes.append((
-                RAD_bytes_hash,
-                "RAD_bytes_hash",
-                None,
-            ))
-
-        # Check if the data request bytes hash exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(DRO_bytes_hash):
-            # Insert data request bytes hash
-            self.insert_hashes.append((
-                DRO_bytes_hash,
-                "DRO_bytes_hash",
-                None,
-            ))
+            )
+        )
 
     def insert_commit_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        # Check if commit txn exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "commit_txn",
                 epoch,
-            ))
+            )
+        )
 
-            # Insert transaction
-            self.insert_commit_txns.append((
-                txn_hash,
+        # Insert transaction
+        self.commits.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["txn_address"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
                 txn_details["output_values"],
                 bytearray.fromhex(txn_details["data_request_txn_hash"]),
                 epoch,
-            ))
-        # Nothing to do if we see a commit transaction with a hash we already inserted
+            )
+        )
 
     def insert_reveal_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        # Check if reveal txn exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "reveal_txn",
                 epoch,
-            ))
+            )
+        )
 
-            # Insert transaction
-            self.insert_reveal_txns.append((
-                txn_hash,
+        # Insert transaction
+        self.reveals.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["txn_address"],
                 bytearray.fromhex(txn_details["data_request_txn_hash"]),
                 txn_details["reveal_value"],
                 txn_details["success"],
                 epoch,
-            ))
-        # If it does, generate an update statement
-        else:
-            # Update epoch only
-            self.update_hashes.append((
-                txn_hash,
-                epoch,
-            ))
-
-            # The hash of a reveal transaction is not unique to an epoch
-            # If they are restarted and updated (due to a rollback), the resulting value may have been updated too
-            self.update_reveal_txns.append((
-                txn_hash,
-                txn_details["reveal_value"],
-                txn_details["success"],
-                epoch,
-            ))
+            )
+        )
 
     def insert_tally_txn(self, txn_details, epoch):
-        txn_hash = bytearray.fromhex(txn_details["txn_hash"])
-        # Check if tally txn exists
-        # If it does not, generate an insert statement
-        if not self.check_hash(txn_hash):
-            # Insert hash type
-            self.insert_hashes.append((
-                txn_hash,
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 "tally_txn",
                 epoch,
-            ))
+            )
+        )
 
-            # Insert tally transaction
-            self.insert_tally_txns.append((
-                txn_hash,
+        # Insert tally transaction
+        self.tallies.append(
+            (
+                bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["output_addresses"],
                 txn_details["output_values"],
                 bytearray.fromhex(txn_details["data_request_txn_hash"]),
@@ -295,26 +253,8 @@ class WitnetDatabase(object):
                 txn_details["tally_value"],
                 txn_details["success"],
                 epoch,
-            ))
-        # If it does, generate an update statement
-        else:
-            # Update epoch status only
-            self.update_hashes.append((
-                txn_hash,
-                epoch,
-            ))
-
-            # Update fields that may have changed when a tally transaction was rolled back and restarted
-            self.update_tally_txns.append((
-                txn_hash,
-                txn_details["output_addresses"],
-                txn_details["output_values"],
-                txn_details["error_addresses"],
-                txn_details["liar_addresses"],
-                txn_details["tally_value"],
-                txn_details["success"],
-                epoch,
-            ))
+            )
+        )
 
     def insert_addresses(self, addresses):
         sql = """
@@ -349,25 +289,30 @@ class WitnetDatabase(object):
         else:
             self.last_epoch = epoch
         self.finalize_insert(epoch)
-        self.finalize_update(epoch)
 
     def finalize_insert(self, epoch):
         # insert all hashes
-        if len(self.insert_hashes) > 0:
+        if len(self.hashes) > 0:
             sql = """
                 INSERT INTO hashes (
                     hash,
                     type,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    hashes_pkey
+                DO UPDATE SET
+                    epoch=EXCLUDED.epoch
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_hashes)
+            self.db_mngr.sql_execute_many(sql, self.hashes)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_hashes)} hashes for epoch {epoch}")
-        self.insert_hashes = []
+                self.logger.info(
+                    f"Inserted {len(self.hashes)} hashes for epoch {epoch}"
+                )
+        self.hashes = []
 
         # insert blocks
-        if len(self.insert_blocks) > 0:
+        if len(self.blocks) > 0:
             sql = """
                 INSERT INTO blocks (
                     block_hash,
@@ -383,14 +328,18 @@ class WitnetDatabase(object):
                     tapi_signals,
                     confirmed
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    blocks_pkey
+                DO UPDATE SET
+                    confirmed=EXCLUDED.confirmed
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_blocks)
+            self.db_mngr.sql_execute_many(sql, self.blocks)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_blocks)} block for epoch {epoch}")
-        self.insert_blocks = []
+                self.logger.info(f"Inserted {len(self.blocks)} block for epoch {epoch}")
+        self.blocks = []
 
         # insert mint transactions
-        if len(self.insert_mint_txns) > 0:
+        if len(self.mints) > 0:
             sql = """
                 INSERT INTO mint_txns (
                     txn_hash,
@@ -399,14 +348,19 @@ class WitnetDatabase(object):
                     output_values,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    mint_txns_pkey
+                DO NOTHING
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_mint_txns)
+            self.db_mngr.sql_execute_many(sql, self.mints)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_mint_txns)} mint transaction for epoch {epoch}")
-        self.insert_mint_txns = []
+                self.logger.info(
+                    f"Inserted {len(self.mints)} mint transaction for epoch {epoch}"
+                )
+        self.mints = []
 
         # insert value transfer transactions
-        if len(self.insert_value_transfer_txns) > 0:
+        if len(self.value_transfers) > 0:
             sql = """
                 INSERT INTO value_transfer_txns (
                     txn_hash,
@@ -419,14 +373,24 @@ class WitnetDatabase(object):
                     weight,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    value_transfer_txns_pkey
+                DO UPDATE SET
+                    epoch=EXCLUDED.epoch
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_value_transfer_txns, template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s)")
+            self.db_mngr.sql_execute_many(
+                sql,
+                self.value_transfers,
+                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s)",
+            )
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
-        self.insert_value_transfer_txns = []
+                self.logger.info(
+                    f"Inserted {len(self.value_transfers)} value transfer transaction(s) for epoch {epoch}"
+                )
+        self.value_transfers = []
 
         # insert data request transactions
-        if len(self.insert_data_request_txns) > 0:
+        if len(self.data_requests) > 0:
             sql = """
                 INSERT INTO data_request_txns (
                     txn_hash,
@@ -453,14 +417,24 @@ class WitnetDatabase(object):
                     DRO_bytes_hash,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    data_request_txns_pkey
+                DO UPDATE SET
+                    epoch=EXCLUDED.epoch
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_data_request_txns, template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)")
+            self.db_mngr.sql_execute_many(
+                sql,
+                self.data_requests,
+                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)",
+            )
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_data_request_txns)} data request transaction(s) for epoch {epoch}")
-        self.insert_data_request_txns = []
+                self.logger.info(
+                    f"Inserted {len(self.data_requests)} data request transaction(s) for epoch {epoch}"
+                )
+        self.data_requests = []
 
         # insert commit transactions
-        if len(self.insert_commit_txns) > 0:
+        if len(self.commits) > 0:
             sql = """
                 INSERT INTO commit_txns (
                     txn_hash,
@@ -471,14 +445,21 @@ class WitnetDatabase(object):
                     data_request_txn_hash,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    commit_txns_pkey
+                DO NOTHING
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_commit_txns, template="(%s, %s, %s, %s::utxo[], %s, %s, %s)")
+            self.db_mngr.sql_execute_many(
+                sql, self.commits, template="(%s, %s, %s, %s::utxo[], %s, %s, %s)"
+            )
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_commit_txns)} commit transaction(s) for epoch {epoch}")
-        self.insert_commit_txns = []
+                self.logger.info(
+                    f"Inserted {len(self.commits)} commit transaction(s) for epoch {epoch}"
+                )
+        self.commits = []
 
         # insert reveal transactions
-        if len(self.insert_reveal_txns) > 0:
+        if len(self.reveals) > 0:
             sql = """
                 INSERT INTO reveal_txns (
                     txn_hash,
@@ -488,14 +469,22 @@ class WitnetDatabase(object):
                     success,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    reveal_txns_pkey
+                DO UPDATE SET
+                    result=EXCLUDED.result,
+                    success=EXCLUDED.success,
+                    epoch=EXCLUDED.epoch
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_reveal_txns)
+            self.db_mngr.sql_execute_many(sql, self.reveals)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_reveal_txns)} reveal transaction(s) for epoch {epoch}")
-        self.insert_reveal_txns = []
+                self.logger.info(
+                    f"Inserted {len(self.reveals)} reveal transaction(s) for epoch {epoch}"
+                )
+        self.reveals = []
 
         # insert tally transactions
-        if len(self.insert_tally_txns) > 0:
+        if len(self.tallies) > 0:
             sql = """
                 INSERT INTO tally_txns (
                     txn_hash,
@@ -508,141 +497,23 @@ class WitnetDatabase(object):
                     success,
                     epoch
                 ) VALUES %s
+                ON CONFLICT ON CONSTRAINT
+                    tally_txns_pkey
+                DO UPDATE SET
+                    output_addresses=EXCLUDED.output_addresses,
+                    output_values=EXCLUDED.output_values,
+                    error_addresses=EXCLUDED.error_addresses,
+                    liar_addresses=EXCLUDED.liar_addresses,
+                    result=EXCLUDED.result,
+                    success=EXCLUDED.success,
+                    epoch=EXCLUDED.epoch
             """
-            self.db_mngr.sql_execute_many(sql, self.insert_tally_txns)
+            self.db_mngr.sql_execute_many(sql, self.tallies)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.insert_tally_txns)} tally transaction(s) for epoch {epoch}")
-        self.insert_tally_txns = []
-
-    def finalize_update(self, epoch):
-        # update hashes
-        if len(self.update_hashes) > 0:
-            sql = """
-                UPDATE hashes
-                SET
-                    epoch=update.epoch
-                FROM (VALUES %s)
-                AS update(
-                    hash,
-                    epoch
+                self.logger.info(
+                    f"Inserted {len(self.tallies)} tally transaction(s) for epoch {epoch}"
                 )
-                WHERE
-                    hashes.hash=update.hash
-            """
-            self.db_mngr.sql_execute_many(sql, self.update_hashes, template="(%s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_hashes)} hash(es) for epoch {epoch}")
-        self.update_hashes = []
-
-        # update blocks
-        if len(self.update_blocks) > 0:
-            sql = """
-                UPDATE blocks
-                SET
-                    confirmed=update.confirmed
-                FROM (VALUES %s)
-                AS update(
-                    block_hash,
-                    confirmed
-                )
-                WHERE
-                    blocks.block_hash=update.block_hash
-            """
-            self.db_mngr.sql_execute_many(sql, self.update_blocks, template="(%s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_blocks)} block(s) for epoch {epoch}")
-        self.update_blocks = []
-
-        # update value transfer transactions
-        if len(self.update_value_transfer_txns) > 0:
-            sql = """
-                UPDATE value_transfer_txns
-                SET
-                    epoch=update.epoch
-                FROM (VALUES %s)
-                AS update(
-                    txn_hash,
-                    epoch
-                )
-                WHERE
-                    value_transfer_txns.txn_hash=update.txn_hash
-            """
-            self.db_mngr.sql_execute_many(sql, self.update_value_transfer_txns, template="(%s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_value_transfer_txns)} value transfer transaction(s) for epoch {epoch}")
-        self.update_value_transfer_txns = []
-
-        # update data request transactions
-        if len(self.update_data_request_txns) > 0:
-            sql = """
-                UPDATE data_request_txns
-                SET
-                    epoch=update.epoch
-                FROM (VALUES %s)
-                AS update(
-                    txn_hash,
-                    epoch
-                )
-                WHERE
-                    data_request_txns.txn_hash=update.txn_hash
-                """
-            self.db_mngr.sql_execute_many(sql, self.update_data_request_txns, template="(%s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_data_request_txns)} data request transaction(s) for epoch {epoch}")
-        self.update_data_request_txns = []
-
-        # update reveal transactions
-        if len(self.update_reveal_txns) > 0:
-            sql = """
-                UPDATE reveal_txns
-                SET
-                    result=update.result,
-                    success=update.success,
-                    epoch=update.epoch
-                FROM (VALUES %s)
-                AS update(
-                    txn_hash,
-                    result,
-                    success,
-                    epoch
-                )
-                WHERE
-                    reveal_txns.txn_hash=update.txn_hash
-            """
-            self.db_mngr.sql_execute_many(sql, self.update_reveal_txns, template="(%s, %s, %s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_reveal_txns)} reveal transaction(s) for epoch {epoch}")
-        self.update_reveal_txns = []
-
-        # update tally transactions
-        if len(self.update_tally_txns) > 0:
-            sql = """
-                UPDATE tally_txns
-                SET
-                    output_addresses=update.output_addresses,
-                    output_values=update.output_values,
-                    error_addresses=update.error_addresses,
-                    liar_addresses=update.liar_addresses,
-                    result=update.result,
-                    success=update.success,
-                    epoch=update.epoch
-                FROM (VALUES %s)
-                AS update(
-                    txn_hash,
-                    output_addresses,
-                    output_values,
-                    error_addresses,
-                    liar_addresses,
-                    result,
-                    success,
-                    epoch
-                )
-                WHERE tally_txns.txn_hash=update.txn_hash
-            """
-            self.db_mngr.sql_execute_many(sql, self.update_tally_txns, template="(%s, %s::CHAR(42)[], %s, %s::CHAR(42)[], %s::CHAR(42)[], %s, %s, %s)")
-            if self.logger:
-                self.logger.info(f"Updated {len(self.update_tally_txns)} tally transaction(s) for epoch {epoch}")
-        self.update_tally_txns = []
+        self.tallies = []
 
     def confirm_block(self, block_hash, epoch):
         sql = """
@@ -651,7 +522,9 @@ class WitnetDatabase(object):
                 confirmed=true
             WHERE
                 block_hash=%s
-        """ % psycopg2.Binary(bytearray.fromhex(block_hash))
+        """ % psycopg2.Binary(
+            bytearray.fromhex(block_hash)
+        )
         result = self.db_mngr.sql_update_table(sql)
         if self.logger:
             self.logger.info(f"Confirmed block {block_hash} for epoch {epoch}")
@@ -663,7 +536,9 @@ class WitnetDatabase(object):
                 confirmed=false,
                 reverted=true
             WHERE block_hash=%s
-        """ % psycopg2.Binary(bytearray.fromhex(block_hash))
+        """ % psycopg2.Binary(
+            bytearray.fromhex(block_hash)
+        )
         result = self.db_mngr.sql_update_table(sql)
         if self.logger:
             self.logger.info(f"Reverted block {block_hash} for epoch {epoch}")
@@ -673,7 +548,9 @@ class WitnetDatabase(object):
             DELETE FROM blocks
             WHERE
                 block_hash=%s
-        """ % psycopg2.Binary(bytearray.fromhex(block_hash))
+        """ % psycopg2.Binary(
+            bytearray.fromhex(block_hash)
+        )
         result = self.db_mngr.sql_update_table(sql)
         if self.logger:
             self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
@@ -730,15 +607,6 @@ class WitnetDatabase(object):
 
     def sql_execute_many(self, sql, data, template=None):
         self.db_mngr.sql_execute_many(sql, data, template=template)
-
-    def check_hash(self, item_hash):
-        if item_hash in [insert_hash[0] for insert_hash in self.insert_hashes]:
-            return True
-        sql = "SELECT * FROM hashes WHERE hash=%s" % psycopg2.Binary(item_hash)
-        result = self.db_mngr.sql_return_one(sql)
-        if result:
-            return True
-        return False
 
     def get_last_block(self, confirmed=True):
         if confirmed:
