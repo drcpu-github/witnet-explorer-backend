@@ -1,3 +1,4 @@
+import json
 import optparse
 import pylibmc
 import sys
@@ -87,6 +88,9 @@ class DataRequestReports(Client):
                     report_cache_epoch = epoch
                     confirmed = True
 
+                    # Save this data request report in the database table
+                    self.save_data_request_report(txn_hash, data_request_report)
+
                 new_data_request_reports += 1
 
                 self.logger.info(f"Built {'confirmed' if confirmed else 'unconfirmed'} data request report {txn_hash} for epoch {epoch} and added it to the memcached cache in {time.perf_counter() - inner_start:.2f}s")
@@ -101,6 +105,9 @@ class DataRequestReports(Client):
                         # on the next execution of this script, it will start processing data request reports from that epoch
                         report_cache_epoch = epoch
                         confirmed = True
+
+                        # Save this data request report in the database table
+                        self.save_data_request_report(txn_hash, data_request_report)
 
                     updated_data_request_reports += 1
 
@@ -134,6 +141,18 @@ class DataRequestReports(Client):
             return None
 
         return data_request_report
+
+    def save_data_request_report(self, txn_hash, data_request_report):
+        sql = """
+            INSERT INTO data_request_reports(
+                data_request_hash,
+                report
+            ) VALUES (%s, %s)
+            ON CONFLICT ON CONSTRAINT
+                data_request_reports_pkey
+            DO NOTHING
+        """
+        self.witnet_database.db_mngr.sql_insert_one(sql, (txn_hash, json.dumps(data_request_report)))
 
 def main():
     parser = optparse.OptionParser()
