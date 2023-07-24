@@ -71,6 +71,9 @@ class Commit(Transaction):
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
         results = self.witnet_database.sql_return_all(sql)
 
+        if results == None:
+            return []
+
         commits = []
         found_confirmed, found_mined = False, False
         for commit in results:
