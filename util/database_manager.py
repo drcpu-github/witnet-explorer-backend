@@ -68,9 +68,12 @@ class DatabaseManager(object):
             else:
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
 
-    def sql_return_one(self, sql):
+    def sql_return_one(self, sql, parameters=None):
         try:
-            self.cursor.execute(sql)
+            if parameters:
+                self.cursor.execute(sql, parameters)
+            else:
+                self.cursor.execute(sql)
             return self.cursor.fetchone()
         except Exception as e:
             if self.logger:
