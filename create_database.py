@@ -342,6 +342,11 @@ def create_tables(connection, cursor):
             data_request_hash BYTEA PRIMARY KEY,
             report JSONB NOT NULL
         );""",
+
+        """CREATE TABLE IF NOT EXISTS cron_data (
+            key VARCHAR PRIMARY KEY,
+            data INT NOT NULL
+        );""",
     ]
 
     for table in tables:

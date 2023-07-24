@@ -40,11 +40,11 @@ class Blocks(Client):
         # check until which epoch we succesfully added blocks to the cache
         # if no epoch is found, start at the current epoch minus the TOML-defined timeout
         # if force_update is enabled, update all blocks up to self.lookback_epochs ago
-        block_cache_epoch = self.memcached_client.get("block_cache_epoch")
-        if not block_cache_epoch or force_update:
-            block_cache_epoch = last_epoch - self.lookback_epochs
+        blocks_epoch = self.get_start_epoch("blocks_epoch")
+        if not blocks_epoch or force_update:
+            blocks_epoch = last_epoch - self.lookback_epochs
 
-        self.logger.info(f"Fetching blocks starting at epoch {block_cache_epoch} to {last_epoch}")
+        self.logger.info(f"Fetching blocks starting at epoch {blocks_epoch} to {last_epoch}")
 
         sql = """
             SELECT
@@ -56,11 +56,11 @@ class Blocks(Client):
                 blocks.epoch BETWEEN %s AND %s
             ORDER BY
                 blocks.epoch
-        """ % (block_cache_epoch, last_epoch)
+        """ % (blocks_epoch, last_epoch)
         blocks = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(blocks)} blocks in {time.perf_counter() - start:.2f}s")
-        self.logger.info(f"Building blocks starting at epoch {block_cache_epoch}")
+        self.logger.info(f"Building blocks starting at epoch {blocks_epoch}")
 
         new_blocks, updated_blocks = 0, 0
         for block_hash, epoch in blocks:
@@ -97,7 +97,7 @@ class Blocks(Client):
 
                         # track the last epoch for which we successfully added a confirmed block to the cache
                         # on the next execution of this script, it will start processing blocks from that epoch
-                        block_cache_epoch = epoch
+                        blocks_epoch = epoch
 
                         updated_blocks += 1
 
@@ -106,7 +106,7 @@ class Blocks(Client):
                     self.logger.debug(f"Found block {block_hash} for epoch {epoch} in memcached cache in {time.perf_counter() - inner_start:.2f}s")
 
         # Save the most recent epoch for which we sucessfully cached a block
-        self.memcached_client.set("block_cache_epoch", block_cache_epoch)
+        self.set_start_epoch("blocks_epoch", blocks_epoch)
 
         self.logger.info(f"Cached {new_blocks} and updated {updated_blocks} recent blocks in {time.perf_counter() - start:.2f}s")
 
