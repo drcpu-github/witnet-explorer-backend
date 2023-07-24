@@ -337,6 +337,11 @@ def create_tables(connection, cursor):
             data JSONB NOT NULL,
             UNIQUE NULLS NOT DISTINCT (stat, from_epoch, to_epoch)
         );""",
+
+        """CREATE TABLE IF NOT EXISTS data_request_reports (
+            data_request_hash BYTEA PRIMARY KEY,
+            report JSONB NOT NULL
+        );""",
     ]
 
     for table in tables:
