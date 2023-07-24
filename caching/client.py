@@ -53,3 +53,31 @@ class Client(object):
             except ConnectionRefusedError:
                 self.logger.error(f"Could not connect to the node pool!")
                 sys.exit(1)
+
+    def get_start_epoch(self, key):
+        sql = """
+            SELECT
+                data
+            FROM
+                cron_data
+            WHERE
+                key=%s
+        """
+        epoch = self.witnet_database.db_mngr.sql_return_one(sql, (key,))
+        if epoch:
+            return epoch[0]
+        else:
+            return None
+
+    def set_start_epoch(self, key, epoch):
+        sql = """
+            INSERT INTO cron_data(
+                key,
+                data
+            ) VALUES (%s, %s)
+            ON CONFLICT ON CONSTRAINT
+                cron_data_pkey
+            DO UPDATE SET
+                data=EXCLUDED.data
+        """
+        self.witnet_database.db_mngr.sql_insert_one(sql, (key, epoch))

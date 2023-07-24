@@ -37,11 +37,11 @@ class DataRequestReports(Client):
 
         # check until which epoch we succesfully added data request reports to the cache
         # if no epoch is found, start at the current confirmed epoch minus the TOML-defined timeout
-        report_cache_epoch = self.memcached_client.get("report_cache_epoch")
-        if not report_cache_epoch:
-            report_cache_epoch = self.last_epoch - self.lookback_epochs
+        data_request_reports_epoch = self.get_start_epoch("data_request_reports_epoch")
+        if not data_request_reports_epoch:
+            data_request_reports_epoch = self.last_epoch - self.lookback_epochs
 
-        self.logger.info(f"Fetching data request reports starting at epoch {report_cache_epoch} to {self.last_epoch}")
+        self.logger.info(f"Fetching data request reports starting at epoch {data_request_reports_epoch} to {self.last_epoch}")
 
         sql = """
             SELECT
@@ -61,11 +61,11 @@ class DataRequestReports(Client):
                 blocks.epoch BETWEEN %s AND %s
             ORDER BY
                 blocks.epoch
-        """ % (report_cache_epoch, self.last_epoch)
+        """ % (data_request_reports_epoch, self.last_epoch)
         data_requests = self.witnet_database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(data_requests)} data requests in {time.perf_counter() - start:.2f}s")
-        self.logger.info(f"Building data request reports starting at epoch {report_cache_epoch}")
+        self.logger.info(f"Building data request reports starting at epoch {data_request_reports_epoch}")
 
         new_data_request_reports, updated_data_request_reports = 0, 0
         for txn_hash, epoch in data_requests:
@@ -85,7 +85,7 @@ class DataRequestReports(Client):
                 if data_request_report["tally_txn"] != None and data_request_report["tally_txn"]["confirmed"] == True:
                     # track the last epoch for which we successfully added a confirmed data request report to the cache
                     # on the next execution of this script, it will start processing data request reports from that epoch
-                    report_cache_epoch = epoch
+                    data_request_reports_epoch = epoch
                     confirmed = True
 
                     # Save this data request report in the database table
@@ -103,7 +103,7 @@ class DataRequestReports(Client):
                     if data_request_report["tally_txn"] != None and data_request_report["tally_txn"]["confirmed"] == True:
                         # track the last epoch for which we successfully added a confirmed data request report to the cache
                         # on the next execution of this script, it will start processing data request reports from that epoch
-                        report_cache_epoch = epoch
+                        data_request_reports_epoch = epoch
                         confirmed = True
 
                         # Save this data request report in the database table
@@ -115,8 +115,8 @@ class DataRequestReports(Client):
                 else:
                     self.logger.debug(f"Found data request report {txn_hash} for epoch {epoch} in memcached cache in {time.perf_counter() - inner_start:.2f}s")
 
-        # Save the most recent epoch for which we sucessfully cached a data request report
-        self.memcached_client.set("report_cache_epoch", report_cache_epoch)
+        # Save the most recently processed epoch in the database to know where to start the next job
+        self.set_start_epoch("data_request_reports_epoch", data_request_reports_epoch)
 
         time_elapsed = time.perf_counter() - start
         self.logger.info(f"Cached {new_data_request_reports} and updated {updated_data_request_reports} recent data request reports in {time_elapsed:.2f}s")
