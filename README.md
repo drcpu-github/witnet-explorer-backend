@@ -130,7 +130,7 @@ The only caching script which cannot be run as a cronjob is the address query ca
 screen -S addresses -L -Logfile screen-addresses.log
 cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m caching.addresses --config /path/to/explorer/backend/explorer.toml
 ```
-The Flask-based API relies on the Flask-Caching addon and pylibmc to communicate with the Memcached instance. Unfortunately, this setup is not thread-safe and race conditions with parallel requests will result in API crashes. To make the Flask-Caching module thread-safe, a patch called `memcache.py.patch` is included in this repository. Simply replace the `memcache.py` file in the Flask-Caching direcotry of the virtual environment with this patch to create a thread-safe Memcached communication setup.
+The Flask-based API relies on the Flask-Caching addon and pylibmc to communicate with the Memcached instance. Unfortunately, this setup is not thread-safe and race conditions with parallel requests will result in API crashes. To make the Flask-Caching module thread-safe, two patches called `patches/memcached.py.patch` and `patches/memcache.py.patch` are included in this repository. Simply replace the respective files in `cachelib` and `flask_caching` directories of the virtual environment with these patches to create a thread-safe Memcached communication setup.
 
 ## Scripts
 
