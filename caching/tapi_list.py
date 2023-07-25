@@ -256,7 +256,6 @@ class TapiList(Client):
                 self.memcached_client.set(f"tapi-{tapi_id}", tapi)
             except pylibmc.TooBig as e:
                 self.logger.warning("Could not save items in cache because the item size exceeded 1MB")
-        self.memcached_client.set("tapis-cached", list(self.tapi_data.keys()))
 
 def main():
     parser = optparse.OptionParser()

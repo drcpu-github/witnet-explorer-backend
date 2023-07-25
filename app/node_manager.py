@@ -760,12 +760,25 @@ class NodeManager(object):
     def get_tapi(self, return_all_tapis):
         self.logger.info(f"get_tapi({return_all_tapis})")
 
+        # Fetching known TAPI ids
+        sql = """
+            SELECT
+                id
+            FROM
+                wips
+            WHERE
+                tapi_bit IS NOT NULL
+            ORDER BY
+                id
+            ASC
+        """
+        tapis_cached = self.witnet_database.sql_return_all(sql)
+
         all_tapis = {}
-        # Get auxiliary variable which defines the known TAPI's
-        tapis_cached = cache.get("tapis-cached")
         if tapis_cached:
             for counter in tapis_cached:
                 # Fetch TAPI details from cache
+                counter = counter[0]
                 tapi = cache.get(f"tapi-{counter}")
                 if not tapi:
                     self.logger.error(f"Could not find 'tapi-{counter}' in memcached cache")
