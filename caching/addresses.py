@@ -44,7 +44,7 @@ class Addresses(object):
 
         # Get consensus constants
         try:
-            self.consensus_constants = ConsensusConstants(config["node-pool"], error_retry=config["api"]["error_retry"], logger=self.logger)
+            self.consensus_constants = ConsensusConstants(config=config, error_retry=config["api"]["error_retry"], logger=self.logger)
         except ConnectionRefusedError:
             self.logger.error("Could not connect to the node pool!")
             sys.exit(1)

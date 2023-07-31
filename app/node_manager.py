@@ -68,7 +68,7 @@ class NodeManager(object):
         self.witnet_node = WitnetNode(self.node_config, log_queue=self.log_queue, log_label="node-api")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(self.node_config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
+        self.consensus_constants = ConsensusConstants(config=config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period

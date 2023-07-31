@@ -347,6 +347,12 @@ def create_tables(connection, cursor):
             key VARCHAR PRIMARY KEY,
             data INT NOT NULL
         );""",
+
+        """CREATE TABLE IF NOT EXISTS consensus_constants (
+            key VARCHAR PRIMARY KEY,
+            int_val BIGINT,
+            str_val VARCHAR ARRAY
+        );""",
     ]
 
     for table in tables:
