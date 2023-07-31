@@ -54,7 +54,7 @@ class BlockExplorer(object):
         self.insert_pending_node = WitnetNode(self.node_config, timeout=30, log_queue=self.log_queue, log_label="node-pending")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(self.node_config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
+        self.consensus_constants = ConsensusConstants(config=config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
 
         # Get configuration to connect to the database
         self.database_config = config["database"]
