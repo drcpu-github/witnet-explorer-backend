@@ -280,6 +280,8 @@ class WitnetDatabase(object):
                 commit = addresses.commit + EXCLUDED.commit,
                 reveal = addresses.reveal + EXCLUDED.reveal,
                 tally = addresses.tally + EXCLUDED.tally
+            WHERE
+                addresses.active < EXCLUDED.active
         """
         self.db_mngr.sql_execute_many(sql, addresses)
 
