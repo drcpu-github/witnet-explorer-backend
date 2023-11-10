@@ -25,6 +25,11 @@ class MemcachedPool(object):
         self.cache.fill(self.memcached_client, threads)
         self.blocking = blocking
 
+    def init_app(self, app):
+        app.extensions = getattr(app, "extensions", {})
+        if "cache" not in app.extensions:
+            app.extensions["cache"] = self
+
     def get(self, key):
         with self.cache.reserve(block=self.blocking) as client:
             return client.get(key)

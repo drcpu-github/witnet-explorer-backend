@@ -14,6 +14,11 @@ class SocketManager(object):
 
         self.create_socket()
 
+    def init_app(self, app, extension):
+        app.extensions = getattr(app, "extensions", {})
+        if extension not in app.extensions:
+            app.extensions[extension] = self
+
     def create_socket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Set socket options

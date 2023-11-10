@@ -10,6 +10,11 @@ class WitnetClientPool(Queue):
         for i in range(clients):
             self.put(WitnetNode(config))
 
+    def init_app(self, app):
+        app.extensions = getattr(app, "extensions", {})
+        if "witnet_node" not in app.extensions:
+            app.extensions["witnet_node"] = self
+
     # Yield a node to use in a with statement
     # If block is True, wait until one is free
     # Otherwise raise a queue Full exception
