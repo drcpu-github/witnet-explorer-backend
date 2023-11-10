@@ -1,26 +1,16 @@
 __pycache__/
 *.py[cod]
-
 logs
 *.log
-
 venv
 .idea
-
 .env
-
-explorer.toml
 
 analysis/*
 
+explorer.toml
+
 **/*.lock
 
-engine/data/*
-
 caching/plots/*
-
-**/*.json
-
-test/*
-
-ignore/*
+caching/address_stack.json
