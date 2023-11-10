@@ -68,7 +68,8 @@ class DatabaseManager(object):
             else:
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
 
-    def sql_return_one(self, sql, parameters=None):
+    # Note: custom types is unused here, but the option exists to have the same calling convention as when using a database pool connection
+    def sql_return_one(self, sql, parameters=None, custom_types=[]):
         try:
             if parameters:
                 self.cursor.execute(sql, parameters)
@@ -82,7 +83,8 @@ class DatabaseManager(object):
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
             return None
 
-    def sql_return_all(self, sql):
+    # Note: custom types is unused here, but the option exists to have the same calling convention as when using a database pool connection
+    def sql_return_all(self, sql, parameters=None, custom_types=[]):
         try:
             self.cursor.execute(sql)
             if self.named_cursor:
@@ -107,7 +109,8 @@ class DatabaseManager(object):
             else:
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
 
-    def sql_execute_many(self, sql, data, template=None):
+    # Note: custom types is unused here, but the option exists to have the same calling convention as when using a database pool connection
+    def sql_execute_many(self, sql, data, template=None, custom_types=[]):
         try:
             if template:
                 psycopg2.extras.execute_values(self.cursor, sql, data, template=template, page_size=256)
