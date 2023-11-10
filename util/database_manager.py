@@ -89,7 +89,10 @@ class DatabaseManager(object):
     # Note: custom types is unused here, but the option exists to have the same calling convention as when using a database pool connection
     def sql_return_all(self, sql, parameters=None, custom_types=[]):
         try:
-            self.cursor.execute(sql)
+            if parameters:
+                self.cursor.execute(sql, parameters)
+            else:
+                self.cursor.execute(sql)
             if self.named_cursor:
                 return self.cursor
             else:
@@ -101,9 +104,9 @@ class DatabaseManager(object):
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
             return None
 
-    def sql_update_table(self, sql):
+    def sql_update_table(self, sql, parameters=None):
         try:
-            self.cursor.execute(sql)
+            self.cursor.execute(sql, parameters)
             self.connection.commit()
             return self.cursor.rowcount
         except Exception as e:
