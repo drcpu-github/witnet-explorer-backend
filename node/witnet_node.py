@@ -115,12 +115,6 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getMempool", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
-    def get_current_epoch(self):
-        if self.logger:
-            self.logger.info("get_current_epoch()")
-        blockchain = self.get_blockchain(-1, -1)
-        return blockchain[0][0]
-
     def get_supply_info(self):
         if self.logger:
             self.logger.info("get_supply_info()")
@@ -144,6 +138,19 @@ class WitnetNode(object):
             self.logger.info("get_priority()")
         request = {"jsonrpc": "2.0", "method": "priority", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
+
+    def get_current_epoch(self):
+        if self.logger:
+            self.logger.info("get_current_epoch()")
+        sync_status = self.get_sync_status()
+        if "result" in sync_status:
+            if sync_status["result"]["node_state"] != "Synced":
+                if self.logger:
+                    self.logger.warning("Querying current epoch from a node which is not in synced state")
+                else:
+                    print("Querying current epoch from a node which is not in synced state")
+            return sync_status["result"]["current_epoch"]
+        return 0
 
     def execute_request(self, request):
         WitnetNode.request_id += 1
