@@ -314,7 +314,8 @@ def create_tables(connection, cursor):
             activation_epoch INT,
             tapi_start_epoch INT,
             tapi_stop_epoch INT,
-            tapi_bit SMALLINT
+            tapi_bit SMALLINT,
+            tapi_json JSONB
         );""",
 
         """CREATE TABLE IF NOT EXISTS reputation (

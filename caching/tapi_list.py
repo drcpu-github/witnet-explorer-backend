@@ -1,3 +1,4 @@
+import json
 import optparse
 import os
 import pylibmc
@@ -157,7 +158,8 @@ class TapiList(Client):
                 urls,
                 tapi_start_epoch,
                 tapi_stop_epoch,
-                tapi_bit
+                tapi_bit,
+                tapi_json
             FROM
                 wips
             WHERE
@@ -171,13 +173,17 @@ class TapiList(Client):
         self.tapi_data = {}
         for tapi in tapis:
             # Save TAPI metadata
-            tapi_id, title, description, urls, start_epoch, stop_epoch, bit = tapi
+            tapi_id, title, description, urls, start_epoch, stop_epoch, bit, tapi_json = tapi
 
             # Check if we already saved a (partial) TAPI object
-            local_tapi_data = self.memcached_client.get(f"tapi-{tapi_id}")
-            if local_tapi_data:
-                self.logger.info(f"Fetching TAPI definition for TAPI {tapi_id} from memcached instance")
-                self.tapi_data[tapi_id] = local_tapi_data
+            cached_tapi_data = self.memcached_client.get(f"tapi-{tapi_id}")
+            if cached_tapi_data:
+                self.logger.info(f"Fetched TAPI definition for TAPI {tapi_id} from memcached instance")
+                self.tapi_data[tapi_id] = cached_tapi_data
+            # Get the finished TAPI objects from the database
+            elif tapi_json is not None:
+                self.logger.info(f"Fetched TAPI definition for TAPI {tapi_id} from database")
+                self.tapi_data[tapi_id] = tapi_json
             # If not, initialize it
             else:
                 self.logger.info(f"Building TAPI definition for TAPI {tapi_id}, running from epoch {start_epoch} to epoch {stop_epoch - 1}")
@@ -255,10 +261,34 @@ class TapiList(Client):
     def save_tapi(self):
         self.logger.info("Saving all data in our memcached instance")
         for tapi_id, tapi in self.tapi_data.items():
+            # First save the TAPI in the memcached instance
             try:
                 self.memcached_client.set(f"tapi-{tapi_id}", NetworkTapiResponse().load(tapi))
-            except pylibmc.TooBig as e:
+            except ValidationError as err_info:
+                self.logger.error(f"Could not validate tapi data for tapi {tapi_id}: {err_info}")
+            except pylibmc.TooBig:
                 self.logger.warning("Could not save items in cache because the item size exceeded 1MB")
+            # Also save finished TAPI's in the database if necessary
+            if tapi["finished"]:
+                sql = """
+                    SELECT
+                        tapi_json
+                    FROM
+                        wips
+                    WHERE
+                        id=%s
+                """
+                tapi_json, = self.database.sql_return_one(sql, parameters=[tapi_id])
+                if tapi_json is None:
+                    sql = """
+                        UPDATE
+                            wips
+                        SET
+                            tapi_json=%s
+                        WHERE
+                            id=%s
+                    """
+                    self.database.sql_update_table(sql, parameters=[json.dumps(tapi), tapi_id])
 
 def main():
     parser = optparse.OptionParser()
