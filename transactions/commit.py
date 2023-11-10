@@ -16,7 +16,7 @@ class Commit(Transaction):
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
         # Collect input / output details
-        input_utxos, input_values = self.get_inputs(addresses * len(self.json_txn["body"]["collateral"]), self.json_txn["body"]["collateral"])
+        input_utxos, input_values = self.get_inputs(self.json_txn["body"]["collateral"])
         _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
 
         self.txn_details["collateral"] = sum(input_values) - sum(output_values)

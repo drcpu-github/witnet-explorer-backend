@@ -86,12 +86,11 @@ class Transaction(object):
             addresses.append(address)
         return addresses
 
-    def get_inputs(self, addresses, txn_inputs):
+    def get_inputs(self, txn_inputs):
         assert self.database is not None
-        assert len(addresses) == len(txn_inputs)
 
         input_utxos, input_values = [], []
-        for address, txn_input in zip(addresses, txn_inputs):
+        for txn_input in txn_inputs:
             # Get the transaction and output index from the output pointer
             input_hash = txn_input["output_pointer"].split(":")[0]
             input_index = int(txn_input["output_pointer"].split(":")[1])

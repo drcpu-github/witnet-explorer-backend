@@ -20,10 +20,7 @@ class ValueTransfer(Transaction):
         )
 
         # Collect input details
-        input_utxos, input_values = self.get_inputs(
-            self.txn_details["input_addresses"],
-            self.json_txn["body"]["inputs"],
-        )
+        input_utxos, input_values = self.get_inputs(self.json_txn["body"]["inputs"])
         self.txn_details["input_values"] = input_values
 
         # Collect output details

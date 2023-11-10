@@ -25,9 +25,7 @@ class DataRequest(Transaction):
         )
 
         # Collect input / output details
-        input_utxos, input_values = self.get_inputs(
-            self.txn_details["input_addresses"], self.json_txn["body"]["inputs"]
-        )
+        input_utxos, input_values = self.get_inputs(self.json_txn["body"]["inputs"])
         output_addresses, output_values, _ = self.get_outputs(
             self.json_txn["body"]["outputs"]
         )
