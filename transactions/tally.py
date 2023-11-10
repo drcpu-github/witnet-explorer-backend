@@ -1,51 +1,49 @@
 import cbor
 import json
-import psycopg2
 
 from transactions.transaction import Transaction
-
+from schemas.component.tally_schema import TallyTransactionForApi, TallyTransactionForBlock, TallyTransactionForDataRequest, TallyTransactionForExplorer
 from util.radon_translator import RadonTranslator
 
 class Tally(Transaction):
     def process_transaction(self, call_from):
-        if self.json_txn == {}:
-            return self.json_txn
-
         # Collect output details
         output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
         self.txn_details["output_addresses"] = output_addresses
         self.txn_details["output_values"] = output_values
 
-        # Get error_addresses and liar_addresses
-        if call_from == "explorer":
-            self.txn_details["error_addresses"] = self.json_txn["error_committers"]
-            self.txn_details["liar_addresses"] = list(set(self.json_txn["out_of_consensus"]) - set(self.json_txn["error_committers"]))
-        else:
-            self.txn_details["num_error_addresses"] = len(self.json_txn["error_committers"])
-            self.txn_details["num_liar_addresses"] = len(list(set(self.json_txn["out_of_consensus"]) - set(self.json_txn["error_committers"])))
-
-        if call_from == "explorer":
-            self.txn_details["tally_value"] = bytearray(self.json_txn["tally"])
+        self.txn_details["data_request"] = self.json_txn["dr_pointer"]
 
         # Translate tally value
         success, tally_translation = translate_tally(self.txn_hash, self.json_txn["tally"])
         self.txn_details["success"] = success
-        self.txn_details["tally_translation"] = tally_translation
 
-        self.txn_details["data_request"] = self.json_txn["dr_pointer"]
+        # Get error_addresses and liar_addresses
+        if call_from == "explorer":
+            self.txn_details["error_addresses"] = self.json_txn["error_committers"]
+            self.txn_details["liar_addresses"] = list(set(self.json_txn["out_of_consensus"]) - set(self.json_txn["error_committers"]))
+            self.txn_details["tally"] = bytearray(self.json_txn["tally"])
 
-        return self.txn_details
+            return TallyTransactionForExplorer().load(self.txn_details)
+
+        if call_from == "api":
+            self.txn_details["num_error_addresses"] = len(self.json_txn["error_committers"])
+            self.txn_details["num_liar_addresses"] = len(list(set(self.json_txn["out_of_consensus"]) - set(self.json_txn["error_committers"])))
+            self.txn_details["tally"] = tally_translation
+
+            return TallyTransactionForBlock().load(self.txn_details)
 
     def get_data_request_hash(self, txn_hash):
         sql = """
             SELECT
                 data_request
-            FROM tally_txns
+            FROM
+                tally_txns
             WHERE
                 tally_txns.txn_hash=%s
             LIMIT 1
-        """ % psycopg2.Binary(bytes.fromhex(txn_hash))
-        result = self.database.sql_return_one(sql)
+        """
+        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
 
         if result:
             return result[0].hex()
@@ -65,120 +63,114 @@ class Tally(Transaction):
                 tally_txns.liar_addresses,
                 tally_txns.result,
                 tally_txns.epoch
-            FROM tally_txns
-            LEFT JOIN blocks ON 
+            FROM
+                tally_txns
+            LEFT JOIN
+                blocks
+            ON
                 tally_txns.epoch=blocks.epoch
             WHERE
                 tally_txns.data_request=%s
-            ORDER BY tally_txns.epoch DESC
-        """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
-        results = self.database.sql_return_all(sql)
+            ORDER BY
+                tally_txns.epoch
+            DESC
+        """
+        results = self.database.sql_return_all(sql, parameters=[bytearray.fromhex(data_request_hash)])
 
         tally = None
         found_confirmed, found_mined = False, False
-        for result in results:
-            block_hash, block_confirmed, block_reverted, txn_hash, error_addresses, liar_addresses, tally_result, epoch = result
+        if results:
+            for result in results:
+                block_hash, block_confirmed, block_reverted, txn_hash, error_addresses, liar_addresses, tally_result, epoch = result
 
-            success, tally_result = translate_tally(txn_hash.hex(), tally_result)
+                if block_confirmed:
+                    found_confirmed = True
+                elif not block_reverted:
+                    found_mined = True
 
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
+                # Do not set a reverted tally when there is a newer mined or confirmed tally
+                if (found_confirmed or found_mined) and block_reverted:
+                    continue
 
-            if block_confirmed:
-                found_confirmed = True
-                status = "confirmed"
-            elif block_reverted:
-                status = "reverted"
-            else:
-                found_mined = True
-                status = "mined"
+                # No block found for this tally, most likely it was reverted and deleted
+                if block_hash is None:
+                    continue
 
-            # Do not set a reverted tally when there is a newer mined or confirmed tally
-            if (found_confirmed or found_mined) and block_reverted:
-                continue
+                success, tally_result = translate_tally(txn_hash.hex(), tally_result)
 
-            # No block found for this tally, most likely it was reverted and deleted
-            if block_hash is None:
-                continue
+                timestamp = self.start_time + (epoch + 1) * self.epoch_period
 
-            tally = {
-                "block_hash": block_hash.hex(),
-                "txn_hash": txn_hash.hex(),
-                "error_addresses": error_addresses,
-                "liar_addresses": liar_addresses,
-                "num_error_addresses": len(error_addresses),
-                "num_liar_addresses": len(liar_addresses),
-                "tally": tally_result,
-                "success": success,
-                "epoch": epoch,
-                "time": timestamp,
-                "confirmed": block_confirmed,
-                "status": status,
-            }
+                tally = {
+                    "hash": txn_hash.hex(),
+                    "block": block_hash.hex(),
+                    "error_addresses": error_addresses,
+                    "liar_addresses": liar_addresses,
+                    "num_error_addresses": len(error_addresses),
+                    "num_liar_addresses": len(liar_addresses),
+                    "tally": tally_result,
+                    "success": success,
+                    "epoch": epoch,
+                    "timestamp": timestamp,
+                    "confirmed": block_confirmed,
+                    "reverted": block_reverted,
+                }
 
         return tally
 
     def get_transaction_from_database(self, txn_hash):
         sql = """
             SELECT
+                blocks.block_hash,
                 blocks.confirmed,
                 blocks.reverted,
+                tally_txns.data_request,
                 tally_txns.output_addresses,
                 tally_txns.output_values,
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses,
                 tally_txns.result,
                 tally_txns.epoch
-            FROM tally_txns
-            LEFT JOIN blocks ON
+            FROM
+                tally_txns
+            LEFT JOIN
+                blocks
+            ON
                 tally_txns.epoch=blocks.epoch
             WHERE
                 txn_hash=%s
             LIMIT 1
-        """ % psycopg2.Binary(bytearray.fromhex(txn_hash))
-        result = self.database.sql_return_one(sql)
+        """
+        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
 
         if result:
-            block_confirmed, block_reverted, output_addresses, output_values, error_addresses, liar_addresses, result, epoch = result
+            block_hash, block_confirmed, block_reverted, data_request, output_addresses, output_values, error_addresses, liar_addresses, result, epoch = result
 
             success, tally_result = translate_tally(txn_hash, result)
 
             txn_epoch = epoch
             txn_time = self.start_time + (epoch + 1) * self.epoch_period
 
-            if block_confirmed:
-                status = "confirmed"
-            elif block_reverted:
-                status = "reverted"
-            else:
-                status = "mined"
+            return TallyTransactionForApi().load(
+                {
+                    "hash": txn_hash,
+                    "block": block_hash.hex(),
+                    "data_request": data_request.hex(),
+                    "output_addresses": output_addresses,
+                    "output_values": output_values,
+                    "error_addresses": error_addresses,
+                    "liar_addresses": liar_addresses,
+                    "num_error_addresses": len(error_addresses),
+                    "num_liar_addresses": len(liar_addresses),
+                    "success": success,
+                    "tally": tally_result,
+                    "epoch": txn_epoch,
+                    "timestamp": txn_time,
+                    "confirmed": block_confirmed,
+                    "reverted": block_reverted,
+                }
+            )
         else:
-            output_addresses = []
-            output_values = []
-            error_addresses = []
-            liar_addresses = []
-            success = False
-            tally_result = ""
-            txn_epoch = ""
-            txn_time = ""
-            block_confirmed = False
-            status = "transaction not found"
-
-        return {
-            "type": "tally_txn",
-            "txn_hash": txn_hash,
-            "output_addresses": output_addresses,
-            "output_values": output_values,
-            "error_addresses": error_addresses,
-            "liar_addresses": liar_addresses,
-            "num_error_addresses": len(error_addresses),
-            "num_liar_addresses": len(liar_addresses),
-            "success": success,
-            "tally": tally_result,
-            "txn_epoch": txn_epoch,
-            "txn_time": txn_time,
-            "confirmed": block_confirmed,
-            "status": status,
-        }
+            return {"error": "transaction not found"}
 
 def translate_tally(txn_hash, tally):
     success = True

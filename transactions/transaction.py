@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import psycopg2
 import time
+from psycopg2.sql import SQL, Identifier
 
 from node.witnet_node import WitnetNode
 
@@ -9,25 +10,30 @@ from objects.wip import WIP
 
 from util.address_generator import AddressGenerator
 from util.database_manager import DatabaseManager
+from util.data_transformer import re_sql
 from util.protobuf_encoder import ProtobufEncoder
 from util.radon_translator import RadonTranslator
 
 class Transaction(object):
-    def __init__(self, consensus_constants, logger=None, database=None, database_config=None, node_config=None):
+    def __init__(self, consensus_constants, logger=None, database=None, database_config=None, witnet_node=None, node_config=None):
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
 
         # Connect to the database
-        if database:
+        if database is not None:
             self.database = database
-        elif database_config:
+        elif database_config is not None:
             self.database = DatabaseManager(database_config, logger=logger, custom_types=["utxo", "filter"])
         else:
             self.database = None
 
         # Save node pool config
         self.node_config = node_config
+
+        self.witnet_node = None
+        if witnet_node is not None:
+            self.witnet_node = witnet_node
 
         # Set up logger
         if logger:
@@ -40,7 +46,9 @@ class Transaction(object):
 
         # Create Protobuf encoder
         self.protobuf_encoder = None
-        if database_config != None:
+        if database is not None:
+            self.protobuf_encoder = ProtobufEncoder(WIP(database=database))
+        elif database_config is not None:
             self.protobuf_encoder = ProtobufEncoder(WIP(database_config=database_config))
 
         # Create Radon translator
@@ -53,23 +61,21 @@ class Transaction(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def set_transaction(self, txn_hash="", txn_epoch=0, txn_weight=0, json_txn=None):
+    def set_transaction(self, txn_hash, txn_epoch, txn_weight=0, json_txn=None):
         self.txn_hash = txn_hash
 
         self.txn_details = {}
-        self.txn_details["txn_hash"] = txn_hash
-        if txn_epoch > 0:
-            self.txn_details["epoch"] = txn_epoch
-
-        if json_txn:
-            self.json_txn = json_txn
+        self.txn_details["hash"] = txn_hash
+        self.txn_details["epoch"] = txn_epoch
+        if txn_weight != 0:
             self.txn_details["weight"] = txn_weight
-        else:
+
+        self.json_txn = json_txn
+        if self.json_txn is None:
             self.json_txn = self.get_transaction_from_node(txn_hash)
             if "error" in self.json_txn:
-                self.json_txn = {}
-                self.txn_details["weight"] = 0
-            else:
+                raise ValueError(self.json_txn["error"])
+            if self.json_txn["weight"] != 0:
                 self.txn_details["weight"] = self.json_txn["weight"]
 
         if self.protobuf_encoder:
@@ -84,7 +90,7 @@ class Transaction(object):
         return addresses
 
     def get_inputs(self, addresses, txn_inputs):
-        assert self.database != None
+        assert self.database is not None
         assert len(addresses) == len(txn_inputs)
 
         input_utxos, input_values = [], []
@@ -98,13 +104,37 @@ class Transaction(object):
 
             # Try to find the transaction input value in the database
             outputs = None
-            sql = "SELECT type FROM hashes WHERE hash=%s LIMIT 1" % psycopg2.Binary(hash_bytes)
-            result = self.database.sql_return_one(sql)
-            if result:
-                sql = "SELECT output_values FROM %s WHERE txn_hash=%s LIMIT 1" % (result[0] + "s", psycopg2.Binary(hash_bytes))
-                outputs = self.database.sql_return_one(sql)
-                if outputs:
-                    input_values.append(outputs[0][input_index])
+            sql = """
+                SELECT
+                    type
+                FROM
+                    hashes
+                WHERE
+                    hash=%s
+                LIMIT 1
+            """
+            hash_type = self.database.sql_return_one(sql, parameters=[hash_bytes])
+            if hash_type:
+                sql = """
+                    SELECT
+                        {column_name}
+                    FROM
+                        {table_name}
+                    WHERE
+                        txn_hash=%s
+                    LIMIT 1
+                """
+                if hash_type[0] in ("data_request_txn", "commit_txn"):
+                    assert input_index == 0, "Unexpectedly found a non-zero input index"
+                    sql = SQL(re_sql(sql)).format(column_name=Identifier("output_value"), table_name=Identifier(f"{hash_type[0]}s"))
+                    outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
+                    if outputs:
+                        input_values.append(outputs[0])
+                else:
+                    sql = SQL(re_sql(sql)).format(column_name=Identifier("output_values"), table_name=Identifier(f"{hash_type[0]}s"))
+                    outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
+                    if outputs:
+                        input_values.append(outputs[0][input_index])
 
             # Fall back: transaction not found in database, fetch it from the node
             if not outputs:
@@ -141,20 +171,21 @@ class Transaction(object):
 
     def get_transaction_from_node(self, txn_hash):
         # Create connection to the node pool
-        witnet_node = WitnetNode(self.node_config, logger=self.logger)
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
 
-        transaction = witnet_node.get_transaction(txn_hash)
+        transaction = self.witnet_node.get_transaction(txn_hash)
         while "error" in transaction:
             # All our nodes in the pool were busy, retry as soon as possible
             if transaction["reason"] == "no available nodes found":
                 self.logger.warning("No available nodes found")
                 time.sleep(1)
-                transaction = witnet_node.get_transaction(txn_hash)
+                transaction = self.witnet_node.get_transaction(txn_hash)
             # No synced nodes: give them some time to sync again and retry
             elif transaction["reason"] == "no synced nodes found":
                 self.logger.warning("No synced nodes found")
                 time.sleep(60)
-                transaction = witnet_node.get_transaction(txn_hash)
+                transaction = self.witnet_node.get_transaction(txn_hash)
             # Another error, do not retry
             else:
                 self.logger.error(f"Failed to get transaction: {transaction['error']}")
