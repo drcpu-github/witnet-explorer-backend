@@ -10,7 +10,7 @@ from caching.network_stats_functions import aggregate_nodes, read_from_database
 from objects.wip import WIP
 
 from util.data_transformer import re_sql
-from util.helper_functions import calculate_block_reward
+from util.common_functions import calculate_block_reward
 from util.logger import configure_logger
 
 class NetworkStats(Client):

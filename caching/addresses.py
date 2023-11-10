@@ -221,6 +221,7 @@ class Addresses(object):
                         for address in removed_addresses:
                             memcached_client.delete(f"{address}-utxos")
                             memcached_client.delete(f"{address}-blocks")
+                            memcached_client.delete(f"{address}-mints")
                             memcached_client.delete(f"{address}-value-transfers")
                             memcached_client.delete(f"{address}-data-requests-solved")
                             memcached_client.delete(f"{address}-data-requests-created")
@@ -281,7 +282,15 @@ class Addresses(object):
                     # On receiving a track request, check which data is still cached.
                     # If it is still cached, do not update it, this should be done through update requests from the explorer
                     functions = []
-                    all_functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-created", "reputation", "utxos"]
+                    all_functions = [
+                        "blocks",
+                        "mints",
+                        "value-transfers",
+                        "data-requests-solved",
+                        "data-requests-created",
+                        "reputation",
+                        "utxos",
+                    ]
                     for function in all_functions:
                         data = memcached_client.get(f"{addresses[0]}_{function}")
                         if not data:
@@ -296,7 +305,7 @@ class Addresses(object):
 
                 for function, m_address in zip(functions, monitor_addresses):
                     # Create address object
-                    address = Address(m_address, config, logging_queue=logging_queue)
+                    address = Address(m_address, config, logger=logger, connect=False)
 
                     # Complete the request
                     # This block of code is surrounded with a try-except to catch a known Python bug with the Manager multi-processing Pool
@@ -306,6 +315,10 @@ class Addresses(object):
                         if function == "blocks":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
                             func_args = (logging_queue, "blocks", address, address.get_blocks, views_timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
+                        elif function == "mints":
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for mints")
+                            func_args = (logging_queue, "mints", address, address.get_mints, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "value-transfers":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
@@ -396,6 +409,8 @@ class Addresses(object):
             try:
                 if label == "blocks":
                     BlockView(many=True).load(address_data)
+                elif label == "mints":
+                    MintView(many=True).load(address_data)
                 elif label == "value transfers":
                     ValueTransferView(many=True).load(address_data)
                 elif label == "data requests solved":
@@ -434,9 +449,9 @@ class Addresses(object):
         identity = address.address
 
         logger.info(f"Fetching reputation data for {identity}")
-        address.connect_to_database()
+        address.initialize_connections()
         non_zero_reputation, non_zero_reputation_regions = address.get_reputation()
-        address.close_database_connection()
+        address.close_connections()
 
         if len(non_zero_reputation_regions) == 0:
             # Cache dummy variable to indicate a reputation plot was recently created
