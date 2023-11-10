@@ -18,6 +18,11 @@ class DatabasePool(object):
 
         self.connect()
 
+    def init_app(self, app):
+        app.extensions = getattr(app, "extensions", {})
+        if "database" not in app.extensions:
+            app.extensions["database"] = self
+
     def connect(self):
         try:
             connection_str = (
