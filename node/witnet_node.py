@@ -4,7 +4,6 @@ import json
 import logging
 import logging.handlers
 import os
-import re
 import socket
 import sys
 
@@ -22,8 +21,6 @@ class WitnetNode(object):
         socket_timeout = node_config["default_timeout"] if timeout == 0 else timeout
         self.socket_mngr = SocketManager(node_config["host"], node_config["port"], socket_timeout)
         self.socket_mngr.connect()
-
-        self.vtt_regex = re.compile(r'\{"transaction":\{"ValueTransfer":\{"body":\{"inputs":\[(\{"output_pointer":"\w{64}:\d{1,3}"\},*)+\],"outputs":\[(\{"pkh":"wit1\w{38}","time_lock":\d+,"value":\d+\},*)+\]\},"signatures":\[(\{"public_key":\{"bytes":"[a-f0-9]+","compressed":\d+\},"signature":\{"Secp256k1":\{"der":"[a-f0-9]+"\}\}\},*)+\]\}\}\}')
 
         # Set up logger
         if logger:
@@ -136,37 +133,11 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getUtxoInfo", "params": [address], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
-    def send_vtt(self, vtt, test):
+    def send_vtt(self, vtt):
         if self.logger:
-            self.logger.info(f"send_vtt({vtt}, {test})")
-        if self.vtt_regex.match(vtt):
-            try:
-                vtt_transformed = json.loads(vtt)
-            except json.decoder.JSONDecodeError:
-                return {"error": "could not decode request, invalid JSON format"}
-
-            for idx, signature in enumerate(vtt_transformed["transaction"]["ValueTransfer"]["signatures"]):
-                vtt_transformed["transaction"]["ValueTransfer"]["signatures"][idx] = {
-                    "public_key": {
-                        "bytes": hex2bytes(signature["public_key"]["bytes"]),
-                        "compressed": signature["public_key"]["compressed"],
-                    },
-                    "signature": {
-                        "Secp256k1": {
-                            "der": hex2bytes(signature["signature"]["Secp256k1"]["der"]),
-                        }
-                    }
-                }
-
-            if test:
-                return {"result": "the VTT passed the regular expression check"}
-            else:
-                request = {"jsonrpc": "2.0", "method": "inventory", "params": vtt_transformed, "id": str(WitnetNode.request_id)}
-                return self.execute_request(request)
-        else:
-            if self.logger:
-                self.logger.warn(f"VTT {vtt} does not pass the regex test")
-            return {"error": "invalid VTT format"}
+            self.logger.info(f"send_vtt({vtt})")
+        request = {"jsonrpc": "2.0", "method": "inventory", "params": vtt, "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
 
     def get_priority(self):
         if self.logger:
