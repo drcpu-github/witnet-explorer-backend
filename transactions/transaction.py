@@ -12,7 +12,6 @@ from util.address_generator import AddressGenerator
 from util.database_manager import DatabaseManager
 from util.data_transformer import re_sql
 from util.protobuf_encoder import ProtobufEncoder
-from util.radon_translator import RadonTranslator
 
 class Transaction(object):
     def __init__(self, consensus_constants, logger=None, database=None, database_config=None, witnet_node=None, node_config=None):
@@ -50,9 +49,6 @@ class Transaction(object):
             self.protobuf_encoder = ProtobufEncoder(WIP(database=database))
         elif database_config is not None:
             self.protobuf_encoder = ProtobufEncoder(WIP(database_config=database_config))
-
-        # Create Radon translator
-        self.translator = RadonTranslator()
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
