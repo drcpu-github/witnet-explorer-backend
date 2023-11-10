@@ -1,0 +1,9 @@
+{
+    "data_request": [
+        "1bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    ],
+    "value_transfer": [
+        "2bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
+        "3bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    ]
+}

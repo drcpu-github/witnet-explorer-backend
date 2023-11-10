@@ -1,0 +1,22 @@
+{
+    "eb88c7b07f771c4957c11a5c51947af7fe98b46b2639dfecd5b2fda6a72dba84": {
+        "response_type": "mint",
+        "mint": {
+            "hash": "eb88c7b07f771c4957c11a5c51947af7fe98b46b2639dfecd5b2fda6a72dba84",
+            "block": "ca11a4995df26659d4922d60e65832a1c46807dea0b8d4f4ba5760f009a2a798",
+            "output_addresses": [
+                "wit19mqh8xyx0lsqeyt940vtczthgyj8lsf03qsxda",
+                "wit17pxc4h7jqyqfjkpyd6yhxr5mqde8caq5lpsgzl"
+            ],
+            "output_values": [
+                25008000001,
+                225072000004
+            ],
+            "epoch": 1004126,
+            "timestamp": 1647851715,
+            "miner": "wit19mqh8xyx0lsqeyt940vtczthgyj8lsf03qsxda",
+            "confirmed": true,
+            "reverted": false
+        }
+    }
+}

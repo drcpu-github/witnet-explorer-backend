@@ -1,0 +1,302 @@
+{
+    "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6": {
+        "response_type": "data_request_report",
+        "data_request_report": {
+            "transaction_type": "data_request",
+            "data_request": {
+                "hash": "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6",
+                "RAD_bytes_hash": "2be879bf5ea54e5a55b74b0f3db1022b9104af9c8f3b2f042706d663ea90bf6f",
+                "DRO_bytes_hash": "e3ac5cff598bbb5f1908e2becb184301835eae368f26aa0ee94f316de379277f",
+                "block": "3d95e669702c08a977c08a16b8edf34e0201473ac95b607472016d27862a87c7",
+                "input_addresses": [
+                    "wit1c0ucz2u9hwgqflkn4xjeyxtla9tqp0sderzkjr"
+                ],
+                "input_utxos": [
+                    {
+                        "address": "wit1c0ucz2u9hwgqflkn4xjeyxtla9tqp0sderzkjr",
+                        "value": 30000000,
+                        "input_utxo": "c3f2480828b7e9ed9dc71539fc94f707a7c16b5abb29b013666c86edc4a29c87:9"
+                    },
+                    {
+                        "address": "wit1c0ucz2u9hwgqflkn4xjeyxtla9tqp0sderzkjr",
+                        "value": 10179999988,
+                        "input_utxo": "f54d69181c72789058039246f18966868d646ab60f3a93f067088e934c6318c7:0"
+                    }
+                ],
+                "miner_fee": 99999999,
+                "dro_fee": 350000001,
+                "weight": 7085,
+                "priority": 14114,
+                "witnesses": 10,
+                "witness_reward": 15000000,
+                "collateral": 1500000000,
+                "consensus_percentage": 51,
+                "commit_and_reveal_fee": 10000000,
+                "retrieve": [
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://www.bitstamp.net/api/v2/ticker/linkusd",
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
+                    },
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://api.coinbase.com/v2/exchange-rates?currency=USD",
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetMap(data).MapGetMap(rates).MapGetFloat(LINK).FloatPower(-1).FloatMultiply(1000000).FloatRound()"
+                    },
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://api.kraken.com/0/public/Ticker?pair=LINKUSD",
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetMap(result).MapValues().ArrayGetMap(0).MapGetArray(a).ArrayGetFloat(0).FloatMultiply(1000000).FloatRound()"
+                    }
+                ],
+                "aggregate": "filter(DeviationStandard, 1.4).reduce(AverageMedian)",
+                "tally": "filter(DeviationStandard, 2.5).reduce(AverageMedian)",
+                "epoch": 2024097,
+                "timestamp": 1693750410,
+                "confirmed": true,
+                "reverted": false
+            },
+            "commits": [
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "563eba0199a23283c0764bd8690522666ba56a5024eef7cc6f253be53efacb6a",
+                    "address": "wit1054dh7c34yp5vafncucrzpjqnxh93aw3yeeppp",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "14faf3d12c339291b097fdaec93a28f9143a7cefe09dbb2ea13d1d012acb90dd",
+                    "address": "wit17c6kxl7xwhea72szz8pdklptfg6wvk5fqmac5k",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "2d4d41796671b1937287ad998ca9174894d08f50b517f79c08bd85bd0301008e",
+                    "address": "wit1alv6kss3rljf28g38whdg8ajjsggvxs58wst96",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "6d86d777c328cbf6fe9e89136b7c8c436046a31860e16d53892f4389d8783236",
+                    "address": "wit1cz98gquc3ae47alnup8rmryw7mjk7jf8f08yee",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "74a474fdf10ffd5555d3908a73b133c9b81738672792ba9327a6991485876bbe",
+                    "address": "wit1erjngvfvd06w7gashwz0gzl9l06cw989f0wj7g",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "da2f005ca235bd788c77af499561f94edb8c27bbf097ee59033556d9c9766b84",
+                    "address": "wit1fxr5m8fhz6lxq9td776dztnwul7faqjgy5ws3l",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "b638d9615a6c22f25d3ad532f3d0b1d64d4aecca24da8f6aa011635e00851673",
+                    "address": "wit1hjll4a7zd0tu9uxvtfnygrmnk6tef5hjld20ns",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "11292c084ff5d9815b21511ef5ee646a23482afcd6f5c8acffe3290c6786d304",
+                    "address": "wit1mdc7sa024zgwnfu7s9jd805cu66zl7uzq24t08",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "a56792b949fce5a4dcab3d55f2d6c40405ea9a5f52ee25d470992a3db15ad2b1",
+                    "address": "wit1u68mcvm4nmgwqchw3r429d8updlnxnr67k6skm",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                    "hash": "8312a072137c123798cebeae01a17874847ff46d4620f3d7541355c6fe241897",
+                    "address": "wit1x26w253mtz30cxwd6ts67a34q5wtepsjdml7r5",
+                    "epoch": 2024098,
+                    "timestamp": 1693750455,
+                    "confirmed": true,
+                    "reverted": false
+                }
+            ],
+            "reveals": [
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac",
+                    "address": "wit1054dh7c34yp5vafncucrzpjqnxh93aw3yeeppp",
+                    "reveal": "6016465",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "58086b5fb8ac17ffef70019fae576028679b6365f3ea5c56c82753636bf8bc11",
+                    "address": "wit17c6kxl7xwhea72szz8pdklptfg6wvk5fqmac5k",
+                    "reveal": "6016465",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "dad9357a982320f8cd8bf205b6528defb42446523b9f8d53f3ee6e1d1e1ade6d",
+                    "address": "wit1alv6kss3rljf28g38whdg8ajjsggvxs58wst96",
+                    "reveal": "6016155",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "5a563882fa53518539a210155828d6df5797e5b0c0cd5b4c8c5cf4e138e18ea5",
+                    "address": "wit1cz98gquc3ae47alnup8rmryw7mjk7jf8f08yee",
+                    "reveal": "6015980",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "6bebd43d3c5d7bacb9929df0b3cc3ea30d236f4ea33b4326ee0dabe80060e966",
+                    "address": "wit1erjngvfvd06w7gashwz0gzl9l06cw989f0wj7g",
+                    "reveal": "6016460",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "9afe360ea59fcc2e25ccd400470b88faad7ceed8cbf7f34b3b3b44d4735aa036",
+                    "address": "wit1fxr5m8fhz6lxq9td776dztnwul7faqjgy5ws3l",
+                    "reveal": "6016465",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "51c8bb549870bffcefc7656f0cfca92029cded6d0c401819f46b07b7505dae80",
+                    "address": "wit1hjll4a7zd0tu9uxvtfnygrmnk6tef5hjld20ns",
+                    "reveal": "6015380",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "3df8c8875168bf7133c802b182c7b3cf7a60d51d2e6a473436b20c83f5329739",
+                    "address": "wit1mdc7sa024zgwnfu7s9jd805cu66zl7uzq24t08",
+                    "reveal": "6015375",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "de7a3105a8659b3b02820e324eb97970f1c9f3e24f5c68f17e97f4af64dde303",
+                    "address": "wit1u68mcvm4nmgwqchw3r429d8updlnxnr67k6skm",
+                    "reveal": "6015375",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                },
+                {
+                    "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+                    "hash": "e505f09779109185305b0fe5cc9143955a6b7d61e81c1e20df27421c5af2be1e",
+                    "address": "wit1x26w253mtz30cxwd6ts67a34q5wtepsjdml7r5",
+                    "reveal": "6016465",
+                    "success": true,
+                    "error": false,
+                    "liar": false,
+                    "epoch": 2024099,
+                    "timestamp": 1693750500,
+                    "confirmed": true,
+                    "reverted": false
+                }
+            ],
+            "tally": {
+                "block": "9ce1ea2cce508bf4dea026da624ad1ea01025b1845e9040dd931f0f0d3e50d0c",
+                "hash": "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11",
+                "error_addresses": [],
+                "liar_addresses": [],
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0,
+                "tally": "6016308",
+                "success": true,
+                "epoch": 2024100,
+                "timestamp": 1693750545,
+                "confirmed": true,
+                "reverted": false
+            }
+        }
+    }
+}

@@ -1,0 +1,44 @@
+{
+    "b47d06d2a6627f15736d2ca02bf3b184e4349754272d8298567a9e844947f6a0": {
+        "response_type": "tally",
+        "tally": {
+            "hash": "b47d06d2a6627f15736d2ca02bf3b184e4349754272d8298567a9e844947f6a0",
+            "block": "3d95e669702c08a977c08a16b8edf34e0201473ac95b607472016d27862a87c7",
+            "data_request": "0c1d52fda852c48b83ef113a03e85ae0fc10ac466af00a80b067561bfe355ea3",
+            "output_addresses": [
+                "wit12q0hj2ya5cwnn7ef7dlwt4cr58fa4g939msylx",
+                "wit1388dh5l7mu02sqn7h5te58xk0af20cp7dv6k32",
+                "wit15m08usrhhc0guc3wmumkl6450dupkd4adx0w34",
+                "wit18vgg7y80xfqt8339kl2k8cgydsv86hua0af948",
+                "wit15tel7aw8mfnn2rukp5wg8tdg9j9py49gj2f92l",
+                "wit1dutlujsl9xyw5sudhu4d6j6n7ynerzpy7e8h9g",
+                "wit1ta0ppd6229wqvnug7dcxnqu5uqhrd67vmm8ln6",
+                "wit1eq3hrw7g49dj3rgqf4wxy746fyafs4ztwpqmkr",
+                "wit1wze4p707tg2ywuc4fnkxfa27274zf298hq6v0q",
+                "wit1khk9l43xmqheatun20dez8a5fnlvlp82dugqss"
+            ],
+            "output_values": [
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000,
+                15150000000
+            ],
+            "error_addresses": [],
+            "liar_addresses": [],
+            "num_error_addresses": 0,
+            "num_liar_addresses": 0,
+            "success": true,
+            "tally": "122257",
+            "epoch": 2024097,
+            "timestamp": 1693750410,
+            "confirmed": true,
+            "reverted": false
+        }
+    }
+}

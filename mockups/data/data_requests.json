@@ -1,0 +1,50 @@
+{
+    "c1140872c3ca99771c7c16d9b7f1273647ebaa78c6f3cc55a1b47b446a5859f5": {
+        "response_type": "data_request",
+        "data_request": {
+            "hash": "c1140872c3ca99771c7c16d9b7f1273647ebaa78c6f3cc55a1b47b446a5859f5",
+            "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
+            "DRO_bytes_hash": "8f92c44d9ea2905989f134ae4a47a158ae232a176e9529342fc94d8415db773a",
+            "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+            "input_addresses": [
+                "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9"
+            ],
+            "input_utxos": [
+                {
+                    "address": "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9",
+                    "value": 3093866144521,
+                    "input_utxo": "753921d9f14ee71a5ab3e5d8706e749ec214c2a66b2def7087d809901d06d3be:0"
+                }
+            ],
+            "miner_fee": 199999,
+            "dro_fee": 800020101,
+            "weight": 64044,
+            "priority": 3,
+            "witnesses": 100,
+            "witness_reward": 8000001,
+            "collateral": 1000000000,
+            "consensus_percentage": 51,
+            "commit_and_reveal_fee": 100,
+            "retrieve": [
+                {
+                    "kind": "HTTP-GET",
+                    "url": "https://www.bitstamp.net/api/ticker/",
+                    "body": "",
+                    "script": "StringParseJSONMap().MapGetFloat(last)"
+                },
+                {
+                    "kind": "HTTP-GET",
+                    "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+                    "body": "",
+                    "script": "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)"
+                }
+            ],
+            "aggregate": "reduce(AverageMean)",
+            "tally": "reduce(AverageMean)",
+            "epoch": 2024098,
+            "timestamp": 1693750455,
+            "confirmed": true,
+            "reverted": false
+        }
+    }
+}

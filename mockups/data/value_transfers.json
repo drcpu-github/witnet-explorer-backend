@@ -1,0 +1,87 @@
+{
+    "be1e17a260527823272dce0094dc624bbd0850f7141d064320e182fecc78c95a": {
+        "response_type": "value_transfer",
+        "value_transfer": {
+            "block": "67d822cbad8e55f9e4c6bde1a4ec207d4b3298e226548a0b7a84cfb0d5ea5ea9",
+            "hash": "be1e17a260527823272dce0094dc624bbd0850f7141d064320e182fecc78c95a",
+            "input_addresses": [
+                "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4"
+            ],
+            "input_utxos": [
+                {
+                    "address": "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                    "value": 76974788980,
+                    "input_utxo": "1582c6c40df3ad33c199a89c7deedf5a6f72ad00c3d12f075b79001246d95ad9:1"
+                },
+                {
+                    "address": "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                    "value": 266466724954,
+                    "input_utxo": "de15daf9fa420e8e149b5043b43880edf04e21f6bdb2f0a4cc0b47919814294d:0"
+                }
+            ],
+            "inputs_merged": [
+                {
+                    "address": "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                    "value": 343441513934
+                }
+            ],
+            "output_addresses": [
+                "wit1ym6e9hywg0qzvpj9s2davxqukwnv40xjpq3pww",
+                "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4"
+            ],
+            "output_values": [
+                200000000000,
+                143441512934
+            ],
+            "timelocks": [
+                0,
+                0
+            ],
+            "utxos": [
+                {
+                    "address": "wit1ym6e9hywg0qzvpj9s2davxqukwnv40xjpq3pww",
+                    "value": 200000000000,
+                    "timelock": 0,
+                    "locked": false
+                },
+                {
+                    "address": "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                    "value": 143441512934,
+                    "timelock": 0,
+                    "locked": false
+                }
+            ],
+            "utxos_merged": [
+                {
+                    "address": "wit1ym6e9hywg0qzvpj9s2davxqukwnv40xjpq3pww",
+                    "value": 200000000000,
+                    "timelock": 0,
+                    "locked": false
+                },
+                {
+                    "address": "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4",
+                    "value": 143441512934,
+                    "timelock": 0,
+                    "locked": false
+                }
+            ],
+            "fee": 1000,
+            "weight": 986,
+            "priority": 1,
+            "epoch": 1885263,
+            "timestamp": 1687502880,
+            "value": 343441512934,
+            "true_value": 200000000000,
+            "change_value": 143441512934,
+            "true_output_addresses": [
+                "wit1ym6e9hywg0qzvpj9s2davxqukwnv40xjpq3pww"
+            ],
+            "change_output_addresses": [
+                "wit1sh4r6eftl7vcu79t7kyncexf8ew5yzplqnl3q4"
+            ],
+            "confirmed": true,
+            "reverted": false
+        }
+    }
+}

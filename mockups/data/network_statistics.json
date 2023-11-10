@@ -1,0 +1,589 @@
+{
+    "list-rollbacks_None_None": {
+        "start_epoch": 0,
+        "stop_epoch": 2024098,
+        "list_rollbacks": [
+            {
+                "timestamp": 1667618550,
+                "epoch_from": 1443390,
+                "epoch_to": 1443971,
+                "length": 582
+            },
+            {
+                "timestamp": 1667577600,
+                "epoch_from": 1442480,
+                "epoch_to": 1443101,
+                "length": 622
+            },
+            {
+                "timestamp": 1667403900,
+                "epoch_from": 1438620,
+                "epoch_to": 1442461,
+                "length": 3842
+            }
+        ]
+    },
+    "top-100-miners_None_None": {
+        "start_epoch": 0,
+        "stop_epoch": 2024098,
+        "top_100_miners": [
+            {
+                "address": "wit1z8p6qp2f5z6j2nfex3kme5qee0vurpvd8yn5hj",
+                "amount": 133
+            },
+            {
+                "address": "wit1xshwjs5huexwfxkldvue7kc6cx230vuhtmme2s",
+                "amount": 130
+            },
+            {
+                "address": "wit17ue5kphnvajes4y05s525e6y9hjr48tpxc3ruc",
+                "amount": 126
+            },
+            {
+                "address": "wit1my5tgl0r3lsft38kz748zaa7z48dd9994aq895",
+                "amount": 122
+            },
+            {
+                "address": "wit1d90hma685ghdw33c30svx9889sdckw7kq4j4uf",
+                "amount": 120
+            },
+            {
+                "address": "wit1xc6002zplgwjdhgnrdxu9gpsg6d9czueeshnsz",
+                "amount": 118
+            },
+            {
+                "address": "wit1azrj8h2mg6dnq7nem8cp7c2mqcs887djd4e2wh",
+                "amount": 118
+            },
+            {
+                "address": "wit1j3eyct469cpkz63kxx7mhffhltv5q7v45mgda3",
+                "amount": 117
+            },
+            {
+                "address": "wit1dvj7cshhvcqttua9afmlfkhk7vwvh0qwfjnwgc",
+                "amount": 116
+            },
+            {
+                "address": "wit1v9emzryhvu9czp39tyaz76de056g9wdtk5cfcz",
+                "amount": 111
+            }
+        ]
+    },
+    "top-100-data-request-solvers_None_None": {
+        "start_epoch": 0,
+        "stop_epoch": 2024098,
+        "top_100_data_request_solvers": [
+            {
+                "address": "wit1yr9807edzm4l4k7thmw7duufvmm4mkzgqfsnr6",
+                "amount": 3181
+            },
+            {
+                "address": "wit1ajwk8tcajkwuqq5984rt07km7w9etgrvn59kfa",
+                "amount": 2977
+            },
+            {
+                "address": "wit1pr02yrydlm0qd7jhtj0mp4355aj2g3gcy9smaq",
+                "amount": 2862
+            },
+            {
+                "address": "wit15wd25cpstddkvxvfdzydcsnwym3d4mvwhjn2u2",
+                "amount": 2830
+            },
+            {
+                "address": "wit1l3yps6rl2ct8tleh2v632mcwts5s4cuhrvzmmu",
+                "amount": 2792
+            },
+            {
+                "address": "wit15k0huw65x8wkq3p06dmqxf3a46cdhkuljculsm",
+                "amount": 2767
+            },
+            {
+                "address": "wit1nwgm7dz3m339h3uxhyflvr6yfutk7kvfy6auff",
+                "amount": 2716
+            },
+            {
+                "address": "wit1w2hxy8h86p43wx9g722mx8ygs0dsdqlut3n7gw",
+                "amount": 2700
+            },
+            {
+                "address": "wit16m7pxuajzs8jsgwqnukqk39v3qc8dxypqahqdj",
+                "amount": 2644
+            },
+            {
+                "address": "wit15rv5eypwq54u6u3xc2ckd7vfyj53nnddmrmryt",
+                "amount": 2597
+            }
+        ]
+    },
+    "num-unique-miners_None_None": {
+        "start_epoch": 0,
+        "stop_epoch": 2024098,
+        "num_unique_miners": 416061
+    },
+    "num-unique-data-request-solvers_None_None": {
+        "start_epoch": 0,
+        "stop_epoch": 2024098,
+        "num_unique_data_request_solvers": 574157
+    },
+    "top-100-miners_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "top_100_miners": [
+            {
+                "address": "wit1g5n9m4s0lqa2am0edgfevnppu8y207yzjdhqag",
+                "amount": 2
+            },
+            {
+                "address": "wit1ccm40u8d8z6ps28tkx6f6ruh340l77psgwhf95",
+                "amount": 2
+            },
+            {
+                "address": "wit1aufqegyctt7h64eyyp2u6a68ultgkla5gnsxw8",
+                "amount": 2
+            },
+            {
+                "address": "wit1zxg8m7t6rqs0mpptcmmd8fr5hxe3hu7e849xr8",
+                "amount": 1
+            },
+            {
+                "address": "wit1xe6j5kf8a20xvhqjf7jsej06k45pxhu99u6dza",
+                "amount": 1
+            },
+            {
+                "address": "wit1r7gszcq5hu2xvxhpufgs56c0m47tuwtnl3qdpa",
+                "amount": 1
+            },
+            {
+                "address": "wit1m6xt7zh3km2u9xzceqzaepkl5nj5qr4ss8zfed",
+                "amount": 1
+            },
+            {
+                "address": "wit1m3u3hhs9fvqgt5a8d0zm7w7mhsytgz53pyf9hz",
+                "amount": 1
+            },
+            {
+                "address": "wit1kzmck6qyy503lme89lj02jxc3nuj45wg4l8r4c",
+                "amount": 1
+            },
+            {
+                "address": "wit1k6vpqaajekgyx5whdp4ag7dp2h2627dcfjyngs",
+                "amount": 1
+            },
+            {
+                "address": "wit1gzntj0duaqjgexcjnwhgww9f564l7edx0khl6y",
+                "amount": 1
+            },
+            {
+                "address": "wit1ewhsfsjz5gdern8kaz8x5yd9ph04lyg3ewxssc",
+                "amount": 1
+            },
+            {
+                "address": "wit1dsxjndrkhpmgmd6nmt95nvmtqf667e5pmq2eqr",
+                "amount": 1
+            },
+            {
+                "address": "wit1a82dxlj8cy3afpxna6kqgq2r9plraf9raqq35m",
+                "amount": 1
+            },
+            {
+                "address": "wit18j3jsfn6y6lc43v4x5tn3lgk8vzlj37hx6esqy",
+                "amount": 1
+            },
+            {
+                "address": "wit14ef2z0l3l9plkuuqvcsqnq2azc86c2v7udjfeg",
+                "amount": 1
+            },
+            {
+                "address": "wit133wnd4ueheeme4dxjjy052s73sjf8uslah70s4",
+                "amount": 1
+            },
+            {
+                "address": "wit10c45atl93vaudvpcmqtl8pqgt5lwzkk9r9mvrs",
+                "amount": 1
+            }
+        ]
+    },
+    "top-100-data-request-solvers_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "top_100_data_request_solvers": [
+            {
+                "address": "wit1ulra63922mnls2rvktaqh4hhrruama9eqjnkc8",
+                "amount": 25
+            },
+            {
+                "address": "wit1astv06rz2m4pg9gaq5l79k34sh9w0j5nj2xe6k",
+                "amount": 24
+            },
+            {
+                "address": "wit1n4gsyx57khmancx0cmzg2q975vvqayq55rlg0y",
+                "amount": 21
+            },
+            {
+                "address": "wit19ejd5fgeypn9d8f6r8st2jkdx89e3vmp4eu3zv",
+                "amount": 12
+            },
+            {
+                "address": "wit1e49dg9me24esfmz8gkvhhszr7dvasc77mmq6nj",
+                "amount": 10
+            },
+            {
+                "address": "wit1mts8na78rrdg9j405uh5t9lklkpsdfm8tfze95",
+                "amount": 9
+            },
+            {
+                "address": "wit1gzntj0duaqjgexcjnwhgww9f564l7edx0khl6y",
+                "amount": 8
+            },
+            {
+                "address": "wit1k58yzyjse9frx5yx7xfg0g43mnuv5xw0y4venf",
+                "amount": 4
+            },
+            {
+                "address": "wit1m5wsdsv7ard8va55tut5jk06nrx2gmxhgphqhl",
+                "amount": 1
+            },
+            {
+                "address": "wit1gue84sf650hns8qsq4kn2x7awy29mrhdexdste",
+                "amount": 1
+            },
+            {
+                "address": "wit1fz0wz7dcpanadsdlke75zgjlhqxuv2vusvte8f",
+                "amount": 1
+            },
+            {
+                "address": "wit1epgja4fpkyupwlxjawnth39usajywqdh9cxxlx",
+                "amount": 1
+            },
+            {
+                "address": "wit140uxs8r7asudphc7zzqc2ze8fk5ytkd6auxjf4",
+                "amount": 1
+            }
+        ]
+    },
+    "num-unique-miners_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "num_unique_miners": 18
+    },
+    "num-unique-data-request-solvers_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "num_unique_data_request_solvers": 13
+    },
+    "percentile-staking-balances_None_None": {
+        "staking": {
+            "ars": [
+                69270770065,
+                242603004906,
+                302440834321,
+                384493409284,
+                501020356631,
+                595242122870,
+                1015683336066,
+                1141982577664,
+                1330485899039
+            ],
+            "trs": [
+                215951770049,
+                301726789939,
+                384776953771,
+                492547412632,
+                579258511220,
+                807292242377,
+                1100113261644,
+                1216784921902,
+                1424372511663
+            ],
+            "percentiles": [
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10
+            ]
+        }
+    },
+    "histogram-data-requests_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_data_requests": [
+            {
+                "total": 1066,
+                "failure": 9
+            },
+            {
+                "total": 1079,
+                "failure": 6
+            }
+        ]
+    },
+    "histogram-data-requests_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_data_requests": [
+            {
+                "total": 748,
+                "failure": 8
+            },
+            {
+                "total": 1011,
+                "failure": 23
+            }
+        ]
+    },
+    "histogram-data-request-composition_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_data_request_composition": [
+            {
+                "total": 1066,
+                "http_get": 3909,
+                "http_post": 0,
+                "rng": 5
+            },
+            {
+                "total": 1079,
+                "http_get": 4110,
+                "http_post": 0,
+                "rng": 5
+            }
+        ]
+    },
+    "histogram-data-request-composition_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_data_request_composition": [
+            {
+                "total": 748,
+                "http_get": 2478,
+                "http_post": 77,
+                "rng": 1
+            },
+            {
+                "total": 1011,
+                "http_get": 4012,
+                "http_post": 97,
+                "rng": 1
+            }
+        ]
+    },
+    "histogram-data-request-witness_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_keys": [
+            "2",
+            "10",
+            "100"
+        ],
+        "histogram_data_request_witness": [
+            {
+                "2": 5,
+                "10": 813,
+                "100": 248
+            },
+            {
+                "2": 5,
+                "10": 826,
+                "100": 248
+            }
+        ]
+    },
+    "histogram-data-request-witness_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_keys": [
+            "2",
+            "10",
+            "100"
+        ],
+        "histogram_data_request_witness": [
+            {
+                "2": 1,
+                "10": 500,
+                "100": 247
+            },
+            {
+                "2": 1,
+                "10": 764,
+                "100": 246
+            }
+        ]
+    },
+    "histogram-data-request-collateral_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_keys": [
+            "1000000000",
+            "2500000000",
+            "5000000000"
+        ],
+        "histogram_data_request_collateral": [
+            {
+                "1000000000": 5,
+                "2500000000": 248,
+                "5000000000": 813
+            },
+            {
+                "1000000000": 5,
+                "2500000000": 248,
+                "5000000000": 826
+            }
+        ]
+    },
+    "histogram-data-request-collateral_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_keys": [
+            "1000000000",
+            "2500000000",
+            "5000000000"
+        ],
+        "histogram_data_request_collateral": [
+            {
+                "1000000000": 1,
+                "2500000000": 247,
+                "5000000000": 500
+            },
+            {
+                "1000000000": 1,
+                "2500000000": 246,
+                "5000000000": 764
+            }
+        ]
+    },
+    "histogram-data-request-reward_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_keys": [
+            "1",
+            "500000",
+            "1000000"
+        ],
+        "histogram_data_request_reward": [
+            {
+                "1": 248,
+                "500000": 5,
+                "1000000": 813
+            },
+            {
+                "1": 248,
+                "500000": 5,
+                "1000000": 826
+            }
+        ]
+    },
+    "histogram-data-request-reward_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_keys": [
+            "1",
+            "500000",
+            "1000000"
+        ],
+        "histogram_data_request_reward": [
+            {
+                "1": 247,
+                "500000": 1,
+                "1000000": 500
+            },
+            {
+                "1": 246,
+                "500000": 1,
+                "1000000": 764
+            }
+        ]
+    },
+    "histogram-data-request-lie-rate_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_data_request_lie_rate": [
+            {
+                "witnessing_acts": 32940,
+                "errors": 367,
+                "no_reveal_lies": 310,
+                "out_of_consensus_lies": 239
+            },
+            {
+                "witnessing_acts": 33070,
+                "errors": 271,
+                "no_reveal_lies": 321,
+                "out_of_consensus_lies": 220
+            }
+        ]
+    },
+    "histogram-data-request-lie-rate_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_data_request_lie_rate": [
+            {
+                "witnessing_acts": 29702,
+                "errors": 305,
+                "no_reveal_lies": 544,
+                "out_of_consensus_lies": 98
+            },
+            {
+                "witnessing_acts": 32242,
+                "errors": 654,
+                "no_reveal_lies": 594,
+                "out_of_consensus_lies": 135
+            }
+        ]
+    },
+    "histogram-burn-rate_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_burn_rate": [
+            {
+                "reverted": 0,
+                "lies": 0
+            },
+            {
+                "reverted": 0,
+                "lies": 0
+            }
+        ]
+    },
+    "histogram-burn-rate_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_burn_rate": [
+            {
+                "reverted": 0,
+                "lies": 543000000000
+            },
+            {
+                "reverted": 0,
+                "lies": 550500000000
+            }
+        ]
+    },
+    "histogram-value-transfers_1000000_1002000": {
+        "start_epoch": 1000000,
+        "stop_epoch": 1002000,
+        "histogram_value_transfers": [
+            {
+                "value_transfers": 312
+            },
+            {
+                "value_transfers": 266
+            }
+        ]
+    },
+    "histogram-value-transfers_1965000_2025000": {
+        "start_epoch": 1965000,
+        "stop_epoch": 2024098,
+        "histogram_value_transfers": [
+            {
+                "value_transfers": 57
+            },
+            {
+                "value_transfers": 98
+            }
+        ]
+    }
+}

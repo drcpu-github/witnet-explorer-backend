@@ -1,0 +1,8 @@
+{
+    "chain_beacon": {
+        "checkpoint": 2079339,
+        "hashPrevBlock": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    },
+    "current_epoch": 2079351,
+    "node_state": "Synced"
+}

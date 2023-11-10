@@ -1,0 +1,16 @@
+{
+    "63f3715662464a26ba98dceaf765df4024170424b5a50ed320d6d3eec6052c62": {
+        "response_type": "reveal",
+        "reveal": {
+            "hash": "63f3715662464a26ba98dceaf765df4024170424b5a50ed320d6d3eec6052c62",
+            "block": "3d95e669702c08a977c08a16b8edf34e0201473ac95b607472016d27862a87c7",
+            "address": "wit1xj4mre4x927m2ventw2ukak86q86tmjtd8mm22",
+            "reveal": "25922.59505",
+            "success": true,
+            "epoch": 2024097,
+            "timestamp": 1693750410,
+            "confirmed": true,
+            "reverted": false
+        }
+    }
+}

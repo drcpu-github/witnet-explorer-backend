@@ -1,4 +1,4 @@
-directories = api schemas tests
+directories = api schemas tests mockups
 
 test:
 	PYTHONPATH=. pytest

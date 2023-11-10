@@ -1,4 +1,4 @@
-files: api/|schemas/|tests/
+files: api/|schemas/|tests/|mockups/
 repos:
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0

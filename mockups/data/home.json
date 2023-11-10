@@ -1,0 +1,119 @@
+{
+    "network_stats": {
+        "epochs": 2073930,
+        "num_blocks": 2014083,
+        "num_data_requests": 1563170,
+        "num_value_transfers": 1172879,
+        "num_active_nodes": 5837,
+        "num_reputed_nodes": 2106,
+        "num_pending_requests": 122
+    },
+    "supply_info": {
+        "blocks_minted": 2014112,
+        "blocks_minted_reward": 503528000000000000,
+        "blocks_missing": 59817,
+        "blocks_missing_reward": 14954250000000000,
+        "current_locked_supply": 50050000000,
+        "current_time": 1695992882,
+        "current_unlocked_supply": 1252925873507657620,
+        "epoch": 2073930,
+        "in_flight_requests": 2,
+        "locked_wits_by_requests": 115950010100,
+        "maximum_supply": 2499398039462167720,
+        "current_supply": 1252925923557657620,
+        "total_supply": 2483841262962167720,
+        "supply_burned_lies": 602526500000000
+    },
+    "latest_blocks": [
+        {
+            "hash": "0686750c6285ab437eca237064aedfa113451167b19d708b409eec44ea3dbcf7",
+            "data_request": 0,
+            "value_transfer": 20,
+            "timestamp": 1695992850,
+            "confirmed": false
+        },
+        {
+            "hash": "a71c739633224db1e8596610ef0f3fea959e42a4b68b99ee0af7ac7ad1303afc",
+            "data_request": 1,
+            "value_transfer": 20,
+            "timestamp": 1695992805,
+            "confirmed": false
+        },
+        {
+            "hash": "e9e9f3054d1d425a345933f66b14c4b0a763ede10b9780d4317a0657d733c416",
+            "data_request": 0,
+            "value_transfer": 20,
+            "timestamp": 1695992760,
+            "confirmed": false
+        },
+        {
+            "hash": "401768caf16585203453d7b48329e4c3e6fc83781aa177347ef954538c67cc3a",
+            "data_request": 2,
+            "value_transfer": 20,
+            "timestamp": 1695992715,
+            "confirmed": false
+        },
+        {
+            "hash": "1f1d08df9ef2dd3449be56bd0572538fae0d1ebce0c9b4888328188909641b5e",
+            "data_request": 0,
+            "value_transfer": 20,
+            "timestamp": 1695992670,
+            "confirmed": false
+        }
+    ],
+    "latest_data_requests": [
+        {
+            "hash": "e5a78bc8c3dbd971decdcc17263ec0387c9b2152b23927190ab5e6eaf8c01674",
+            "timestamp": 1695992805,
+            "confirmed": false
+        },
+        {
+            "hash": "5bde6235bdc4f62d64d91873dd7b35cff912bcacbbfc65d210d15560819ff805",
+            "timestamp": 1695992715,
+            "confirmed": false
+        },
+        {
+            "hash": "75715cbc7a38aad2817a17f8ef9e0d8c25526ff1f67e9b8ca1a904c392ecf415",
+            "timestamp": 1695992715,
+            "confirmed": false
+        },
+        {
+            "hash": "568994530d128abb359b6de7f399f08190a499c5c8a043f0533c4fe874c9fb39",
+            "timestamp": 1695992625,
+            "confirmed": false
+        },
+        {
+            "hash": "47dc60742a44b60021628a404a03f47a50814c0dad0f842a56acb270964cade8",
+            "timestamp": 1695992625,
+            "confirmed": false
+        }
+    ],
+    "latest_value_transfers": [
+        {
+            "hash": "55723c624f0ef55325e1b9e6ce4dd57426a5a84bcdee0cf2bf3bed54dbf66255",
+            "timestamp": 1695992850,
+            "confirmed": false
+        },
+        {
+            "hash": "6b31deac2d10a08d4f3b0b95d3a279a2f281339bf2dffe84967afc2a7b5d6de4",
+            "timestamp": 1695992850,
+            "confirmed": false
+        },
+        {
+            "hash": "fb3aec1d853bf5f42f305f1a45c1f04414dd01c8673039c8e8d342dc05b60e6d",
+            "timestamp": 1695992850,
+            "confirmed": false
+        },
+        {
+            "hash": "f6672961d26b8d464a07c22f2f3094ffe1fda882689ae809da3a1ac0263d922c",
+            "timestamp": 1695992850,
+            "confirmed": false
+        },
+        {
+            "hash": "df29655848cc8a8f9a02c08a287ba5b18f2188b8448f89bd1b3f018424d2aabe",
+            "timestamp": 1695992850,
+            "confirmed": false
+        }
+    ],
+    "last_updated": 1695992895
+}
