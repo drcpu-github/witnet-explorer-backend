@@ -109,7 +109,7 @@ class BlockExplorer(object):
         # Update all value transfer cached views for all addresses involved in value transfers
         value_transfer_addresses = set()
         for value_transfer in block_json["value_transfer_txns"]:
-            value_transfer_addresses.update(value_transfer["unique_input_addresses"])
+            value_transfer_addresses.update(set(value_transfer["input_addresses"]))
             value_transfer_addresses.update(value_transfer["output_addresses"])
         if len(value_transfer_addresses) > 0:
             request = {"method": "update", "epoch": epoch, "function": "value-transfers", "addresses": list(value_transfer_addresses), "id": 2}
@@ -128,7 +128,7 @@ class BlockExplorer(object):
         # Update the data requests launched cached view for all addresses in all data requests
         data_request_addresses = set()
         for data_request in block_json["data_request_txns"]:
-            data_request_addresses.update(data_request["unique_input_addresses"])
+            data_request_addresses.update(set(data_request["input_addresses"]))
         if len(data_request_addresses) > 0:
             request = {"method": "update", "epoch": epoch, "function": "data-requests-launched", "addresses": list(data_request_addresses), "id": 4}
             self.try_send_request(logger, caching_server, request)

@@ -17,7 +17,7 @@ class Reveal(Transaction):
         self.txn_details["txn_address"] = addresses[0]
 
         # Data request transaction hash
-        self.txn_details["data_request_txn_hash"] = self.json_txn["body"]["dr_pointer"]
+        self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
         # Add reveal value
         if call_from == "explorer":
@@ -33,7 +33,7 @@ class Reveal(Transaction):
     def get_data_request_hash(self, txn_hash):
         sql = """
             SELECT
-                data_request_txn_hash
+                data_request
             FROM reveal_txns
             WHERE
                 reveal_txns.txn_hash=%s
@@ -62,7 +62,7 @@ class Reveal(Transaction):
             LEFT JOIN blocks ON 
                 reveal_txns.epoch=blocks.epoch
             WHERE
-                reveal_txns.data_request_txn_hash=%s
+                reveal_txns.data_request=%s
             ORDER BY epoch DESC
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
         results = self.witnet_database.sql_return_all(sql)

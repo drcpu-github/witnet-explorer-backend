@@ -32,14 +32,14 @@ class Tally(Transaction):
         self.txn_details["success"] = success
         self.txn_details["tally_translation"] = tally_translation
 
-        self.txn_details["data_request_txn_hash"] = self.json_txn["dr_pointer"]
+        self.txn_details["data_request"] = self.json_txn["dr_pointer"]
 
         return self.txn_details
 
     def get_data_request_hash(self, txn_hash):
         sql = """
             SELECT
-                data_request_txn_hash
+                data_request
             FROM tally_txns
             WHERE
                 tally_txns.txn_hash=%s
@@ -69,7 +69,7 @@ class Tally(Transaction):
             LEFT JOIN blocks ON 
                 tally_txns.epoch=blocks.epoch
             WHERE
-                tally_txns.data_request_txn_hash=%s
+                tally_txns.data_request=%s
             ORDER BY tally_txns.epoch DESC
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
         results = self.witnet_database.sql_return_all(sql)

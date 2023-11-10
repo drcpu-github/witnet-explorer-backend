@@ -52,7 +52,7 @@ class DataRequestReports(Client):
             LEFT JOIN
                 tally_txns
             ON
-                data_request_txns.txn_hash=tally_txns.data_request_txn_hash
+                data_request_txns.txn_hash=tally_txns.data_request
             LEFT JOIN
                 blocks
             ON

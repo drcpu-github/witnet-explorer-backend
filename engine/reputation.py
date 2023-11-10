@@ -77,11 +77,11 @@ def get_solved_data_requests(db_mngr, start_epoch, stop_epoch):
         LEFT JOIN
             reveal_txns
         ON
-            data_request_txns.txn_hash=reveal_txns.data_request_txn_hash
+            data_request_txns.txn_hash=reveal_txns.data_request
         LEFT JOIN
             tally_txns
         ON
-            data_request_txns.txn_hash=tally_txns.data_request_txn_hash
+            data_request_txns.txn_hash=tally_txns.data_request
         WHERE
             tally_txns.epoch BETWEEN %s AND %s
         ORDER BY
@@ -127,12 +127,12 @@ def get_solved_data_requests(db_mngr, start_epoch, stop_epoch):
             data_request_tallies[txn_hash] = [epoch, honest_identities, error_identities, liar_identities]
 
     reputation_identities = {}
-    for data_request_txn_hash, identities in data_request_tallies.items():
+    for data_request, identities in data_request_tallies.items():
         epoch, honest_identities, error_identities, liar_identities = identities
 
         if epoch not in reputation_identities:
             reputation_identities[epoch] = []
-        reputation_identities[epoch].append([data_request_reveals[data_request_txn_hash], honest_identities, error_identities, liar_identities])
+        reputation_identities[epoch].append([data_request_reveals[data_request], honest_identities, error_identities, liar_identities])
 
     return [[epoch, data_requests] for epoch, data_requests in reputation_identities.items()]
 

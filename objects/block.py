@@ -152,30 +152,30 @@ class Block(object):
         # Group commits per data request
         commits_for_data_request = {}
         for commit in self.block_json["commit_txns"]:
-            if not commit["data_request_txn_hash"] in commits_for_data_request:
-                commits_for_data_request[commit["data_request_txn_hash"]] = {
+            if not commit["data_request"] in commits_for_data_request:
+                commits_for_data_request[commit["data_request"]] = {
                     "collateral": commit["collateral"],
                     "txn_address": [],
                     "txn_hash": [],
                 }
-            commits_for_data_request[commit["data_request_txn_hash"]]["txn_address"].append(commit["txn_address"])
-            commits_for_data_request[commit["data_request_txn_hash"]]["txn_hash"].append(commit["txn_hash"])
+            commits_for_data_request[commit["data_request"]]["txn_address"].append(commit["txn_address"])
+            commits_for_data_request[commit["data_request"]]["txn_hash"].append(commit["txn_hash"])
         self.block_json["commit_txns"] = commits_for_data_request
 
         # Group reveals per data request
         reveals_for_data_request = {}
         for reveal in self.block_json["reveal_txns"]:
-            if not reveal["data_request_txn_hash"] in reveals_for_data_request:
-                reveals_for_data_request[reveal["data_request_txn_hash"]] = {
+            if not reveal["data_request"] in reveals_for_data_request:
+                reveals_for_data_request[reveal["data_request"]] = {
                     "reveal_translation": [],
                     "success": [],
                     "txn_address": [],
                     "txn_hash": [],
                 }
-            reveals_for_data_request[reveal["data_request_txn_hash"]]["reveal_translation"].append(reveal["reveal_translation"])
-            reveals_for_data_request[reveal["data_request_txn_hash"]]["success"].append(1 if reveal["success"] else 0)
-            reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_address"].append(reveal["txn_address"])
-            reveals_for_data_request[reveal["data_request_txn_hash"]]["txn_hash"].append(reveal["txn_hash"])
+            reveals_for_data_request[reveal["data_request"]]["reveal_translation"].append(reveal["reveal_translation"])
+            reveals_for_data_request[reveal["data_request"]]["success"].append(1 if reveal["success"] else 0)
+            reveals_for_data_request[reveal["data_request"]]["txn_address"].append(reveal["txn_address"])
+            reveals_for_data_request[reveal["data_request"]]["txn_hash"].append(reveal["txn_hash"])
         self.block_json["reveal_txns"] = reveals_for_data_request
 
         del self.block_json["tapi_signals"]
@@ -294,22 +294,20 @@ class Block(object):
 
         # Add all addresses which are used as value transfer inputs or outputs
         for value_transfer in self.block_json["value_transfer_txns"]:
-            for address in value_transfer["unique_input_addresses"]:
+            for address in set(value_transfer["input_addresses"]):
                 if address not in address_dict:
                     address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
                 else:
                     address_dict[address][2] += 1
-            for address in value_transfer["real_output_addresses"]:
+            for address in value_transfer["true_output_addresses"]:
                 if address not in address_dict:
                     address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
                 else:
                     address_dict[address][2] += 1
 
         # Add all addresses which are used as inputs in a data request
-        data_request_txns = {}
         for data_request_txn in self.block_json["data_request_txns"]:
-            data_request_txns[data_request_txn["txn_hash"]] = data_request_txn["unique_input_addresses"]
-            for address in data_request_txn["unique_input_addresses"]:
+            for address in set(data_request_txn["input_addresses"]):
                 if address not in address_dict:
                     address_dict[address] = [0, 0, 0, 1, 0, 0, 0]
                 else:

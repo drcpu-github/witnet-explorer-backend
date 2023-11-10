@@ -366,7 +366,7 @@ class NetworkStats(Client):
             LEFT JOIN
                 tally_txns
             ON
-                data_request_txns.txn_hash = tally_txns.data_request_txn_hash
+                data_request_txns.txn_hash = tally_txns.data_request
             WHERE
                 blocks.confirmed = true
             AND
@@ -438,8 +438,8 @@ class NetworkStats(Client):
         # Fetch reveal counts per data request
         sql = """
             SELECT
-                reveal_txns.data_request_txn_hash,
-                COUNT(reveal_txns.data_request_txn_hash) as reveal_count
+                reveal_txns.data_request,
+                COUNT(reveal_txns.data_request) as reveal_count
             FROM
                 reveal_txns
             LEFT JOIN
@@ -449,7 +449,7 @@ class NetworkStats(Client):
             WHERE
                 blocks.epoch BETWEEN %s AND %s
             GROUP BY
-                reveal_txns.data_request_txn_hash
+                reveal_txns.data_request
         """ % (epoch, self.last_confirmed_epoch)
         self.witnet_database.db_mngr.reset_cursor()
         reveal_data = self.witnet_database.sql_return_all(re_sql(sql))
@@ -475,7 +475,7 @@ class NetworkStats(Client):
             LEFT JOIN
                 tally_txns
             ON
-                data_request_txns.txn_hash = tally_txns.data_request_txn_hash
+                data_request_txns.txn_hash = tally_txns.data_request
             WHERE
                 blocks.confirmed = true
             AND
@@ -551,7 +551,7 @@ class NetworkStats(Client):
             LEFT JOIN
                 tally_txns
             ON
-                data_request_txns.txn_hash = tally_txns.data_request_txn_hash
+                data_request_txns.txn_hash = tally_txns.data_request
             WHERE
                 blocks.confirmed = true
             AND
