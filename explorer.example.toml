@@ -2,11 +2,13 @@
 # name: postgresql database name
 # password: postgresql database password
 # fetch_rows: number of rows to fetch from the database when using named cursors
+# min_connections: minimum number of connections to create in the database pool
 [database]
 user = "<user>"
 name = "<database>"
 password = "<password>"
 fetch_rows = 1000
+min_connections = 8
 
 # host: IP address of the node pool
 # port: RPC port on which the node pool can be reached
