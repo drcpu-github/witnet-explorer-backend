@@ -1,11 +1,11 @@
 import logging
 import logging.handlers
 
+from schemas.search.data_request_report_schema import DataRequestReport as DataRequestReportSchema
 from transactions.data_request import DataRequest
 from transactions.commit import Commit
 from transactions.reveal import Reveal
 from transactions.tally import Tally
-
 from util.database_manager import DatabaseManager
 
 class DataRequestReport(object):
@@ -44,24 +44,24 @@ class DataRequestReport(object):
 
     def get_data_request_hash(self):
         # Set the data request hash based on the transaction type
-        if self.transaction_type == "data_request_txn":
+        if self.transaction_type == "data_request":
             data_request_hash = self.transaction_hash
-            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
-        elif self.transaction_type == "commit_txn":
-            self.logger.info(f"commit_txn, get_report({self.transaction_hash})")
+            self.logger.info(f"data_request, get_report({data_request_hash})")
+        elif self.transaction_type == "commit":
+            self.logger.info(f"commit, get_report({self.transaction_hash})")
             self.commit = Commit(self.consensus_constants, logger=self.logger, database=self.database)
             data_request_hash = self.commit.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
-        elif self.transaction_type == "reveal_txn":
-            self.logger.info(f"reveal_txn, get_report({self.transaction_hash})")
+            self.logger.info(f"data_request, get_report({data_request_hash})")
+        elif self.transaction_type == "reveal":
+            self.logger.info(f"reveal, get_report({self.transaction_hash})")
             self.reveal = Reveal(self.consensus_constants, logger=self.logger, database=self.database)
             data_request_hash = self.reveal.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
-        elif self.transaction_type == "tally_txn":
-            self.logger.info(f"tally_txn, get_report({self.transaction_hash})")
+            self.logger.info(f"data_request, get_report({data_request_hash})")
+        elif self.transaction_type == "tally":
+            self.logger.info(f"tally, get_report({self.transaction_hash})")
             self.tally = Tally(self.consensus_constants, logger=self.logger, database=self.database)
             data_request_hash = self.tally.get_data_request_hash(self.transaction_hash)
-            self.logger.info(f"data_request_txn, get_report({data_request_hash})")
+            self.logger.info(f"data_request, get_report({data_request_hash})")
         return data_request_hash
 
     def get_report(self):
@@ -71,7 +71,6 @@ class DataRequestReport(object):
         if "error" in self.data_request_hash:
             self.logger.error(f"Error when fetching data request hash: {self.data_request_hash['error']}")
             return {
-                "type": "data_request_report",
                 "error": self.data_request_hash["error"]
             }
 
@@ -91,15 +90,15 @@ class DataRequestReport(object):
         self.mark_errors()
         self.mark_liars()
 
-        return {
-            "type": "data_request_report",
-            "transaction_type": self.transaction_type,
-            "data_request_txn": self.data_request,
-            "commit_txns": self.commits,
-            "reveal_txns": self.reveals,
-            "tally_txn": self.tally,
-            "status": "found",
-        }
+        return DataRequestReportSchema().load(
+            {
+                "transaction_type": self.transaction_type,
+                "data_request": self.data_request,
+                "commits": self.commits,
+                "reveals": self.reveals,
+                "tally": self.tally,
+            }
+        )
 
     def get_data_request_details(self):
         self.logger.info(f"get_data_request_details({self.data_request_hash})")
@@ -123,46 +122,45 @@ class DataRequestReport(object):
 
     def add_missing_reveals(self):
         if self.commits and self.reveals:
-            commit_addresses = [commit["txn_address"] for commit in self.commits]
-            reveal_addresses = [reveal["txn_address"] for reveal in self.reveals]
+            commit_addresses = [commit["address"] for commit in self.commits]
+            reveal_addresses = [reveal["address"] for reveal in self.reveals]
             for commit_address in commit_addresses:
                 if commit_address not in reveal_addresses:
                     # At least one reveal, assume the missing reveal would have been in the same epoch
                     if len(self.reveals) > 0:
                         missing_epoch = self.reveals[0]["epoch"]
-                        missing_time = self.reveals[0]["time"]
+                        missing_time = self.reveals[0]["timestamp"]
                     # No reveals, assume they would have been created the epoch after the commit
                     else:
                         missing_epoch = self.commits[0]["epoch"] + 1
                         missing_time = self.start_time + (missing_epoch + 1) * self.epoch_period
 
                     self.reveals.append({
-                        "block_hash": "",
-                        "txn_hash": "",
-                        "txn_address": commit_address,
+                        "block": "",
+                        "hash": "",
+                        "address": commit_address,
                         "reveal": "No reveal",
                         "success": False,
-                        "epoch": missing_epoch,
-                        "time": missing_time,
-                        "status": "",
                         "error": False,
-                        "liar": False,
+                        "liar": True,
+                        "epoch": missing_epoch,
+                        "timestamp": missing_time,
                     })
 
     def sort_by_address(self):
         if self.commits:
-            self.commits = sorted(self.commits, key=lambda l: l["txn_address"])
+            self.commits = sorted(self.commits, key=lambda l: l["address"])
         if self.reveals:
-            self.reveals = sorted(self.reveals, key=lambda l: l["txn_address"])
+            self.reveals = sorted(self.reveals, key=lambda l: l["address"])
 
     def mark_errors(self):
         if self.reveals:
             for reveal in self.reveals:
-                if self.tally and reveal["txn_address"] in self.tally["error_addresses"]:
+                if self.tally and reveal["address"] in self.tally["error_addresses"]:
                     reveal["error"] = True
 
     def mark_liars(self):
         if self.reveals:
             for reveal in self.reveals:
-                if self.tally and reveal["txn_address"] in self.tally["liar_addresses"]:
+                if self.tally and reveal["address"] in self.tally["liar_addresses"]:
                     reveal["liar"] = True
