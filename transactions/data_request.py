@@ -296,7 +296,7 @@ class DataRequest(Transaction):
             txn_priority = calculate_priority(miner_fee, weight)
 
             # Add kinds, urls, bodies and translate scripts
-            # psycopg2 does not handle arrays of enums very well
+            # psycopg does not handle arrays of enums very well
             # handle as a string starting and ending with {} + split on commas
             txn_retrieve = []
             kinds = re.match(r"^{(.*)}$", kinds).group(1).split(",")

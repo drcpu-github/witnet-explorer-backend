@@ -1,5 +1,3 @@
-import psycopg2
-
 from transactions.transaction import Transaction
 from schemas.component.commit_schema import CommitTransactionForApi, CommitTransactionForBlock, CommitTransactionForDataRequest, CommitTransactionForExplorer
 

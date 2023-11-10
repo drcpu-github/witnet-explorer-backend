@@ -105,14 +105,14 @@ class DatabasePool(object):
                 sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
 
-    def sql_execute_many(self, sql, data, template=None, custom_types=[]):
+    def sql_execute_many(self, sql, data, custom_types=[]):
         try:
             with self.connection_pool.connection() as conn:
                 for type_name in custom_types:
                     info = CompositeInfo.fetch(conn, type_name)
                     register_composite(info, conn)
                 with conn.cursor() as cursor:
-                    cursor.executemany(sql, data, template=template)
+                    cursor.executemany(sql, data)
                     conn.commit()
         except Exception as e:
             if self.logger:
