@@ -36,7 +36,7 @@ class BalanceList(Client):
             WHERE
                 label IS NOT NULL
         """
-        address_labels = self.witnet_database.sql_return_all(re_sql(sql))
+        address_labels = self.database.sql_return_all(re_sql(sql))
         address_labels = {address: label for address,label in address_labels}
         self.logger.info(f"Found {len(address_labels)} tagged addresses")
         self.logger.debug(f"Tagged addresses: {address_labels}")
@@ -110,7 +110,7 @@ class BalanceList(Client):
             FROM
                 addresses
         """
-        addresses = self.witnet_database.sql_return_all(re_sql(sql))
+        addresses = self.database.sql_return_all(re_sql(sql))
 
         # Transform list of data to dictionary
         self.address_ids = {}
@@ -135,7 +135,7 @@ class BalanceList(Client):
                     address
                 ) VALUES %s
             """
-            self.witnet_database.sql_execute_many(re_sql(sql), addresses_to_insert)
+            self.database.sql_execute_many(re_sql(sql), addresses_to_insert)
 
         self.logger.info(f"Inserted {len(addresses_to_insert)} addresses into database in {time.perf_counter() - start:.2f}s")
 

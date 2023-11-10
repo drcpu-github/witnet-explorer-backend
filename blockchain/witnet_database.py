@@ -609,32 +609,3 @@ class WitnetDatabase(object):
 
     def sql_execute_many(self, sql, data, template=None):
         self.db_mngr.sql_execute_many(sql, data, template=template)
-
-    def get_last_block(self, confirmed=True):
-        if confirmed:
-            sql = """
-                SELECT
-                    block_hash,
-                    epoch,
-                    confirmed
-                FROM blocks
-                WHERE
-                    confirmed=true
-                ORDER BY epoch DESC
-                LIMIT 1
-            """
-        else:
-            sql = """
-                SELECT
-                    block_hash,
-                    epoch,
-                    confirmed
-                FROM blocks
-                ORDER BY epoch DESC
-                LIMIT 1
-            """
-        result = self.db_mngr.sql_return_one(sql)
-        if result:
-            return result[0].hex(), int(result[1])
-        else:
-            return "", -1

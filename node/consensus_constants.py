@@ -22,9 +22,10 @@ class ConsensusConstants(object):
             sql = """
                 SELECT
                     *
-                FROM consensus_constants
+                FROM
+                    consensus_constants
             """
-            fetched_consensus_constants = db_mngr.sql_return_all(sql)
+            fetched_consensus_constants = database.sql_return_all(sql)
 
             # If that did not work, fetch them from a node
             if not fetched_consensus_constants:

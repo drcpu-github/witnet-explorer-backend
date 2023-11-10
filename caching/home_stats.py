@@ -92,7 +92,7 @@ class HomeStats(Client):
             WHERE
                 confirmed=true
         """
-        num_blocks = self.witnet_database.sql_return_one(re_sql(sql))
+        num_blocks = self.database.sql_return_one(re_sql(sql))
         if num_blocks:
             num_blocks = num_blocks[0]
         else:
@@ -106,7 +106,7 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_data_requests = self.witnet_database.sql_return_one(re_sql(sql))
+        num_data_requests = self.database.sql_return_one(re_sql(sql))
         if num_data_requests:
             num_data_requests = num_data_requests[0]
         else:
@@ -120,7 +120,7 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_value_transfers = self.witnet_database.sql_return_one(re_sql(sql))
+        num_value_transfers = self.database.sql_return_one(re_sql(sql))
         if num_value_transfers:
             num_value_transfers = num_value_transfers[0]
         else:
@@ -198,8 +198,8 @@ class HomeStats(Client):
                 AND
                     blocks.epoch >= %s
             """ % self.wip0027_activation_epoch
-            self.witnet_database.db_mngr.reset_cursor()
-            burn_rate_data = self.witnet_database.sql_return_all(re_sql(sql))
+            self.database.reset_cursor()
+            burn_rate_data = self.database.sql_return_all(re_sql(sql))
 
             supply_info["supply_burned_lies"] = sum(collateral * len(liar_addresses) for collateral, liar_addresses in burn_rate_data)
 
@@ -222,7 +222,7 @@ class HomeStats(Client):
             ORDER BY epoch
             DESC LIMIT 32
         """
-        result = self.witnet_database.sql_return_all(re_sql(sql))
+        result = self.database.sql_return_all(re_sql(sql))
 
         # Add the number of data requests and value transfers and calculate the block timestamp
         blocks = []
@@ -245,7 +245,7 @@ class HomeStats(Client):
             ORDER BY epoch
             DESC LIMIT 32
         """
-        result = self.witnet_database.sql_return_all(re_sql(sql))
+        result = self.database.sql_return_all(re_sql(sql))
 
         # Calculate the data requests timestamp
         data_requests = []
@@ -269,7 +269,7 @@ class HomeStats(Client):
             ORDER BY epoch
             DESC LIMIT 32
         """
-        result = self.witnet_database.sql_return_all(re_sql(sql))
+        result = self.database.sql_return_all(re_sql(sql))
 
         # Calculate the value transfer timestamp
         value_transfers = []

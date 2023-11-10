@@ -29,8 +29,8 @@ from transactions.data_request import DataRequest
 from transactions.value_transfer import ValueTransfer
 
 from util.socket_manager import SocketManager
-
 from util.helper_functions import calculate_priority
+from util.common_sql import sql_last_confirmed_block
 
 class BlockExplorer(object):
     def __init__(self, config, log_queue):
@@ -182,10 +182,13 @@ class BlockExplorer(object):
 
         logger.info("Querying database for last confirmed block")
         # Get the last block we inserted into the database
-        last_block_hash, last_epoch = self.insert_blocks_database.get_last_block()
-        if last_epoch == -1:
+        data = self.insert_blocks_database.sql_return_one(sql_last_confirmed_block)
+        if not data:
+            last_block_hash, last_epoch = "", -1
             logger.info(f"Last confirmed block was at epoch 0")
         else:
+            last_block_hash = data[0].hex()
+            last_epoch = data[1]
             logger.info(f"Last confirmed block was {last_block_hash} at epoch {last_epoch}")
         # If we are adding the first block, initialize last_block_hash with the bootstrap_hash
         if last_block_hash == "":
@@ -418,7 +421,7 @@ class BlockExplorer(object):
                     data_request_fee, data_request_size = mapped_data_requests[transaction]
                     mapped_transactions += 1
                 else:
-                    data_request = DataRequest(self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
+                    data_request = DataRequest(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
                     data_request.set_transaction(txn_hash=transaction)
                     txn_details = data_request.process_transaction("explorer")
 
@@ -454,7 +457,7 @@ class BlockExplorer(object):
                     value_transfer_fee, value_transfer_size = mapped_value_transfers[transaction]
                     mapped_transactions += 1
                 else:
-                    value_transfer = ValueTransfer(self.consensus_constants, log_queue=self.log_queue, database_config=self.database_config, node_config=self.node_config)
+                    value_transfer = ValueTransfer(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
                     value_transfer.set_transaction(txn_hash=transaction)
                     txn_details = value_transfer.process_transaction("explorer")
 

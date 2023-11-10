@@ -32,7 +32,7 @@ class Mint(Transaction):
                 txn_hash=%s
             LIMIT 1
         """ % psycopg2.Binary(bytearray.fromhex(txn_hash))
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.database.sql_return_one(sql)
 
         if result:
             block_hash, block_confirmed, block_reverted, output_addresses, output_values, epoch = result

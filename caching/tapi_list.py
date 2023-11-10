@@ -12,6 +12,7 @@ from caching.client import Client
 
 from util.data_transformer import re_sql
 from util.logger import configure_logger
+from util.common_sql import sql_last_block
 
 class TapiList(Client):
     def __init__(self, config):
@@ -32,8 +33,8 @@ class TapiList(Client):
         self.epoch_period = self.consensus_constants.checkpoints_period
 
     def collect_acceptance_data(self, start_epoch, stop_epoch, tapi_bit, blocks):
-        # Fetch the last epoch
-        _, last_epoch = self.witnet_database.get_last_block(confirmed=False)
+        # Fetch the last epoch (reaching this statement guarantees there is data to be fetched)
+        _, last_epoch = self.database.sql_return_one(sql_last_block)
 
         acceptance_data = []
 
@@ -143,7 +144,11 @@ class TapiList(Client):
         self.logger.info("Collecting TAPI data")
 
         # Update current TAPI starting at the last epoch processed
-        _, last_epoch = self.witnet_database.get_last_block(confirmed=False)
+        last = self.database.sql_return_one(sql_last_block)
+        if last:
+            last_epoch = last[1]
+        else:
+            return
 
         # Setup of all TAPI data, query this table periodically to find newly added TAPI periods
         sql = """
@@ -163,7 +168,7 @@ class TapiList(Client):
                 id
             ASC
         """
-        tapis = self.witnet_database.sql_return_all(re_sql(sql))
+        tapis = self.database.sql_return_all(re_sql(sql))
 
         self.tapi_data = {}
         for tapi in tapis:
@@ -217,7 +222,7 @@ class TapiList(Client):
                         epoch BETWEEN %s and %s
                     ORDER BY epoch ASC
                 """ % (start_epoch, stop_epoch - 1)
-                block_data = self.witnet_database.sql_return_all(re_sql(sql))
+                block_data = self.database.sql_return_all(re_sql(sql))
                 acceptance_data = self.collect_acceptance_data(start_epoch, stop_epoch, tapi["bit"], block_data)
 
                 # Create a static acceptance data plot
