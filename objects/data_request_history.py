@@ -46,7 +46,7 @@ class DataRequestHistory(object):
             LEFT JOIN blocks ON
                 data_request_txns.epoch=blocks.epoch
             LEFT JOIN tally_txns ON
-                data_request_txns.txn_hash=tally_txns.data_request_txn_hash
+                data_request_txns.txn_hash=tally_txns.data_request
             WHERE
                 data_request_txns.%s=%s
                 %s
@@ -68,7 +68,7 @@ class DataRequestHistory(object):
         data_request = None
         data_request_history = []
         for result in results:
-            block_epoch, block_confirmed, block_reverted, data_request_txn_hash, tally_txn_hash, tally_epoch = result
+            block_epoch, block_confirmed, block_reverted, data_request_hash, tally_txn_hash, tally_epoch = result
 
             # Ignore tallies which happened before the data request / block epoch
             # These originate from errored request and get replaced with newer ones
@@ -85,8 +85,8 @@ class DataRequestHistory(object):
             else:
                 txn_status = "mined"
 
-            data_request_txn_hash = data_request_txn_hash.hex()
-            data_request = self.data_request.get_transaction_from_database(data_request_txn_hash)
+            data_request_hash = data_request_hash.hex()
+            data_request = self.data_request.get_transaction_from_database(data_request_hash)
 
             tally_result, num_errors, num_liars, tally_success = "", "", "", ""
             if tally_txn_hash:
@@ -103,7 +103,7 @@ class DataRequestHistory(object):
                     tally_success,
                     txn_time,
                     txn_epoch,
-                    data_request_txn_hash,
+                    data_request_hash,
                     data_request["witnesses"],
                     data_request["witness_reward"],
                     data_request["collateral"],

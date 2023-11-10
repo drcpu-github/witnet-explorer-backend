@@ -19,7 +19,6 @@ class DataRequest(Transaction):
 
         # Calculate transaction addresses
         self.txn_details["input_addresses"] = self.calculate_addresses(self.json_txn["signatures"])
-        self.txn_details["unique_input_addresses"] = list(set(self.txn_details["input_addresses"]))
 
         # Collect input details
         input_utxos, input_values = self.get_inputs(self.txn_details["input_addresses"], self.json_txn["body"]["inputs"])
@@ -30,8 +29,17 @@ class DataRequest(Transaction):
         # Collect output details
         output_addresses, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
         if call_from == "explorer":
-            self.txn_details["output_addresses"] = output_addresses
-            self.txn_details["output_values"] = output_values
+            assert len(output_addresses) <= 1, "Unexpectedly found multiple output addresses"
+            if len(output_addresses) == 1:
+                self.txn_details["output_address"] = output_addresses[0]
+            else:
+                self.txn_details["output_address"] = None
+
+            assert len(output_values) <= 1, "Unexpectedly found multiple output values"
+            if len(output_values) == 1:
+                self.txn_details["output_value"] = output_values[0]
+            else:
+                self.txn_details["output_value"] = None
 
         # Number of witnesses and the reward
         self.txn_details["witnesses"] = self.json_txn["body"]["dr_output"]["witnesses"]

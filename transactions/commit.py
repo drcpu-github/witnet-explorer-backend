@@ -25,20 +25,29 @@ class Commit(Transaction):
         # Collect output details
         output_addresses, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
         if call_from == "explorer":
-            self.txn_details["output_addresses"] = output_addresses
-            self.txn_details["output_values"] = output_values
+            assert len(output_addresses) <= 1, "Unexpectedly found multiple output addresses"
+            if len(output_addresses) == 1:
+                self.txn_details["output_address"] = output_addresses[0]
+            else:
+                self.txn_details["output_address"] = None
+
+            assert len(output_values) <= 1, "Unexpectedly found multiple output values"
+            if len(output_values) == 1:
+                self.txn_details["output_value"] = output_values[0]
+            else:
+                self.txn_details["output_value"] = None
 
         self.txn_details["collateral"] = sum(input_values) - sum(output_values)
 
         # Data request transaction hash
-        self.txn_details["data_request_txn_hash"] = self.json_txn["body"]["dr_pointer"]
+        self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
         return self.txn_details
 
     def get_data_request_hash(self, txn_hash):
         sql = """
             SELECT
-                data_request_txn_hash
+                data_request
             FROM commit_txns
             WHERE
                 commit_txns.txn_hash=%s
@@ -66,7 +75,7 @@ class Commit(Transaction):
             LEFT JOIN blocks ON 
                 commit_txns.epoch=blocks.epoch
             WHERE
-                commit_txns.data_request_txn_hash=%s
+                commit_txns.data_request=%s
             ORDER BY commit_txns.epoch DESC
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
         results = self.witnet_database.sql_return_all(sql)

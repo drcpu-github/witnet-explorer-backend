@@ -15,7 +15,6 @@ class ValueTransfer(Transaction):
 
         # Calculate transaction addresses
         self.txn_details["input_addresses"] = self.calculate_addresses(self.json_txn["signatures"])
-        self.txn_details["unique_input_addresses"] = list(set(self.txn_details["input_addresses"]))
 
         # Collect input details
         input_utxos, input_values = self.get_inputs(self.txn_details["input_addresses"], self.json_txn["body"]["inputs"])
@@ -31,16 +30,22 @@ class ValueTransfer(Transaction):
         self.txn_details["output_values"] = output_values
         self.txn_details["timelocks"] = timelocks
 
-        # Subtract input addresses from the set of output addresses as these are change output addresses
-        self.txn_details["real_output_addresses"] = list(set(self.txn_details["output_addresses"]) - set(self.txn_details["input_addresses"]))
+        # Attempt to be smart and split output addresses into true output addresses and change output addresses
+        self.txn_details["true_output_addresses"] = list(set(self.txn_details["output_addresses"]) - set(self.txn_details["input_addresses"]))
+        self.txn_details["change_output_addresses"] = list(set(self.txn_details["input_addresses"]) & set(self.txn_details["output_addresses"]))
 
         self.txn_details["fee"] = sum(input_values) - sum(output_values) if sum(input_values) > 0 else 0
 
-        total_value = 0
+        total_value, true_value, change_value = 0, 0, 0
         for output_address, output_value in zip(output_addresses, output_values):
             if output_address not in self.txn_details["input_addresses"]:
-                total_value += output_value
+                true_value += output_value
+            else:
+                change_value += output_value
+            total_value += output_value
         self.txn_details["value"] = total_value
+        self.txn_details["true_value"] = true_value
+        self.txn_details["change_value"] = change_value
 
         self.txn_details["priority"] = max(1, self.txn_details["fee"] // self.txn_details["weight"])
 

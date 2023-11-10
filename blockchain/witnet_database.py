@@ -164,8 +164,8 @@ class WitnetDatabase(object):
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
-                txn_details["output_addresses"],
-                txn_details["output_values"],
+                txn_details["output_address"],
+                txn_details["output_value"],
                 txn_details["witnesses"],
                 txn_details["witness_reward"],
                 txn_details["collateral"],
@@ -203,8 +203,8 @@ class WitnetDatabase(object):
                 txn_details["txn_address"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
-                txn_details["output_values"],
-                bytearray.fromhex(txn_details["data_request_txn_hash"]),
+                txn_details["output_value"],
+                bytearray.fromhex(txn_details["data_request"]),
                 epoch,
             )
         )
@@ -224,7 +224,7 @@ class WitnetDatabase(object):
             (
                 bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["txn_address"],
-                bytearray.fromhex(txn_details["data_request_txn_hash"]),
+                bytearray.fromhex(txn_details["data_request"]),
                 txn_details["reveal_value"],
                 txn_details["success"],
                 epoch,
@@ -247,7 +247,7 @@ class WitnetDatabase(object):
                 bytearray.fromhex(txn_details["txn_hash"]),
                 txn_details["output_addresses"],
                 txn_details["output_values"],
-                bytearray.fromhex(txn_details["data_request_txn_hash"]),
+                bytearray.fromhex(txn_details["data_request"]),
                 txn_details["error_addresses"],
                 txn_details["liar_addresses"],
                 txn_details["tally_value"],
@@ -399,8 +399,8 @@ class WitnetDatabase(object):
                     input_addresses,
                     input_values,
                     input_utxos,
-                    output_addresses,
-                    output_values,
+                    output_address,
+                    output_value,
                     witnesses,
                     witness_reward,
                     collateral,
@@ -443,8 +443,8 @@ class WitnetDatabase(object):
                     txn_address,
                     input_values,
                     input_utxos,
-                    output_values,
-                    data_request_txn_hash,
+                    output_value,
+                    data_request,
                     epoch
                 ) VALUES %s
                 ON CONFLICT ON CONSTRAINT
@@ -466,7 +466,7 @@ class WitnetDatabase(object):
                 INSERT INTO reveal_txns (
                     txn_hash,
                     txn_address,
-                    data_request_txn_hash,
+                    data_request,
                     result,
                     success,
                     epoch
@@ -492,7 +492,7 @@ class WitnetDatabase(object):
                     txn_hash,
                     output_addresses,
                     output_values,
-                    data_request_txn_hash,
+                    data_request,
                     error_addresses,
                     liar_addresses,
                     result,

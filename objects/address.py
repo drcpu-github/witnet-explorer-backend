@@ -299,23 +299,32 @@ class Address(object):
             SELECT
                 data_request_txns.collateral,
                 data_request_txns.witness_reward,
-                commit_txns.data_request_txn_hash,
+                commit_txns.data_request,
                 reveal_txns.txn_hash,
                 reveal_txns.result,
                 tally_txns.epoch,
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses,
                 tally_txns.success
-            FROM commit_txns
-            LEFT JOIN data_request_txns ON
-                commit_txns.data_request_txn_hash=data_request_txns.txn_hash
-            LEFT JOIN reveal_txns ON
-                commit_txns.data_request_txn_hash=reveal_txns.data_request_txn_hash
+            FROM
+                commit_txns
+            LEFT JOIN
+                data_request_txns
+            ON
+                commit_txns.data_request=data_request_txns.txn_hash
+            LEFT JOIN
+                reveal_txns
+            ON
+                commit_txns.data_request=reveal_txns.data_request
             AND
                 commit_txns.txn_address=reveal_txns.txn_address
-            LEFT JOIN tally_txns ON
-                commit_txns.data_request_txn_hash=tally_txns.data_request_txn_hash
-            LEFT JOIN blocks ON
+            LEFT JOIN
+                tally_txns
+            ON
+                commit_txns.data_request=tally_txns.data_request
+            LEFT JOIN
+                blocks
+            ON
                 tally_txns.epoch=blocks.epoch
             WHERE
                 commit_txns.txn_address='%s'
@@ -334,7 +343,7 @@ class Address(object):
         solved_data_request_txns = []
         if result:
             for data_request in result:
-                collateral, witness_reward, data_request_txn_hash, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
+                collateral, witness_reward, data_request, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
 
                 # Calculate timestamp
                 timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
@@ -351,7 +360,7 @@ class Address(object):
                 # Check if we were marked as a liar
                 liar = self.address in liar_addresses
 
-                solved_data_request_txns.append((success, data_request_txn_hash.hex(), tally_epoch, timestamp, collateral, witness_reward, translated_reveal, error, liar))
+                solved_data_request_txns.append((success, data_request.hex(), tally_epoch, timestamp, collateral, witness_reward, translated_reveal, error, liar))
 
         return {
             "type": "address",
@@ -376,10 +385,15 @@ class Address(object):
                 tally_txns.result,
                 tally_txns.success,
                 blocks.reverted
-            FROM data_request_txns
-            LEFT JOIN tally_txns ON
-                data_request_txns.txn_hash=tally_txns.data_request_txn_hash
-            LEFT JOIN blocks ON
+            FROM
+                data_request_txns
+            LEFT JOIN
+                tally_txns
+            ON
+                data_request_txns.txn_hash=tally_txns.data_request
+            LEFT JOIN
+                blocks
+            ON
                 tally_txns.epoch=blocks.epoch
             WHERE
                 data_request_txns.input_addresses @> ARRAY['%s']::CHAR(43)[]

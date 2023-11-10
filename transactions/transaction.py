@@ -71,16 +71,14 @@ class Transaction(object):
 
         if json_txn:
             self.json_txn = json_txn
-            if txn_weight > 0:
-                self.txn_details["weight"] = txn_weight
+            self.txn_details["weight"] = txn_weight
         else:
             self.json_txn = self.get_transaction_from_node(txn_hash)
             if "error" in self.json_txn:
                 self.json_txn = {}
                 self.txn_details["weight"] = 0
             else:
-                if self.json_txn["weight"] > 0:
-                    self.txn_details["weight"] = self.json_txn["weight"]
+                self.txn_details["weight"] = self.json_txn["weight"]
 
         if self.protobuf_encoder:
             self.protobuf_encoder.set_transaction(self.json_txn)
