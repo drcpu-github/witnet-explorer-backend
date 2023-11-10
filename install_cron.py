@@ -47,16 +47,6 @@ def main():
             f"{cron} cd {backend} && flock -n {backend}/caching/.{cache_process}.lock {explorer}/env/bin/python3 -m caching.{cache_process} --config-file {backend}/explorer.toml\n"
         )
 
-    # Cron job for the TRS building process
-    cron = config["engine"]["cron"]
-    time_indication = translate_cron(cron)
-    cron_lines.append(
-        f"# Execute the TRS building process {time_indication}. Use flock to prevent concurrent execution."
-    )
-    cron_lines.append(
-        f"{cron} cd {backend} && flock -n {backend}/engine/.reputation.lock {explorer}/env/bin/python3 -m engine.reputation --config-file {backend}/explorer.toml --load-trs --persist-trs\n"
-    )
-
     f = open("crontabs.txt", "w+")
     f.write("\n".join(cron_lines))
     f.close()
