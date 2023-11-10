@@ -1,6 +1,5 @@
 cbor==1.0.0
 Flask==2.3.2
-Flask_Caching==2.0.2
 flask_smorest==0.42.0
 gevent==23.7.0
 gunicorn==21.2.0
