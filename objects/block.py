@@ -43,7 +43,12 @@ class Block(object):
         if database_config:
             self.database_config = database_config
 
-        self.node_config = node_config
+        if node_config:
+            self.node_config = node_config
+
+        self.witnet_node = None
+        if witnet_node:
+            self.witnet_node = witnet_node
 
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
 
@@ -88,9 +93,10 @@ class Block(object):
                 return self.return_block_error(f"Could not find block for epoch {self.block_epoch}")
 
         # Connect to node pool
-        witnet_node = WitnetNode(self.node_config, logger=self.logger)
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
 
-        block = witnet_node.get_block(self.block_hash)
+        block = self.witnet_node.get_block(self.block_hash)
         if "error" in block:
             if self.logger:
                 self.logger.warning(f"Unable to fetch block {self.block_hash}: {block}")
