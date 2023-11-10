@@ -30,7 +30,7 @@ class NetworkStats(Client):
         # Granularity at which network statistics are aggregated
         self.aggregation_epochs = config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
 
-        self.wips = WIP(config["database"])
+        self.wips = WIP(database_config=config["database"], node_config=config["node-pool"])
 
         self.last_update_time = int(time.time())
 

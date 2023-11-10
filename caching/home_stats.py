@@ -25,7 +25,7 @@ class HomeStats(Client):
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period
 
-        wips = WIP(config["database"])
+        wips = WIP(database_config=config["database"], node_config=config["node-pool"])
         self.wip0027_activation_epoch = wips.get_activation_epoch("WIP0027")
 
         # Initialize previous variables
