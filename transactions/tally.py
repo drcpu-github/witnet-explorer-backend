@@ -45,7 +45,7 @@ class Tally(Transaction):
                 tally_txns.txn_hash=%s
             LIMIT 1
         """ % psycopg2.Binary(bytes.fromhex(txn_hash))
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.database.sql_return_one(sql)
 
         if result:
             return result[0].hex()
@@ -72,7 +72,7 @@ class Tally(Transaction):
                 tally_txns.data_request=%s
             ORDER BY tally_txns.epoch DESC
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
-        results = self.witnet_database.sql_return_all(sql)
+        results = self.database.sql_return_all(sql)
 
         tally = None
         found_confirmed, found_mined = False, False
@@ -135,7 +135,7 @@ class Tally(Transaction):
                 txn_hash=%s
             LIMIT 1
         """ % psycopg2.Binary(bytearray.fromhex(txn_hash))
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.database.sql_return_one(sql)
 
         if result:
             block_confirmed, block_reverted, output_addresses, output_values, error_addresses, liar_addresses, result, epoch = result

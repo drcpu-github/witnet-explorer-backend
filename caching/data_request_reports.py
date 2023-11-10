@@ -12,6 +12,7 @@ from caching.client import Client
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
+from util.common_sql import sql_last_block
 
 class DataRequestReports(Client):
     def __init__(self, config):
@@ -33,7 +34,11 @@ class DataRequestReports(Client):
     def process_data_requests(self):
         start = time.perf_counter()
 
-        _, self.last_epoch = self.witnet_database.get_last_block(confirmed=False)
+        last = self.database.sql_return_one(sql_last_block)
+        if last:
+            self.last_epoch = last[1]
+        else:
+            return
 
         # check until which epoch we succesfully added data request reports to the cache
         # if no epoch is found, start at the current confirmed epoch minus the TOML-defined timeout
@@ -62,7 +67,7 @@ class DataRequestReports(Client):
             ORDER BY
                 blocks.epoch
         """ % (data_request_reports_epoch, self.last_epoch)
-        data_requests = self.witnet_database.sql_return_all(re_sql(sql))
+        data_requests = self.database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(data_requests)} data requests in {time.perf_counter() - start:.2f}s")
         self.logger.info(f"Building data request reports starting at epoch {data_request_reports_epoch}")
@@ -125,7 +130,7 @@ class DataRequestReports(Client):
 
     def cache_data_request_report(self, txn_hash, epoch, inner_start):
         # Build data request report
-        data_request = DataRequestReport("data_request_txn", txn_hash, self.consensus_constants, logger=self.logger, database=self.witnet_database)
+        data_request = DataRequestReport("data_request_txn", txn_hash, self.consensus_constants, logger=self.logger, database=self.database)
         data_request_report = data_request.get_report()
         if "error" in data_request_report:
             self.logger.warning(f"Could not create data request report {txn_hash} for epoch {epoch}")
@@ -152,7 +157,7 @@ class DataRequestReports(Client):
                 data_request_reports_pkey
             DO NOTHING
         """
-        self.witnet_database.db_mngr.sql_insert_one(sql, (txn_hash, json.dumps(data_request_report)))
+        self.database.sql_insert_one(sql, (txn_hash, json.dumps(data_request_report)))
 
 def main():
     parser = optparse.OptionParser()

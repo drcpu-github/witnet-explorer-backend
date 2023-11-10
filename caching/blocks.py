@@ -11,6 +11,7 @@ from caching.client import Client
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
+from util.common_sql import sql_last_block
 
 class Blocks(Client):
     def __init__(self, config):
@@ -35,7 +36,11 @@ class Blocks(Client):
         start = time.perf_counter()
 
         # Fetch the most recently added epoch
-        _, last_epoch = self.witnet_database.get_last_block(confirmed=False)
+        last = self.database.sql_return_one(sql_last_block)
+        if last:
+            last_epoch = last[1]
+        else:
+            last_epoch = 1E31
 
         # check until which epoch we succesfully added blocks to the cache
         # if no epoch is found, start at the current epoch minus the TOML-defined timeout
@@ -57,7 +62,7 @@ class Blocks(Client):
             ORDER BY
                 blocks.epoch
         """ % (blocks_epoch, last_epoch)
-        blocks = self.witnet_database.sql_return_all(re_sql(sql))
+        blocks = self.database.sql_return_all(re_sql(sql))
 
         self.logger.info(f"Collected {len(blocks)} blocks in {time.perf_counter() - start:.2f}s")
         self.logger.info(f"Building blocks starting at epoch {blocks_epoch}")
@@ -112,7 +117,7 @@ class Blocks(Client):
 
     def build_block(self, block_hash, epoch):
         # Build block
-        block = Block(self.consensus_constants, block_hash=block_hash, logger=self.logger, database=self.witnet_database, database_config=self.config["database"], node_config=self.node_config)
+        block = Block(self.consensus_constants, block_hash=block_hash, logger=self.logger, database=self.database, database_config=self.config["database"], node_config=self.node_config)
         json_block = block.process_block("api")
         if "error" in json_block:
             self.logger.warning(f"Could not fetch block {block_hash} for epoch {epoch}")

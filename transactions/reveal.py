@@ -39,7 +39,7 @@ class Reveal(Transaction):
                 reveal_txns.txn_hash=%s
             LIMIT 1
         """ % psycopg2.Binary(bytes.fromhex(txn_hash))
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.database.sql_return_one(sql)
 
         if result:
             return result[0].hex()
@@ -65,7 +65,7 @@ class Reveal(Transaction):
                 reveal_txns.data_request=%s
             ORDER BY epoch DESC
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
-        results = self.witnet_database.sql_return_all(sql)
+        results = self.database.sql_return_all(sql)
 
         if results == None:
             return []

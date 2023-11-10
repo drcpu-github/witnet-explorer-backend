@@ -162,7 +162,7 @@ class DataRequest(Transaction):
                 data_request_txns.txn_hash=%s
             LIMIT 1
         """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
-        result = self.witnet_database.sql_return_one(sql)
+        result = self.database.sql_return_one(sql)
 
         if result:
             block_hash, block_epoch, block_confirmed, block_reverted, txn_hash, DRO_bytes_hash, RAD_bytes_hash, input_addresses, input_values, input_utxos, output_values, witnesses, witness_reward, collateral, consensus_percentage, commit_and_reveal_fee, weight, kinds, urls, bodies, scripts, aggregate_filters, aggregate_reducer, tally_filters, tally_reducer = result

@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 import time
 
-from blockchain.witnet_database import WitnetDatabase
+from util.database_manager import DatabaseManager
 
 from node.witnet_node import WitnetNode
 
@@ -35,11 +35,11 @@ class Block(object):
             self.logger = None
 
         if database:
-            self.witnet_database = database
+            self.database = database
         elif database_config:
-            self.witnet_database = WitnetDatabase(database_config, logger=self.logger)
+            self.database = DatabaseManager(database_config, logger=self.logger)
         else:
-            self.witnet_database = None
+            self.database = None
 
         if database_config:
             self.database_config = database_config
@@ -69,7 +69,7 @@ class Block(object):
             # Log and return warnings if necessary
             if self.block_epoch == -1:
                 return self.return_block_error("No block hash or block epoch specified")
-            if not self.witnet_database:
+            if not self.database:
                 return self.return_block_error("No database found to fetch block hash")
 
             # Fetch block hash from the database
@@ -81,7 +81,7 @@ class Block(object):
                 WHERE
                     epoch=%s
             """ % self.block_epoch
-            block_hash = self.witnet_database.sql_return_one(sql)
+            block_hash = self.database.sql_return_one(sql)
 
             if block_hash:
                 self.block_hash = block_hash[0].hex()
@@ -213,7 +213,7 @@ class Block(object):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
             txn_epoch = self.block_epoch
-            value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
+            value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["value_transfer"], self.block["txns_weights"]["value_transfer"])):
                 json_txn = self.block["txns"]["value_transfer_txns"][i]
                 value_transfer.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, txn_weight=txn_weight, json_txn=json_txn)
@@ -235,7 +235,7 @@ class Block(object):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
             txn_epoch = self.block_epoch
-            commit = Commit(self.consensus_constants, logger=self.logger, database=self.witnet_database, node_config=self.node_config)
+            commit = Commit(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["commit"]):
                 json_txn = self.block["txns"]["commit_txns"][i]
                 commit.set_transaction(txn_hash=txn_hash, txn_epoch=txn_epoch, json_txn=json_txn)

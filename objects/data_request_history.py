@@ -2,10 +2,10 @@ import logging
 import logging.handlers
 import psycopg2
 
-from blockchain.witnet_database import WitnetDatabase
-
 from transactions.data_request import DataRequest
 from transactions.tally import Tally
+
+from util.database_manager import DatabaseManager
 
 class DataRequestHistory(object):
     def __init__(self, consensus_constants, logging_queue, database_config):
@@ -15,11 +15,11 @@ class DataRequestHistory(object):
 
         # Set up logger
         self.logging_queue = logging_queue
-        self.configure_logging_process(logging_queue, "node-manager")
-        self.logger = logging.getLogger("node-manager")
+        self.configure_logging_process(logging_queue, "api")
+        self.logger = logging.getLogger("api")
 
         # Set up database connection
-        self.witnet_database = WitnetDatabase(database_config, log_queue=self.logging_queue, log_label="db-history")
+        self.database = DatabaseManager(database_config, logger=self.logger)
 
         self.data_request = DataRequest(consensus_constants, logging_queue, database_config=database_config)
         self.tally = Tally(consensus_constants, logging_queue, database_config=database_config)
@@ -59,7 +59,7 @@ class DataRequestHistory(object):
             f" AND data_request_txns.epoch>={start}" if start > 0 else "",
             f" AND data_request_txns.epoch<={stop}" if stop > 0 else "",
         )
-        results = self.witnet_database.sql_return_all(sql)
+        results = self.database.sql_return_all(sql)
 
         num_data_requests = len(results) if results else 0
         first_epoch = min(r[0] for r in results) if results else 0

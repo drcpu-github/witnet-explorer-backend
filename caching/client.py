@@ -1,12 +1,10 @@
 import psycopg2
 import pylibmc
 
-from blockchain.witnet_database import WitnetDatabase
-
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
-
 from util.socket_manager import SocketManager
+from util.database_manager import DatabaseManager
 
 class Client(object):
     def __init__(self, config, node=False, timeout=0, database=False, named_cursor=False, memcached_client=False, consensus_constants=False):
@@ -21,14 +19,23 @@ class Client(object):
                 sys.exit(1)
 
         # Connect to database
-        if database:
-            try:
-                self.witnet_database = WitnetDatabase(config["database"], named_cursor=named_cursor, logger=self.logger)
-                if named_cursor:
-                    self.witnet_database_client = WitnetDatabase(config["database"], named_cursor=False, logger=self.logger)
-            except psycopg2.OperationalError:
-                self.logger.error(f"Could not connect to the database!")
-                sys.exit(2)
+        try:
+            self.database = DatabaseManager(
+                config["database"],
+                named_cursor=named_cursor,
+                logger=self.logger,
+                custom_types=["utxo", "filter"],
+            )
+            if named_cursor:
+                self.database_client = DatabaseManager(
+                    config["database"],
+                    named_cursor=False,
+                    logger=self.logger,
+                    custom_types=["utxo", "filter"],
+                )
+        except psycopg2.OperationalError:
+            self.logger.error("Could not connect to the database!")
+            sys.exit(1)
 
         # Memcached client
         if memcached_client:

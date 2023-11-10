@@ -3,7 +3,7 @@ import psycopg2.extras
 import sys
 
 class DatabaseManager(object):
-    def __init__(self, db_config, named_cursor=False, logger=None):
+    def __init__(self, db_config, named_cursor=False, logger=None, custom_types=[]):
         self.db_user = db_config["user"]
         self.db_name = db_config["name"]
         self.db_pass = db_config["password"]
@@ -14,6 +14,9 @@ class DatabaseManager(object):
         self.logger = logger
 
         self.connect()
+
+        for ct in custom_types:
+            self.register_type(ct)
 
     def connect(self):
         try:

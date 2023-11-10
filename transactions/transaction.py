@@ -3,32 +3,28 @@ import logging.handlers
 import psycopg2
 import time
 
-from blockchain.witnet_database import WitnetDatabase
-
 from node.witnet_node import WitnetNode
 
 from objects.wip import WIP
 
 from util.address_generator import AddressGenerator
+from util.database_manager import DatabaseManager
 from util.protobuf_encoder import ProtobufEncoder
 from util.radon_translator import RadonTranslator
 
 class Transaction(object):
-    def __init__(self, consensus_constants, logger=None, log_queue=None, database=None, database_config=None, node_config=None):
+    def __init__(self, consensus_constants, logger=None, database=None, database_config=None, node_config=None):
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
 
         # Connect to the database
         if database:
-            self.witnet_database = database
+            self.database = database
         elif database_config:
-            if logger:
-                self.witnet_database = WitnetDatabase(database_config, logger=logger)
-            else:
-                self.witnet_database = WitnetDatabase(database_config, log_queue=log_queue, log_label="db-transaction")
+            self.database = DatabaseManager(database_config, logger=logger, custom_types=["utxo", "filter"])
         else:
-            self.witnet_database = None
+            self.database = None
 
         # Save node pool config
         self.node_config = node_config
@@ -36,10 +32,6 @@ class Transaction(object):
         # Set up logger
         if logger:
             self.logger = logger
-        elif log_queue:
-            self.log_queue = log_queue
-            self.configure_logging_process(log_queue, "transaction")
-            self.logger = logging.getLogger("transaction")
         else:
             self.logger = None
 
@@ -92,7 +84,7 @@ class Transaction(object):
         return addresses
 
     def get_inputs(self, addresses, txn_inputs):
-        assert self.witnet_database != None
+        assert self.database != None
         assert len(addresses) == len(txn_inputs)
 
         input_utxos, input_values = [], []
@@ -107,10 +99,10 @@ class Transaction(object):
             # Try to find the transaction input value in the database
             outputs = None
             sql = "SELECT type FROM hashes WHERE hash=%s LIMIT 1" % psycopg2.Binary(hash_bytes)
-            result = self.witnet_database.sql_return_one(sql)
+            result = self.database.sql_return_one(sql)
             if result:
                 sql = "SELECT output_values FROM %s WHERE txn_hash=%s LIMIT 1" % (result[0] + "s", psycopg2.Binary(hash_bytes))
-                outputs = self.witnet_database.sql_return_one(sql)
+                outputs = self.database.sql_return_one(sql)
                 if outputs:
                     input_values.append(outputs[0][input_index])
 
