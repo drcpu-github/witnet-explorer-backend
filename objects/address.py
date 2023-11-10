@@ -12,7 +12,7 @@ from util.common_functions import calculate_block_reward
 from util.database_manager import DatabaseManager
 
 class Address(object):
-    def __init__(self, address, config, database=None, witnet_node=None, logging_queue=None, connect=True):
+    def __init__(self, address, config, database=None, witnet_node=None, logger=None, connect=True):
         # Set address
         self.address = address.strip()
 
@@ -30,9 +30,8 @@ class Address(object):
             self.witnet_node = witnet_node
 
         # Create logger
-        if logging_queue:
-            self.configure_logging_process(logging_queue, "address")
-            self.logger = logging.getLogger("address")
+        if logger:
+            self.logger = logger
         else:
             self.logger = None
 
@@ -40,13 +39,6 @@ class Address(object):
         # Do not automatically initialize when the address object is used from the caching server
         if connect:
             self.initialize_connections()
-
-    def configure_logging_process(self, queue, label):
-        handler = logging.handlers.QueueHandler(queue)
-        root = logging.getLogger(label)
-        root.handlers = []
-        root.addHandler(handler)
-        root.setLevel(logging.DEBUG)
 
     def initialize_connections(self):
         # Connect to the database if necessary
@@ -61,7 +53,7 @@ class Address(object):
         consensus_constants = ConsensusConstants(
             database=self.db_mngr,
             witnet_node=self.witnet_node,
-            error_retry=config["api"]["error_retry"],
+            error_retry=self.config["api"]["error_retry"],
         )
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
@@ -141,15 +133,13 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                output_addresses @> ARRAY['%s']::CHAR(43)[] AND
-                NOT ('%s' = ANY(input_addresses))
-        """ % (self.address, self.address)
-        if epoch > 0:
-            sql += " AND epoch > %s" % epoch
-        sql += " ORDER BY epoch DESC"
-        if limit > 0 and epoch == 0:
-            sql += " LIMIT %s" % limit
-        result = self.db_mngr.sql_return_all(sql)
+                output_addresses @> ARRAY[%s]::CHAR(42)[] AND
+                NOT (%s = ANY(input_addresses))
+            ORDER BY
+                blocks.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address, self.address])
 
         value_transfers_in = []
         if result:
@@ -167,7 +157,7 @@ class Address(object):
 
                 priority = max(1, int(fee / weight))
 
-                # Only account for timelocks for when the output_address is this address
+                # Only account for timelocks if any of the output_address are self.address
                 now = int(time.time())
                 locked = any([output_address == self.address and timelock > now for output_address, timelock in zip(output_addresses, timelocks)])
 
@@ -207,14 +197,12 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                input_addresses @> ARRAY['%s']::CHAR(42)[]
-        """ % self.address
-        if epoch > 0:
-            sql += " AND epoch > %s" % epoch
-        sql += " ORDER BY epoch DESC"
-        if limit > 0 and epoch == 0:
-            sql += " LIMIT %s" % limit
-        result = self.db_mngr.sql_return_all(sql)
+                input_addresses @> ARRAY[%s]::CHAR(42)[]
+            ORDER BY
+                blocks.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
 
         value_transfers_out = []
         if result:
@@ -232,17 +220,17 @@ class Address(object):
                 unique_output_addresses = list(set(output_addresses) - set([self.address]))
                 # Transaction with multiple output_addresses different from the source address
                 if len(unique_output_addresses) > 1:
-                    txn_type = 2
-                    output_address = "multiple output addresses"
+                    direction = "out"
+                    output_addresses = unique_output_addresses
                 else:
                     # Split or merge UTXO transaction where the output_address address is also the source address
                     if len(unique_output_addresses) == 0:
-                        txn_type = 0
-                        output_address = self.address
+                        direction = "self"
+                        output_addresses = [self.address]
                     # Transaction with a output_address different from the source address
                     else:
-                        txn_type = 2
-                        output_address = unique_output_addresses[0]
+                        direction = "out"
+                        output_addresses = unique_output_addresses
 
                 fee = sum(input_values) - sum(output_values)
 
@@ -283,18 +271,17 @@ class Address(object):
                 blocks.epoch,
                 blocks.confirmed,
                 mint_txns.output_values
-            FROM blocks
+            FROM
+                blocks
             LEFT JOIN mint_txns ON
                 mint_txns.epoch=blocks.epoch
             WHERE
-                mint_txns.miner='%s'
-        """ % self.address
-        if epoch > 0:
-            sql += " AND blocks.epoch > %s" % epoch
-        sql += " ORDER BY blocks.epoch DESC"
-        if limit > 0 and epoch == 0:
-            sql += " LIMIT %s" % limit
-        result = self.db_mngr.sql_return_all(sql)
+                mint_txns.miner=%s
+            ORDER BY
+                blocks.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
 
         blocks_minted = []
         if result:
@@ -339,7 +326,7 @@ class Address(object):
             LEFT JOIN blocks ON
                 mint_txns.epoch=blocks.epoch
             WHERE
-                mint_txns.output_addresses @> ARRAY[%s]::CHAR(43)[]
+                mint_txns.output_addresses @> ARRAY[%s]::CHAR(42)[]
             ORDER BY
                 mint_txns.epoch
             DESC
@@ -404,30 +391,28 @@ class Address(object):
             ON
                 tally_txns.epoch=blocks.epoch
             WHERE
-                commit_txns.txn_address='%s'
+                commit_txns.txn_address=%s
             AND
                 blocks.reverted=false
             AND
                 tally_txns.success IS NOT NULL
-        """ % self.address
-        if epoch > 0:
-            sql += " AND tally_txns.epoch > %s" % epoch
-        sql += " ORDER BY tally_txns.epoch DESC"
-        if limit > 0 and epoch == 0:
-            sql += " LIMIT %s" % limit
-        result = self.db_mngr.sql_return_all(sql)
+            ORDER BY
+                tally_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
 
-        solved_data_request_txns = []
+        data_requests_solved = []
         if result:
             for data_request in result:
-                collateral, witness_reward, data_request, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
+                collateral, witness_reward, data_request_hash, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
 
                 # Calculate timestamp
                 timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
 
                 # Translate reveal value
                 if reveal_value:
-                    succes, translated_reveal = translate_reveal(reveal_txn_hash, reveal_value)
+                    _, translated_reveal = translate_reveal(reveal_txn_hash, reveal_value)
                 else:
                     translated_reveal = ""
 
@@ -437,16 +422,23 @@ class Address(object):
                 # Check if we were marked as a liar
                 liar = self.address in liar_addresses
 
-                solved_data_request_txns.append((success, data_request.hex(), tally_epoch, timestamp, collateral, witness_reward, translated_reveal, error, liar))
+                data_requests_solved.append(
+                    {
+                        "hash": data_request_hash.hex(),
+                        "success": success,
+                        "epoch": tally_epoch,
+                        "timestamp": timestamp,
+                        "collateral": collateral,
+                        "witness_reward": witness_reward,
+                        "reveal": translated_reveal,
+                        "error": error,
+                        "liar": liar,
+                    }
+                )
 
-        return {
-            "type": "address",
-            "address": self.address,
-            "num_data_requests_solved": len(solved_data_request_txns),
-            "data_requests_solved": solved_data_request_txns,
-        }
+        return data_requests_solved
 
-    def get_data_requests_launched(self, limit, epoch):
+    def get_data_requests_created(self):
         sql = """
             SELECT
                 data_request_txns.txn_hash,
@@ -473,16 +465,14 @@ class Address(object):
             ON
                 tally_txns.epoch=blocks.epoch
             WHERE
-                data_request_txns.input_addresses @> ARRAY['%s']::CHAR(43)[]
-        """ % self.address
-        if epoch > 0:
-            sql += " AND data_request_txns.epoch > %s" % epoch
-        sql += " ORDER BY data_request_txns.epoch DESC"
-        if limit > 0 and epoch == 0:
-            sql += " LIMIT %s" % limit
-        result = self.db_mngr.sql_return_all(sql)
+                data_request_txns.input_addresses @> ARRAY[%s]::CHAR(42)[]
+            ORDER BY
+                data_request_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
 
-        launched_data_request_txns = []
+        data_requests_created = []
         if result:
             # Loop and process
             for data_request in result:
@@ -504,19 +494,28 @@ class Address(object):
                 num_liars = len(liar_addresses)
 
                 # Translate the cbor-encoded tally result
-                translated_result = translate_tally(tally_txn_hash, result)
+                _, translated_tally = translate_tally(tally_txn_hash, result)
 
                 # Check if the tally transaction was reverted or there was an error
                 success = success and not block_reverted
 
-                launched_data_request_txns.append((success, data_request_hash.hex(), tally_epoch, timestamp, total_fee, witnesses, collateral, consensus_percentage, num_errors, num_liars, translated_result))
+                data_requests_created.append(
+                    {
+                        "hash": data_request_hash.hex(),
+                        "success": success,
+                        "epoch": tally_epoch,
+                        "timestamp": timestamp,
+                        "total_fee": total_fee,
+                        "witnesses": witnesses,
+                        "collateral": collateral,
+                        "consensus_percentage": consensus_percentage,
+                        "num_errors": num_errors,
+                        "num_liars": num_liars,
+                        "result": translated_tally,
+                    }
+                )
 
-        return {
-            "type": "address",
-            "address": self.address,
-            "num_data_requests_launched": len(launched_data_request_txns),
-            "data_requests_launched": launched_data_request_txns,
-        }
+        return data_requests_created
 
     def get_last_epoch_processed(self):
         sql = """

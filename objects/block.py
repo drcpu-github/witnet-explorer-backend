@@ -13,7 +13,7 @@ from transactions.reveal import Reveal
 from transactions.tally import Tally
 
 class Block(object):
-    def __init__(self, consensus_constants, block_hash="", block_epoch=-1, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], node_config=None):
+    def __init__(self, consensus_constants, block_hash="", block_epoch=-1, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], witnet_node=None, node_config=None):
         self.block_hash = block_hash
         self.block_epoch = block_epoch
 
@@ -50,6 +50,10 @@ class Block(object):
         if witnet_node:
             self.witnet_node = witnet_node
 
+        self.witnet_node = None
+        if witnet_node:
+            self.witnet_node = witnet_node
+
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
 
         if block == None:
@@ -81,7 +85,8 @@ class Block(object):
                 SELECT
                     block_hash,
                     epoch
-                FROM blocks
+                FROM
+                    blocks
                 WHERE
                     epoch=%s
             """ % self.block_epoch
@@ -144,8 +149,6 @@ class Block(object):
             return BlockForApi().load(self.block_json)
 
     def process_block_for_api(self):
-        self.block_json["type"] = "block"
-
         transactions = self.block_json["transactions"]
 
         # Add number of commits and reveals
@@ -196,7 +199,10 @@ class Block(object):
     def process_value_transfer_txns(self, call_from):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
-            value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
+            if self.witnet_node:
+                value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.database, witnet_node=self.witnet_node)
+            else:
+                value_transfer = ValueTransfer(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["value_transfer"], self.block["txns_weights"]["value_transfer"])):
                 json_txn = self.block["txns"]["value_transfer_txns"][i]
                 value_transfer.set_transaction(txn_hash, self.block_epoch, txn_weight=txn_weight, json_txn=json_txn)
@@ -206,7 +212,10 @@ class Block(object):
     def process_data_request_txns(self, call_from):
         data_request_transactions = []
         if len(self.block["txns_hashes"]["data_request"]) > 0:
-            data_request = DataRequest(self.consensus_constants, logger=self.logger, database_config=self.database_config, node_config=self.node_config)
+            if self.witnet_node:
+                data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.database, witnet_node=self.witnet_node)
+            else:
+                data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
             for i, (txn_hash, txn_weight) in enumerate(zip(self.block["txns_hashes"]["data_request"], self.block["txns_weights"]["data_request"])):
                 json_txn = self.block["txns"]["data_request_txns"][i]
                 data_request.set_transaction(txn_hash, self.block_epoch, txn_weight=txn_weight, json_txn=json_txn)
@@ -216,7 +225,10 @@ class Block(object):
     def process_commit_txns(self, call_from):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
-            commit = Commit(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
+            if self.witnet_node:
+                commit = Commit(self.consensus_constants, logger=self.logger, database=self.database, witnet_node=self.witnet_node)
+            else:
+                commit = Commit(self.consensus_constants, logger=self.logger, database=self.database, node_config=self.node_config)
             for i, txn_hash in enumerate(self.block["txns_hashes"]["commit"]):
                 json_txn = self.block["txns"]["commit_txns"][i]
                 commit.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)

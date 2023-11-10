@@ -7,17 +7,21 @@ from util.database_manager import DatabaseManager
 class ConsensusConstants(object):
     def __init__(
         self,
-        config={},
+        config=None,
+        database=None,
+        witnet_node=None,
         error_retry=0,
-        logger=None,
-        log_queue=None,
-        log_label=None,
         mock=False,
         mock_parameters={},
     ):
         if not mock:
+            assert config or database, "Need to pass a configuration dictionary or a database connection"
+
             # First try to fetch the consensus constants from the database
-            db_mngr = DatabaseManager(config["database"], logger=logger)
+            database_created = False
+            if database is None:
+                database = DatabaseManager(config["database"])
+                database_created = True
 
             sql = """
                 SELECT
@@ -25,24 +29,27 @@ class ConsensusConstants(object):
                 FROM
                     consensus_constants
             """
+            if hasattr(database, "named_cursor") and database.named_cursor:
+                database.reset_cursor()
             fetched_consensus_constants = database.sql_return_all(sql)
+            if database_created:
+                database.terminate()
 
             # If that did not work, fetch them from a node
             if not fetched_consensus_constants:
-                witnet_node = WitnetNode(
-                    config["node-pool"],
-                    logger=logger,
-                    log_queue=log_queue,
-                    log_label=log_label,
-                )
+                assert config or witnet_node, "Need to pass a configuration dictionary or a witnet node connection"
+
+                witnet_node_created = False
+                if not witnet_node:
+                    witnet_node = WitnetNode(config["node-pool"])
+                    witnet_node_created = True
 
                 consensus_constants = witnet_node.get_consensus_constants()
-                while (
-                    type(consensus_constants) is dict and "error" in consensus_constants
-                ):
+                while "error" in consensus_constants:
                     time.sleep(error_retry)
                     consensus_constants = witnet_node.get_consensus_constants()
-                witnet_node.close_connection()
+                if witnet_node_created:
+                    witnet_node.close_connection()
 
                 consensus_constants = consensus_constants["result"]
             # Transform the list of fetched rows to a dictionary

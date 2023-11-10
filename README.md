@@ -111,7 +111,7 @@ cd /path/to/explorer/backend; /path/to/explorer/env/bin/python3 -m blockchain.ex
 - The Flask-based API which serves frontend requests through Nginx. It can be started using a basic command like this:
 ```
 screen -S api -L -Logfile screen-api.log
-cd /path/to/explorer/backend; /path/to/explorer/env/bin/gunicorn --config file:app/gunicorn_config.py app:app
+cd /path/to/explorer/backend; /path/to/explorer/env/bin/gunicorn --config file:api/gunicorn_config.py api.wsgi:app
 ```
 In order for the API to properly function, see below section on how to start the cron jobs which process the blockchain data and save it into a memcached instance.
 

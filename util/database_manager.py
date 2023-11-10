@@ -40,13 +40,14 @@ class DatabaseManager(object):
     def register_type(self, type_name):
         psycopg2.extras.register_composite(type_name, self.connection)
 
-    def terminate(self, verbose=True):
+    def terminate(self, verbose=False, commit=False):
         if verbose:
             if self.logger:
                 self.logger.info("Terminating database manager")
             else:
                 sys.stdout.write("Terminating database manager\n")
-        self.connection.commit()
+        if commit:
+            self.connection.commit()
         # Cannot close a named cursor once commit has been called
         if not self.named_cursor:
             self.cursor.close()

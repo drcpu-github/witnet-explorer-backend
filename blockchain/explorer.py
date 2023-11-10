@@ -29,7 +29,7 @@ from transactions.data_request import DataRequest
 from transactions.value_transfer import ValueTransfer
 
 from util.socket_manager import SocketManager
-from util.helper_functions import calculate_priority, calculate_current_epoch
+from util.common_functions import calculate_priority, calculate_current_epoch
 from util.common_sql import sql_last_confirmed_block
 
 class BlockExplorer(object):
@@ -54,7 +54,7 @@ class BlockExplorer(object):
         self.insert_pending_node = WitnetNode(self.node_config, timeout=30, log_queue=self.log_queue, log_label="node-pending")
 
         # Get consensus constants
-        self.consensus_constants = ConsensusConstants(config=config, error_retry=error_retry, log_queue=self.log_queue, log_label="node-consensus")
+        self.consensus_constants = ConsensusConstants(config=config, error_retry=error_retry)
 
         # Get configuration to connect to the database
         self.database_config = config["database"]
@@ -106,13 +106,18 @@ class BlockExplorer(object):
         request = {"method": "update", "epoch": epoch, "function": "blocks", "addresses": [miner], "id": 1}
         self.try_send_request(logger, caching_server, request)
 
+        # Update the mint transaction cached view for the addresses which received (part of) the mint transaction using the caching server
+        mint_addresses = block_json["transactions"]["mint"]["output_addresses"]
+        request = {"method": "update", "epoch": epoch, "function": "mints", "addresses": mint_addresses, "id": 2}
+        self.try_send_request(logger, caching_server, request)
+
         # Update all value transfer cached views for all addresses involved in value transfers
         value_transfer_addresses = set()
         for value_transfer in block_json["transactions"]["value_transfer"]:
             value_transfer_addresses.update(set(value_transfer["input_addresses"]))
             value_transfer_addresses.update(value_transfer["output_addresses"])
         if len(value_transfer_addresses) > 0:
-            request = {"method": "update", "epoch": epoch, "function": "value-transfers", "addresses": list(value_transfer_addresses), "id": 2}
+            request = {"method": "update", "epoch": epoch, "function": "value-transfers", "addresses": list(value_transfer_addresses), "id": 3}
             self.try_send_request(logger, caching_server, request)
 
         # Update the data requests solved cached view for all addresses in all tallies
@@ -122,15 +127,15 @@ class BlockExplorer(object):
             tally_addresses.update(tally["error_addresses"])
             tally_addresses.update(tally["liar_addresses"])
         if len(tally_addresses) > 0:
-            request = {"method": "update", "epoch": epoch, "function": "data-requests-solved", "addresses": list(tally_addresses), "id": 3}
+            request = {"method": "update", "epoch": epoch, "function": "data-requests-solved", "addresses": list(tally_addresses), "id": 4}
             self.try_send_request(logger, caching_server, request)
 
-        # Update the data requests launched cached view for all addresses in all data requests
+        # Update the data requests created cached view for all addresses in all data requests
         data_request_addresses = set()
         for data_request in block_json["transactions"]["data_request"]:
             data_request_addresses.update(set(data_request["input_addresses"]))
         if len(data_request_addresses) > 0:
-            request = {"method": "update", "epoch": epoch, "function": "data-requests-launched", "addresses": list(data_request_addresses), "id": 4}
+            request = {"method": "update", "epoch": epoch, "function": "data-requests-created", "addresses": list(data_request_addresses), "id": 5}
             self.try_send_request(logger, caching_server, request)
 
         # Update the utxos for all addresses which were involved in a UTXO consuming / generating transaction
@@ -142,7 +147,7 @@ class BlockExplorer(object):
             utxo_addresses.add(commit["address"])
         utxo_addresses.update(tally_addresses)
         if len(utxo_addresses) > 0:
-            request = {"method": "update", "epoch": epoch, "function": "utxos", "addresses": list(utxo_addresses), "id": 5}
+            request = {"method": "update", "epoch": epoch, "function": "utxos", "addresses": list(utxo_addresses), "id": 6}
             self.try_send_request(logger, caching_server, request)
 
     def insert_transactions(self, database, block_json, epoch):

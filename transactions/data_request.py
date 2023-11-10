@@ -8,7 +8,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForExplorer,
 )
 from transactions.transaction import Transaction
-from util.helper_functions import calculate_priority
+from util.common_functions import calculate_priority
 
 
 class DataRequest(Transaction):
