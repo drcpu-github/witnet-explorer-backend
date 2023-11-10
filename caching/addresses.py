@@ -14,15 +14,20 @@ import sys
 import time
 import toml
 
+from marshmallow import ValidationError
+
 from matplotlib import pyplot as plt
 
 from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Manager
 
-from node.consensus_constants import ConsensusConstants
-
 from objects.address import Address
+
+from schemas.address.block_view_schema import BlockView
+from schemas.address.data_request_view_schema import DataRequestCreatedView, DataRequestSolvedView
+from schemas.address.mint_view_schema import MintView
+from schemas.address.value_transfer_view_schema import ValueTransferView
 
 from util.logger import create_logging_listener
 from util.logger import select_logging_level
@@ -41,13 +46,6 @@ class Addresses(object):
 
         # Check if the memcached server is running and exit if it is not
         self.check_memcached_server_running()
-
-        # Get consensus constants
-        try:
-            self.consensus_constants = ConsensusConstants(config=config, error_retry=config["api"]["error_retry"], logger=self.logger)
-        except ConnectionRefusedError:
-            self.logger.error("Could not connect to the node pool!")
-            sys.exit(1)
 
         # Create address stack of addresses to monitor
         self.address_stack = Manager().list(self.load_address_stack())
@@ -225,7 +223,7 @@ class Addresses(object):
                             memcached_client.delete(f"{address}-blocks")
                             memcached_client.delete(f"{address}-value-transfers")
                             memcached_client.delete(f"{address}-data-requests-solved")
-                            memcached_client.delete(f"{address}-data-requests-launched")
+                            memcached_client.delete(f"{address}-data-requests-created")
                             logger.info(f"Removed all cached views for {address}")
 
                 # Data in the cache should timeout after some time to prevent stale data
@@ -283,7 +281,7 @@ class Addresses(object):
                     # On receiving a track request, check which data is still cached.
                     # If it is still cached, do not update it, this should be done through update requests from the explorer
                     functions = []
-                    all_functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-launched", "reputation", "utxos"]
+                    all_functions = ["blocks", "value-transfers", "data-requests-solved", "data-requests-created", "reputation", "utxos"]
                     for function in all_functions:
                         data = memcached_client.get(f"{addresses[0]}_{function}")
                         if not data:
@@ -298,7 +296,7 @@ class Addresses(object):
 
                 for function, m_address in zip(functions, monitor_addresses):
                     # Create address object
-                    address = Address(m_address, config, self.consensus_constants, logging_queue=logging_queue)
+                    address = Address(m_address, config, logging_queue=logging_queue)
 
                     # Complete the request
                     # This block of code is surrounded with a try-except to catch a known Python bug with the Manager multi-processing Pool
@@ -317,9 +315,9 @@ class Addresses(object):
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
                             func_args = (logging_queue, "data requests solved", address, address.get_data_requests_solved, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
-                        elif function == "data-requests-launched":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for launched data requests")
-                            func_args = (logging_queue, "data requests launched", address, address.get_data_requests_launched, views_timeout)
+                        elif function == "data-requests-created":
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
+                            func_args = (logging_queue, "data requests created", address, address.get_data_requests_created, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "reputation":
                             if "use-log-scale" in request:
@@ -381,20 +379,33 @@ class Addresses(object):
         self.configure_logging_process(logging_queue, "function")
         logger = logging.getLogger("function")
 
-        identity = address.address
+        address.initialize_connections()
 
+        identity = address.address
         logger.info(f"Fetching {label} data for {identity}")
         if label == "utxos":
             address_data = address_function()
             if "result" in address_data:
-                address_data = address_data["result"]
+                address_data = address_data["result"]["utxos"]
             else:
                 logger.warning(f"Could not save {label} data for {identity} in the memcached instance: {address_data}")
                 return logging_queue, None
         else:
-            address.connect_to_database()
-            address_data = address_function(0, 0)
-            address.close_database_connection()
+            address_data = address_function()
+
+            try:
+                if label == "blocks":
+                    BlockView(many=True).load(address_data)
+                elif label == "value transfers":
+                    ValueTransferView(many=True).load(address_data)
+                elif label == "data requests solved":
+                    DataRequestSolvedView(many=True).load(address_data)
+                elif label == "data requests created":
+                    DataRequestCreatedView(many=True).load(address_data)
+            except ValidationError:
+                logger.error(f"Could not save {label} data for {identity} because it did not conform with the Marshmallow format")
+
+        address.close_connections()
 
         # Create memcached client
         cache_config = self.config["api"]["caching"]

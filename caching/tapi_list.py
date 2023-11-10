@@ -7,9 +7,8 @@ import toml
 
 import matplotlib.pyplot as plt
 import matplotlib.colors
-
 from caching.client import Client
-
+from schemas.network.tapi_schema import NetworkTapiResponse
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.common_sql import sql_last_block
@@ -25,8 +24,7 @@ class TapiList(Client):
         log_level = config["api"]["caching"]["scripts"]["tapi_list"]["level_file"]
         self.logger = configure_logger("tapi", log_filename, log_level)
 
-        # Initialize self.database, self.memcached_client and self.consensus_constants
-        super().__init__(config, database=True, memcached_client=True, consensus_constants=True)
+        super().__init__(config)
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
@@ -258,7 +256,7 @@ class TapiList(Client):
         self.logger.info("Saving all data in our memcached instance")
         for tapi_id, tapi in self.tapi_data.items():
             try:
-                self.memcached_client.set(f"tapi-{tapi_id}", tapi)
+                self.memcached_client.set(f"tapi-{tapi_id}", NetworkTapiResponse().load(tapi))
             except pylibmc.TooBig as e:
                 self.logger.warning("Could not save items in cache because the item size exceeded 1MB")
 
