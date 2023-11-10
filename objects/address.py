@@ -101,19 +101,13 @@ class Address(object):
             "label": label,
         }
 
-    def get_value_transfers(self, limit, epoch):
-        num_value_transfers_in, value_transfers_in = self.get_value_transfer_txns_in(limit, epoch)
-        num_value_transfers_out, value_transfers_out = self.get_value_transfer_txns_out(limit, epoch)
-        value_transfers = self.merge_value_transfer_txns(value_transfers_in, value_transfers_out, limit)
+    def get_value_transfers(self):
+        value_transfers = []
+        value_transfers.extend(self.get_value_transfers_in())
+        value_transfers.extend(self.get_value_transfers_out())
+        return sorted(value_transfers, key=lambda l: l["epoch"], reverse=True)
 
-        return {
-            "type": "address",
-            "address": self.address,
-            "num_value_transfers": len(value_transfers),
-            "value_transfers": value_transfers,
-        }
-
-    def get_value_transfer_txns_in(self, limit, epoch):
+    def get_value_transfers_in(self):
         # get value transfers arriving at our address
         sql = """
             SELECT
@@ -125,7 +119,7 @@ class Address(object):
                 value_transfer_txns.timelocks,
                 value_transfer_txns.weight,
                 value_transfer_txns.epoch,
-                blocks.reverted
+                blocks.confirmed
             FROM value_transfer_txns
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
@@ -143,16 +137,9 @@ class Address(object):
         value_transfers_in = []
         if result:
             for value_transfer in result:
-                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_reverted = value_transfer
+                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_confirmed = value_transfer
 
                 timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
-
-                if len(set(input_addresses)) > 1:
-                    source = "multiple input addresses"
-                elif len(input_addresses) == 0:
-                    source = "genesis block"
-                else:
-                    source = input_addresses[0]
 
                 total_value = 0
                 for output_address, output_value in zip(output_addresses, output_values):
@@ -167,12 +154,26 @@ class Address(object):
                 now = int(time.time())
                 locked = any([output_address == self.address and timelock > now for output_address, timelock in zip(output_addresses, timelocks)])
 
-                txn_type = 1
-                value_transfers_in.append([txn_type, txn_hash.hex(), txn_epoch, timestamp, source, self.address, total_value, fee, priority, locked, block_reverted])
+                value_transfers_in.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": txn_epoch,
+                        "timestamp": timestamp,
+                        "direction": "in",
+                        "input_addresses": sorted(list(set(input_addresses))),
+                        "output_addresses": sorted(list(set(output_addresses))),
+                        "value": total_value,
+                        "fee": fee,
+                        "priority": priority,
+                        "weight": weight,
+                        "locked": locked,
+                        "confirmed": block_confirmed,
+                    }
+                )
 
-        return len(value_transfers_in), value_transfers_in
+        return value_transfers_in
 
-    def get_value_transfer_txns_out(self, limit, epoch):
+    def get_value_transfers_out(self):
         # get value transfers starting at our address
         sql = """
             SELECT
@@ -184,7 +185,7 @@ class Address(object):
                 value_transfer_txns.timelocks,
                 value_transfer_txns.weight,
                 value_transfer_txns.epoch,
-                blocks.reverted
+                blocks.confirmed
             FROM value_transfer_txns
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
@@ -201,7 +202,7 @@ class Address(object):
         value_transfers_out = []
         if result:
             for value_transfer in result:
-                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_reverted = value_transfer
+                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_confirmed = value_transfer
 
                 timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
@@ -234,23 +235,26 @@ class Address(object):
                 now = int(time.time())
                 locked = any([timelock > now for timelock in timelocks])
 
-                value_transfers_out.append([txn_type, txn_hash.hex(), txn_epoch, timestamp, self.address, output_address, total_value, fee, priority, locked, block_reverted])
+                value_transfers_out.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": txn_epoch,
+                        "timestamp": timestamp,
+                        "direction": direction,
+                        "input_addresses": sorted(list(set(input_addresses))),
+                        "output_addresses": sorted(output_addresses),
+                        "value": total_value,
+                        "fee": fee,
+                        "priority": priority,
+                        "weight": weight,
+                        "locked": locked,
+                        "confirmed": block_confirmed,
+                    }
+                )
 
-        return len(value_transfers_out), value_transfers_out
+        return value_transfers_out
 
-    def merge_value_transfer_txns(self, value_transfers_in, value_transfers_out, limit):
-        value_transfers = []
-        for vt_out in value_transfers_out:
-            value_transfers.append(vt_out)
-        for vt_in in value_transfers_in:
-            value_transfers.append(vt_in)
-        value_transfers = sorted(value_transfers, key=lambda l: l[2], reverse=True)
-        if limit > 0:
-            return value_transfers[:limit]
-        else:
-            return value_transfers
-
-    def get_blocks(self, limit, epoch):
+    def get_blocks(self):
         sql = """
             SELECT
                 blocks.block_hash,
@@ -260,7 +264,7 @@ class Address(object):
                 blocks.reveal,
                 blocks.tally,
                 blocks.epoch,
-                blocks.reverted,
+                blocks.confirmed,
                 mint_txns.output_values
             FROM blocks
             LEFT JOIN mint_txns ON
@@ -278,23 +282,79 @@ class Address(object):
         blocks_minted = []
         if result:
             for block in result:
-                block_hash, value_transfers, data_requests, commits, reveals, tallies, block_epoch, block_reverted, output_values = block
+                block_hash, value_transfers, data_requests, commits, reveals, tallies, block_epoch, block_confirmed, output_values = block
 
                 timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
 
                 block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(block_epoch, halving_period, initial_block_reward)
+                block_fees = sum(output_values) - calculate_block_reward(block_epoch, self.halving_period, self.initial_block_reward)
 
-                blocks_minted.append((block_hash.hex(), timestamp, block_epoch, block_reward, block_fees, value_transfers, data_requests, commits, reveals, tallies, block_reverted))
+                blocks_minted.append(
+                    {
+                        "hash": block_hash.hex(),
+                        "miner": self.address,
+                        "timestamp": timestamp,
+                        "epoch": block_epoch,
+                        "block_reward": block_reward,
+                        "block_fees": block_fees,
+                        "value_transfers": value_transfers,
+                        "data_requests": data_requests,
+                        "commits": commits,
+                        "reveals": reveals,
+                        "tallies": tallies,
+                        "confirmed": block_confirmed,
+                    }
+                )
 
-        return {
-            "type": "address",
-            "address": self.address,
-            "num_blocks_minted": len(blocks_minted),
-            "blocks": blocks_minted,
-        }
+        return blocks_minted
 
-    def get_data_requests_solved(self, limit, epoch):
+    def get_mints(self):
+        sql ="""
+            SELECT
+                mint_txns.txn_hash,
+                mint_txns.miner,
+                mint_txns.output_addresses,
+                mint_txns.output_values,
+                mint_txns.epoch,
+                blocks.confirmed
+            FROM
+                mint_txns
+            LEFT JOIN blocks ON
+                mint_txns.epoch=blocks.epoch
+            WHERE
+                mint_txns.output_addresses @> ARRAY[%s]::CHAR(43)[]
+            ORDER BY
+                mint_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+
+        mints = []
+        if result:
+            for mint in result:
+                txn_hash, miner, output_addresses, output_values, epoch, confirmed = mint
+
+                value = 0
+                for output_address, output_value in zip(output_addresses, output_values):
+                    if output_address == self.address:
+                        value = output_value
+
+                timestamp = self.start_time + (epoch + 1) * self.epoch_period
+
+                mints.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": epoch,
+                        "timestamp": timestamp,
+                        "miner": miner,
+                        "output_value": value,
+                        "confirmed": confirmed,
+                    }
+                )
+
+        return mints
+
+    def get_data_requests_solved(self):
         sql = """
             SELECT
                 data_request_txns.collateral,
@@ -374,7 +434,7 @@ class Address(object):
             SELECT
                 data_request_txns.txn_hash,
                 data_request_txns.input_values,
-                data_request_txns.output_values,
+                data_request_txns.output_value,
                 data_request_txns.witnesses,
                 data_request_txns.collateral,
                 data_request_txns.consensus_percentage,
@@ -409,7 +469,7 @@ class Address(object):
         if result:
             # Loop and process
             for data_request in result:
-                data_request_hash, input_values, output_values, witnesses, collateral, consensus_percentage, tally_txn_hash, tally_epoch, error_addresses, liar_addresses, result, success, block_reverted = data_request
+                data_request_hash, input_values, output_value, witnesses, collateral, consensus_percentage, tally_txn_hash, tally_epoch, error_addresses, liar_addresses, result, success, block_reverted = data_request
 
                 # Check if any of the values is None which would indicate this data request was not completed (or incorrectly processed)
                 if any(dr == None for dr in data_request):
@@ -420,10 +480,11 @@ class Address(object):
 
                 # Calculate total fee of the data request (witnesses * witness_reward + mining fees per transaction)
                 # Note that this is the sum of the DRO and miner fees to display how much that data request payed in total
-                total_fee = sum(input_values) - sum(output_values)
+                total_fee = sum(input_values) - output_value
 
                 # Count the total number of error committers and liar_addresses
-                num_errors, num_liars = len(error_addresses), len(liar_addresses)
+                num_errors = len(error_addresses)
+                num_liars = len(liar_addresses)
 
                 # Translate the cbor-encoded tally result
                 translated_result = translate_tally(tally_txn_hash, result)
