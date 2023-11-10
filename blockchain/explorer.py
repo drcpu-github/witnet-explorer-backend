@@ -29,7 +29,7 @@ from transactions.data_request import DataRequest
 from transactions.value_transfer import ValueTransfer
 
 from util.socket_manager import SocketManager
-from util.helper_functions import calculate_priority
+from util.helper_functions import calculate_priority, calculate_current_epoch
 from util.common_sql import sql_last_confirmed_block
 
 class BlockExplorer(object):
@@ -102,13 +102,13 @@ class BlockExplorer(object):
         epoch = block_json["details"]["epoch"]
 
         # Update the blocks mined view for the miner using the caching server
-        miner = block_json["mint_txn"]["miner"]
+        miner = block_json["transactions"]["mint"]["miner"]
         request = {"method": "update", "epoch": epoch, "function": "blocks", "addresses": [miner], "id": 1}
         self.try_send_request(logger, caching_server, request)
 
         # Update all value transfer cached views for all addresses involved in value transfers
         value_transfer_addresses = set()
-        for value_transfer in block_json["value_transfer_txns"]:
+        for value_transfer in block_json["transactions"]["value_transfer"]:
             value_transfer_addresses.update(set(value_transfer["input_addresses"]))
             value_transfer_addresses.update(value_transfer["output_addresses"])
         if len(value_transfer_addresses) > 0:
@@ -117,7 +117,7 @@ class BlockExplorer(object):
 
         # Update the data requests solved cached view for all addresses in all tallies
         tally_addresses = set()
-        for tally in block_json["tally_txns"]:
+        for tally in block_json["transactions"]["tally"]:
             tally_addresses.update(tally["output_addresses"])
             tally_addresses.update(tally["error_addresses"])
             tally_addresses.update(tally["liar_addresses"])
@@ -127,7 +127,7 @@ class BlockExplorer(object):
 
         # Update the data requests launched cached view for all addresses in all data requests
         data_request_addresses = set()
-        for data_request in block_json["data_request_txns"]:
+        for data_request in block_json["transactions"]["data_request"]:
             data_request_addresses.update(set(data_request["input_addresses"]))
         if len(data_request_addresses) > 0:
             request = {"method": "update", "epoch": epoch, "function": "data-requests-launched", "addresses": list(data_request_addresses), "id": 4}
@@ -135,11 +135,11 @@ class BlockExplorer(object):
 
         # Update the utxos for all addresses which were involved in a UTXO consuming / generating transaction
         utxo_addresses = set()
-        utxo_addresses.update(set(block_json["mint_txn"]["output_addresses"]))
+        utxo_addresses.update(set(block_json["transactions"]["mint"]["output_addresses"]))
         utxo_addresses.update(value_transfer_addresses)
         utxo_addresses.update(data_request_addresses)
-        for commit in block_json["commit_txns"]:
-            utxo_addresses.add(commit["txn_address"])
+        for commit in block_json["transactions"]["commit"]:
+            utxo_addresses.add(commit["address"])
         utxo_addresses.update(tally_addresses)
         if len(utxo_addresses) > 0:
             request = {"method": "update", "epoch": epoch, "function": "utxos", "addresses": list(utxo_addresses), "id": 5}
@@ -147,26 +147,26 @@ class BlockExplorer(object):
 
     def insert_transactions(self, database, block_json, epoch):
         # Insert mint transaction
-        database.insert_mint_txn(block_json["mint_txn"], epoch)
+        database.insert_mint_txn(block_json["transactions"]["mint"], epoch)
 
         # Insert value transfer transactions
-        for txn_details in block_json["value_transfer_txns"]:
+        for txn_details in block_json["transactions"]["value_transfer"]:
             database.insert_value_transfer_txn(txn_details, epoch)
 
         # Insert data request transactions
-        for txn_details in block_json["data_request_txns"]:
+        for txn_details in block_json["transactions"]["data_request"]:
             database.insert_data_request_txn(txn_details, epoch)
 
         # Insert commit transactions
-        for txn_details in block_json["commit_txns"]:
+        for txn_details in block_json["transactions"]["commit"]:
             database.insert_commit_txn(txn_details, epoch)
 
         # Insert reveal transactions
-        for txn_details in block_json["reveal_txns"]:
+        for txn_details in block_json["transactions"]["reveal"]:
             database.insert_reveal_txn(txn_details, epoch)
 
         # Insert tally transactions
-        for txn_details in block_json["tally_txns"]:
+        for txn_details in block_json["transactions"]["tally"]:
             database.insert_tally_txn(txn_details, epoch)
 
     def insert_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
@@ -393,6 +393,13 @@ class BlockExplorer(object):
             timestamp = int(current_time / self.pending_interval) * self.pending_interval
             next_poll_interval = (int(current_time / self.pending_interval) + 1) * self.pending_interval
 
+            current_epoch = self.insert_pending_node.get_current_epoch()
+            if current_epoch == 0:
+                current_epoch = calculate_current_epoch(
+                    self.consensus_constants.checkpoint_zero_timestamp,
+                    self.consensus_constants.checkpoints_period,
+                )
+
             transactions_pool = self.insert_pending_node.get_mempool()
             # If all nodes are busy retry in short bursts to get the request through
             while "error" in transactions_pool:
@@ -422,13 +429,13 @@ class BlockExplorer(object):
                     mapped_transactions += 1
                 else:
                     data_request = DataRequest(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
-                    data_request.set_transaction(txn_hash=transaction)
-                    txn_details = data_request.process_transaction("explorer")
+                    try:
+                        data_request.set_transaction(transaction, current_epoch)
+                        txn_details = data_request.process_transaction("explorer")
+                    except ValueError:
+                        continue
 
                     queried_transactions += 1
-
-                    if txn_details == {}:
-                        continue
 
                     data_request_fee = txn_details["miner_fee"]
                     data_request_weight = txn_details["weight"]
@@ -458,13 +465,13 @@ class BlockExplorer(object):
                     mapped_transactions += 1
                 else:
                     value_transfer = ValueTransfer(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
-                    value_transfer.set_transaction(txn_hash=transaction)
-                    txn_details = value_transfer.process_transaction("explorer")
+                    try:
+                        value_transfer.set_transaction(transaction, current_epoch)
+                        txn_details = value_transfer.process_transaction("explorer")
+                    except ValueError:
+                        continue
 
                     queried_transactions += 1
-
-                    if txn_details == {}:
-                        continue
 
                     value_transfer_fee = txn_details["fee"]
                     value_transfer_weight = txn_details["weight"]

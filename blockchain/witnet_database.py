@@ -56,7 +56,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(block_json["details"]["block_hash"]),
+                bytearray.fromhex(block_json["details"]["hash"]),
                 "block",
                 block_json["details"]["epoch"],
             )
@@ -65,17 +65,17 @@ class WitnetDatabase(object):
         # Insert block
         self.blocks.append(
             (
-                bytearray.fromhex(block_json["details"]["block_hash"]),
-                len(block_json["value_transfer_txns"]),
-                len(block_json["data_request_txns"]),
-                len(block_json["commit_txns"]),
-                len(block_json["reveal_txns"]),
-                len(block_json["tally_txns"]),
-                block_json["details"]["dr_weight"],
-                block_json["details"]["vt_weight"],
-                block_json["details"]["block_weight"],
+                bytearray.fromhex(block_json["details"]["hash"]),
+                len(block_json["transactions"]["value_transfer"]),
+                len(block_json["transactions"]["data_request"]),
+                len(block_json["transactions"]["commit"]),
+                len(block_json["transactions"]["reveal"]),
+                len(block_json["transactions"]["tally"]),
+                block_json["details"]["data_request_weight"],
+                block_json["details"]["value_transfer_weight"],
+                block_json["details"]["weight"],
                 block_json["details"]["epoch"],
-                block_json["tapi_signals"],
+                block_json["tapi"],
                 block_json["details"]["confirmed"],
             )
         )
@@ -84,7 +84,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "mint_txn",
                 epoch,
             )
@@ -93,7 +93,7 @@ class WitnetDatabase(object):
         # Insert transaction
         self.mints.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 txn_details["miner"],
                 txn_details["output_addresses"],
                 txn_details["output_values"],
@@ -105,7 +105,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "value_transfer_txn",
                 epoch,
             )
@@ -114,7 +114,7 @@ class WitnetDatabase(object):
         # Insert transaction
         self.value_transfers.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -130,7 +130,7 @@ class WitnetDatabase(object):
         # Insert hash types
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "data_request_txn",
                 epoch,
             )
@@ -160,7 +160,7 @@ class WitnetDatabase(object):
 
         self.data_requests.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 txn_details["input_addresses"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
@@ -190,7 +190,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "commit_txn",
                 epoch,
             )
@@ -199,8 +199,8 @@ class WitnetDatabase(object):
         # Insert transaction
         self.commits.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
-                txn_details["txn_address"],
+                bytearray.fromhex(txn_details["hash"]),
+                txn_details["address"],
                 txn_details["input_values"],
                 txn_details["input_utxos"],
                 txn_details["output_value"],
@@ -213,7 +213,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "reveal_txn",
                 epoch,
             )
@@ -222,10 +222,10 @@ class WitnetDatabase(object):
         # Insert transaction
         self.reveals.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
-                txn_details["txn_address"],
+                bytearray.fromhex(txn_details["hash"]),
+                txn_details["address"],
                 bytearray.fromhex(txn_details["data_request"]),
-                txn_details["reveal_value"],
+                txn_details["reveal"],
                 txn_details["success"],
                 epoch,
             )
@@ -235,7 +235,7 @@ class WitnetDatabase(object):
         # Insert hash type
         self.hashes.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 "tally_txn",
                 epoch,
             )
@@ -244,13 +244,13 @@ class WitnetDatabase(object):
         # Insert tally transaction
         self.tallies.append(
             (
-                bytearray.fromhex(txn_details["txn_hash"]),
+                bytearray.fromhex(txn_details["hash"]),
                 txn_details["output_addresses"],
                 txn_details["output_values"],
                 bytearray.fromhex(txn_details["data_request"]),
                 txn_details["error_addresses"],
                 txn_details["liar_addresses"],
-                txn_details["tally_value"],
+                txn_details["tally"],
                 txn_details["success"],
                 epoch,
             )
@@ -427,7 +427,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(
                 sql,
                 self.data_requests,
-                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)",
+                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s, %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)",
             )
             if self.logger:
                 self.logger.info(
