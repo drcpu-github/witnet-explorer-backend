@@ -27,6 +27,9 @@ def calculate_current_epoch(start_time, epoch_period):
 def calculate_timestamp_from_epoch(start_time, epoch_period, epoch):
     return start_time + epoch_period * (epoch + 1)
 
+def calculate_epoch_from_timestamp(start_time, epoch_period, timestamp):
+    return int((timestamp - start_time) / epoch_period)
+
 def send_address_caching_request(logger, caching_server, request):
     try:
         caching_server.send_request(request)
