@@ -9,6 +9,7 @@ from schemas.component.data_request_schema import (
 )
 from transactions.transaction import Transaction
 from util.common_functions import calculate_priority
+from util.radon_translator import RadonTranslator
 
 
 class DataRequest(Transaction):
@@ -155,12 +156,12 @@ class DataRequest(Transaction):
                     self.txn_details["bodies"].append("")
 
                 self.txn_details["scripts"].append(
-                    self.translate_script(retrieve["script"])
+                    translate_script(retrieve["script"])
                 )
 
             # Collect aggregation stage details
             if len(self.data_request["aggregate"]["filters"]) > 0:
-                self.txn_details["aggregate_filters"] = self.translate_filters(
+                self.txn_details["aggregate_filters"] = translate_filters(
                     [
                         (aggregate_filter["op"], aggregate_filter["args"])
                         for aggregate_filter in self.data_request["aggregate"][
@@ -173,7 +174,7 @@ class DataRequest(Transaction):
 
             # Collect tally stage details
             if len(self.data_request["tally"]["filters"]) > 0:
-                self.txn_details["tally_filters"] = self.translate_filters(
+                self.txn_details["tally_filters"] = translate_filters(
                     [
                         (tally_filter["op"], tally_filter["args"])
                         for tally_filter in self.data_request["tally"]["filters"]
@@ -183,10 +184,10 @@ class DataRequest(Transaction):
                 self.txn_details["tally_filters"] = ""
 
             # Translate reducers
-            self.txn_details["aggregate_reducer"] = self.translate_reducer(
+            self.txn_details["aggregate_reducer"] = translate_reducer(
                 self.txn_details["aggregate_reducer"]
             )
-            self.txn_details["tally_reducer"] = self.translate_reducer(
+            self.txn_details["tally_reducer"] = translate_reducer(
                 self.txn_details["tally_reducer"]
             )
 
@@ -305,21 +306,21 @@ class DataRequest(Transaction):
                         "kind": kind,
                         "url": url,
                         "body": "".join([chr(c) for c in bytearray(body)]),
-                        "script": self.translate_script(script),
+                        "script": translate_script(script),
                     }
                 )
 
             # Translate aggregation stage
-            txn_aggregate = self.translate_filters(aggregate_filters)
+            txn_aggregate = translate_filters(aggregate_filters)
             if len(txn_aggregate) > 0:
                 txn_aggregate += "."
-            txn_aggregate += self.translate_reducer(aggregate_reducer)
+            txn_aggregate += translate_reducer(aggregate_reducer)
 
             # Translate tally stage
-            txn_tally = self.translate_filters(tally_filters)
+            txn_tally = translate_filters(tally_filters)
             if len(txn_tally) > 0:
                 txn_tally += "."
-            txn_tally += self.translate_reducer(tally_reducer)
+            txn_tally += translate_reducer(tally_reducer)
 
             txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
 
@@ -370,29 +371,35 @@ class DataRequest(Transaction):
         miner_fee = sum(input_values) - (output_value or 0) - dro_fee
         return dro_fee, miner_fee
 
-    def translate_script(self, script):
-        translation = ""
-        for op in list(cbor.loads(bytearray(script))):
-            if type(op) is int:
-                translation += self.translator.hex2str(op, "opcode") + "()."
-            else:
-                translation += (
-                    self.translator.hex2str(op[0], "opcode") + "(" + str(op[1]) + ")."
-                )
-        return translation[:-1]
+def translate_script(script):
+    translator = RadonTranslator()
 
-    def translate_filters(self, filters):
-        translation = ""
-        for filt, arg in filters:
-            translation += "filter(" + self.translator.hex2str(filt, "filter")
-            if len(arg) > 0:
-                translation += ", " + str(cbor.loads(bytearray(arg))) + ")."
-            else:
-                translation += ")."
-        return translation[:-1]
+    translation = ""
+    for op in list(cbor.loads(bytearray(script))):
+        if type(op) is int:
+            translation += translator.hex2str(op, "opcode") + "()."
+        else:
+            translation += (
+                translator.hex2str(op[0], "opcode") + "(" + str(op[1]) + ")."
+            )
+    return translation[:-1]
 
-    def translate_reducer(self, reducers):
-        translation = ""
-        for r in reducers:
-            translation += "reduce(" + self.translator.hex2str(r, "reducer") + ")."
-        return translation[:-1]
+def translate_filters(filters):
+    translator = RadonTranslator()
+
+    translation = ""
+    for filt, arg in filters:
+        translation += "filter(" + translator.hex2str(filt, "filter")
+        if len(arg) > 0:
+            translation += ", " + str(cbor.loads(bytearray(arg))) + ")."
+        else:
+            translation += ")."
+    return translation[:-1]
+
+def translate_reducer(reducers):
+    translator = RadonTranslator()
+
+    translation = ""
+    for r in reducers:
+        translation += "reduce(" + translator.hex2str(r, "reducer") + ")."
+    return translation[:-1]
