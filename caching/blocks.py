@@ -4,10 +4,10 @@ import sys
 import time
 import toml
 
-from objects.block import Block
+from marshmallow import ValidationError
 
 from caching.client import Client
-
+from objects.block import Block
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
@@ -20,8 +20,7 @@ class Blocks(Client):
         log_level = config["api"]["caching"]["scripts"]["blocks"]["level_file"]
         self.logger = configure_logger("block", log_filename, log_level)
 
-        # Create database client, memcached client and a consensus constants object
-        super().__init__(config, database=True, memcached_client=True, consensus_constants=True)
+        super().__init__(config)
 
         self.node_config = config["node-pool"]
 
@@ -61,6 +60,7 @@ class Blocks(Client):
                 blocks.epoch BETWEEN %s AND %s
             ORDER BY
                 blocks.epoch
+            ASC
         """ % (blocks_epoch, last_epoch)
         blocks = self.database.sql_return_all(re_sql(sql))
 
@@ -77,8 +77,13 @@ class Blocks(Client):
 
             # Check if the block is already present in the cache or if a forced update is required
             if not json_block or force_update:
-                json_block = self.build_block(block_hash, epoch)
-                if json_block == None:
+                try:
+                    json_block = self.build_block(block_hash, epoch)
+                except ValidationError:
+                    self.logger.error(f"Block {block_hash} does not pass the Marshmallow validation")
+                    continue
+
+                if json_block is None:
                     continue
 
                 # Try to insert the block in the cache
@@ -92,11 +97,14 @@ class Blocks(Client):
                 except pylibmc.TooBig as e:
                     self.logger.warning(f"Built block {block_hash} for epoch {epoch} in {time.perf_counter() - inner_start:.2f}s, but could not save it in the memcached instance because its size exceeded 1MB")
             else:
+                json_block = json_block["block"]
                 superblock_epoch = int(json_block["details"]["epoch"] / self.superblock_period) * self.superblock_period
                 if not json_block["details"]["confirmed"] and last_epoch >= superblock_epoch + self.superblock_period * 2:
                     json_block = self.build_block(block_hash, epoch)
-                    if json_block == None:
+
+                    if json_block is None:
                         continue
+
                     if json_block["details"]["confirmed"]:
                         self.cache_block(last_epoch, epoch, block_hash, json_block)
 
@@ -129,7 +137,14 @@ class Blocks(Client):
             # Cache older blocks for a shorter amount of time proportional to mimic the normal expiry time
             timeout = calculate_timeout(int(self.memcached_timeout * (self.lookback_epochs - last_epoch + epoch) / self.lookback_epochs))
             # First, cache the full block based on the hash
-            self.memcached_client.set(block_hash, json_block, time=timeout)
+            self.memcached_client.set(
+                block_hash,
+                {
+                    "response_type": "block",
+                    "block": json_block,
+                },
+                time=timeout
+            )
             # Second, cache the block epoch to block hash mapping
             self.memcached_client.set(str(epoch), block_hash, time=timeout)
         except pylibmc.TooBig as e:

@@ -198,11 +198,13 @@ log_file = "/path/to/logs/reputation_list.log"
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # log_file: specify logging file name
+# timeout: specify the memcached timeout (in seconds) after which the data is invalidated
 # node_timeout: overwrite the default node timeout to fetch big amounts of data from a node
 [api.caching.scripts.balance_list]
 cron = "0 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/balance_list.log"
+timeout = 86400 # 1 day
 node_timeout = 60
 
 # cron: specify the crontab timing configuration
@@ -217,8 +219,8 @@ log_file = "/path/to/logs/tapi_list.log"
 [api.caching.views.hash]
 timeout = 86400 # 1 day
 
-# timeout: configure timeout (in seconds) for the pending view function
-[api.caching.views.pending]
+# timeout: configure timeout (in seconds) for the mempool view function
+[api.caching.views.mempool]
 timeout = 15
 
 # timeout: configure timeout (in seconds) for the blockchain view function

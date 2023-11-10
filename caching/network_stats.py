@@ -1,7 +1,6 @@
 import json
 import numpy
 import optparse
-import pylibmc
 import sys
 import time
 import toml
@@ -21,9 +20,8 @@ class NetworkStats(Client):
         log_level = config["api"]["caching"]["scripts"]["network_stats"]["level_file"]
         self.logger = configure_logger("network", log_filename, log_level)
 
-        # Create node client, database client, memcached client and a consensus constants object
         timeout = config["api"]["caching"]["scripts"]["network_stats"]["node_timeout"]
-        super().__init__(config, node=True, timeout=timeout, database=True, named_cursor=True, memcached_client=True, consensus_constants=True)
+        super().__init__(config, node_timeout=timeout, named_cursor=True)
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp

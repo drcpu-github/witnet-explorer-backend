@@ -5,7 +5,7 @@ import time
 import toml
 
 from caching.client import Client
-
+from schemas.network.reputation_schema import NetworkReputationResponse
 from util.logger import configure_logger
 
 class ReputationList(Client):
@@ -18,8 +18,7 @@ class ReputationList(Client):
         # Read some Witnet node parameters
         self.node_retries = config["api"]["caching"]["node_retries"]
 
-        # Create node client and memcached client
-        super().__init__(config, node=True, memcached_client=True)
+        super().__init__(config)
 
     def get_reputation(self):
         start = time.perf_counter()
@@ -50,14 +49,20 @@ class ReputationList(Client):
         stats = result["result"]["stats"]
         total_reputation = result["result"]["total_reputation"]
         # Only keep identities with a non-zero reputation
-        reputation = [(key, stats[key]["reputation"], stats[key]["eligibility"] / total_reputation * 100) for key in stats.keys() if stats[key]["reputation"] > 0]
-        reputation = sorted(reputation, key=lambda l: l[1], reverse=True)
+        reputation = [
+            {
+                "address": key,
+                "reputation": stats[key]["reputation"],
+                "eligibility": stats[key]["eligibility"] / total_reputation * 100
+            } for key in stats.keys() if stats[key]["reputation"] > 0
+        ]
+        reputation = sorted(reputation, key=lambda l: l["reputation"], reverse=True)
 
-        self.reputation = {
+        self.reputation = NetworkReputationResponse().load({
             "reputation": reputation,
             "total_reputation": result["result"]["total_reputation"],
             "last_updated": int(time.time())
-        }
+        })
 
         self.logger.info(f"Fetched reputation data for the ARS in {time.perf_counter() - start:.2f}s")
 

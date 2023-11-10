@@ -1,22 +1,27 @@
 import psycopg2
 import pylibmc
+import sys
 
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.socket_manager import SocketManager
 from util.database_manager import DatabaseManager
 
+
 class Client(object):
-    def __init__(self, config, node=False, timeout=0, database=False, named_cursor=False, memcached_client=False, consensus_constants=False):
+    def __init__(self, config, node_timeout=0, named_cursor=False):
         self.config = config
 
         # Connect to node pool
-        if node:
-            try:
-                self.witnet_node = WitnetNode(config["node-pool"], timeout=timeout, logger=self.logger)
-            except ConnectionRefusedError:
-                self.logger.error(f"Could not connect to the node pool!")
-                sys.exit(1)
+        try:
+            self.witnet_node = WitnetNode(
+                config["node-pool"],
+                timeout=node_timeout,
+                logger=self.logger,
+            )
+        except ConnectionRefusedError:
+            self.logger.error("Could not connect to the node pool!")
+            sys.exit(1)
 
         # Connect to database
         try:
@@ -38,28 +43,36 @@ class Client(object):
             sys.exit(1)
 
         # Memcached client
-        if memcached_client:
-            cache_config = config["api"]["caching"]
-            servers = cache_config["server"].split(",")
-            self.memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
+        cache_config = config["api"]["caching"]
+        servers = cache_config["server"].split(",")
+        self.memcached_client = pylibmc.Client(
+            servers,
+            binary=True,
+            username=cache_config["user"],
+            password=cache_config["password"],
+            behaviors={"tcp_nodelay": True, "ketama": True},
+        )
 
-            try:
-                for server in servers:
-                    # Try to connect to the memcached server to check if it is running
-                    socket_mngr = SocketManager(server, "11211", 1)
-                    socket_mngr.connect()
-                    socket_mngr.disconnect()
-            except ConnectionRefusedError:
-                self.logger.error(f"Could not connect to the memcached server!")
-                sys.exit(3)
+        try:
+            for server in servers:
+                # Try to connect to the memcached server to check if it is running
+                socket_mngr = SocketManager(server, "11211", 1)
+                socket_mngr.connect()
+                socket_mngr.disconnect()
+        except ConnectionRefusedError:
+            self.logger.error("Could not connect to the memcached server!")
+            sys.exit(1)
 
         # Get consensus constants
-        if consensus_constants:
-            try:
-                self.consensus_constants = ConsensusConstants(config=config, error_retry=config["api"]["error_retry"], logger=self.logger)
-            except ConnectionRefusedError:
-                self.logger.error(f"Could not connect to the node pool!")
-                sys.exit(1)
+        try:
+            self.consensus_constants = ConsensusConstants(
+                database=self.database,
+                witnet_node=self.witnet_node,
+                error_retry=config["api"]["error_retry"],
+            )
+        except ConnectionRefusedError:
+            self.logger.error("Could not connect to the node pool!")
+            sys.exit(1)
 
     def get_start_epoch(self, key):
         sql = """
@@ -70,7 +83,7 @@ class Client(object):
             WHERE
                 key=%s
         """
-        epoch = self.witnet_database.db_mngr.sql_return_one(sql, (key,))
+        epoch = self.database.sql_return_one(sql, parameters=[key])
         if epoch:
             return epoch[0]
         else:
@@ -87,4 +100,4 @@ class Client(object):
             DO UPDATE SET
                 data=EXCLUDED.data
         """
-        self.witnet_database.db_mngr.sql_insert_one(sql, (key, epoch))
+        self.database.sql_insert_one(sql, [key, epoch])

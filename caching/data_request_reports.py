@@ -5,10 +5,10 @@ import sys
 import time
 import toml
 
+from marshmallow import ValidationError
+
 from objects.data_request_report import DataRequestReport
-
 from caching.client import Client
-
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
@@ -21,8 +21,7 @@ class DataRequestReports(Client):
         log_level = config["api"]["caching"]["scripts"]["data_request_reports"]["level_file"]
         self.logger = configure_logger("report", log_filename, log_level)
 
-        # Create database client, memcached client and a consensus constants object
-        super().__init__(config, database=True, memcached_client=True, consensus_constants=True)
+        super().__init__(config)
 
         # Fetch configured timeout for data request report cache expiry
         self.memcached_timeout = config["api"]["caching"]["scripts"]["data_request_reports"]["timeout"]
@@ -87,7 +86,7 @@ class DataRequestReports(Client):
                     continue
 
                 confirmed = False
-                if data_request_report["tally_txn"] != None and data_request_report["tally_txn"]["confirmed"] == True:
+                if data_request_report["tally"] != None and data_request_report["tally"]["confirmed"] == True:
                     # track the last epoch for which we successfully added a confirmed data request report to the cache
                     # on the next execution of this script, it will start processing data request reports from that epoch
                     data_request_reports_epoch = epoch
@@ -100,12 +99,15 @@ class DataRequestReports(Client):
 
                 self.logger.info(f"Built {'confirmed' if confirmed else 'unconfirmed'} data request report {txn_hash} for epoch {epoch} and added it to the memcached cache in {time.perf_counter() - inner_start:.2f}s")
             else:
-                if data_request_report["tally_txn"] == None or data_request_report["tally_txn"]["confirmed"] == False:
+                tally = data_request_report["data_request_report"]["tally"]
+                if tally is None or tally["confirmed"] == False:
                     # Replace the current cached data request report with a new one since it could've been updated
                     data_request_report = self.cache_data_request_report(txn_hash, epoch, inner_start)
+                    if data_request_report == None:
+                        continue
 
                     confirmed = False
-                    if data_request_report["tally_txn"] != None and data_request_report["tally_txn"]["confirmed"] == True:
+                    if data_request_report["tally"] != None and data_request_report["tally"]["confirmed"] == True:
                         # track the last epoch for which we successfully added a confirmed data request report to the cache
                         # on the next execution of this script, it will start processing data request reports from that epoch
                         data_request_reports_epoch = epoch
@@ -130,17 +132,28 @@ class DataRequestReports(Client):
 
     def cache_data_request_report(self, txn_hash, epoch, inner_start):
         # Build data request report
-        data_request = DataRequestReport("data_request_txn", txn_hash, self.consensus_constants, logger=self.logger, database=self.database)
-        data_request_report = data_request.get_report()
-        if "error" in data_request_report:
-            self.logger.warning(f"Could not create data request report {txn_hash} for epoch {epoch}")
+        data_request = DataRequestReport("data_request", txn_hash, self.consensus_constants, logger=self.logger, database=self.database)
+        try:
+            data_request_report = data_request.get_report()
+            if "error" in data_request_report:
+                self.logger.warning(f"Could not create data request report {txn_hash} for epoch {epoch}")
+                return None
+        except ValidationError as err_info:
+            self.logger.error(f"Could not validate data request report {txn_hash} for epoch {epoch}: {err_info}")
             return None
 
         # Try to insert the data request report in the cache
         try:
             # Cache older data request reports for a shorter amount of time proportional to mimic the normal expiry time
             timeout = calculate_timeout(int(self.memcached_timeout * (self.lookback_epochs - self.last_epoch + epoch) / self.lookback_epochs))
-            self.memcached_client.set(txn_hash, data_request_report, time=timeout)
+            self.memcached_client.set(
+                txn_hash,
+                {
+                    "response_type": "data_request_report",
+                    "data_request_report": data_request_report,
+                },
+                time=timeout,
+            )
         except pylibmc.TooBig as e:
             self.logger.warning(f"Built data request report {txn_hash} for epoch {epoch} in {time.perf_counter() - inner_start:.2f}s, but could not save it in the memcached instance because its size exceeded 1MB")
             return None

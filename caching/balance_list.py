@@ -5,7 +5,7 @@ import time
 import toml
 
 from caching.client import Client
-
+from schemas.network.balances_schema import NetworkBalancesResponse
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 
@@ -18,10 +18,10 @@ class BalanceList(Client):
 
         # Read some Witnet node parameters
         self.node_retries = config["api"]["caching"]["node_retries"]
+        self.timeout = config["api"]["caching"]["scripts"]["balance_list"]["timeout"]
         self.node_timeout = config["api"]["caching"]["scripts"]["balance_list"]["node_timeout"]
 
-        # Initialize self.witnet_node, self.witnet_database and self.memcached_client
-        super().__init__(config, node=True, timeout=self.node_timeout, database=True, memcached_client=True)
+        super().__init__(config, node_timeout=self.node_timeout)
 
     def build(self):
         start = time.perf_counter()
@@ -64,42 +64,50 @@ class BalanceList(Client):
         self.addresses, self.balances, self.balances_sum = [], [], 0
         for address, balance in address_balances["result"].items():
             # Only save addresses with a balance above 1 WIT
-            if balance["total"] // 1E9 < 1:
+            if int(balance["total"] / 1E9) < 1:
                 continue
             self.addresses.append(address)
             # Create balance entry
-            self.balances.append([address, balance["total"] // 1E9, address_labels[address] if address in address_labels else ""])
+            self.balances.append(
+                {
+                    "address": address,
+                    "balance": int(balance["total"] / 1E9),
+                    "label": address_labels[address] if address in address_labels else ""
+                }
+            )
             # Sum all balances, don't floor to an integer to minimize rounding errors
             self.balances_sum += balance["total"] / 1E9
         self.balances_sum = int(self.balances_sum)
         # Sort balance list by largest balance first
-        self.balances = sorted(self.balances, key=lambda l: l[1], reverse=True)
+        self.balances = sorted(self.balances, key=lambda l: l["balance"], reverse=True)
 
         self.logger.info(f"Processed {len(self.balances)} address balances in {time.perf_counter() - start:.2f}s")
 
         return True
 
     # Save the BalanceList data into a memcached instance
-    def save(self, items_per_key=1000):
+    def save(self):
         self.logger.info("Saving all data in our memcached instance")
 
-        # Save the total balance for all BalanceList entries
-        self.memcached_client.set(f"balance-list_sum", self.balances_sum)
-
-        # Save timestamp of when the BalanceList was last updated
-        self.memcached_client.set(f"balance-list_updated", int(time.time()))
-
         # Save the actual BalanceList per x items as to not exceed the maximum item size of 1MB
-        items_stored_in_cache = 0
+        items_per_key = 1000
         for i in range(0, len(self.balances), items_per_key):
             self.logger.debug(f"Saving balance-list_{i}-{i + items_per_key}")
             try:
-                self.memcached_client.set(f"balance-list_{i}-{i + items_per_key}", self.balances[i : i + items_per_key])
+                self.memcached_client.set(
+                    f"balance-list_{i}-{i + items_per_key}",
+                    NetworkBalancesResponse().load(
+                        {
+                            "balances": self.balances[i : i + items_per_key],
+                            "total_items": len(self.balances),
+                            "total_balance_sum": self.balances_sum,
+                            "last_updated": int(time.time()),
+                        }
+                    ),
+                    time=self.timeout,
+                )
             except pylibmc.TooBig as e:
                 self.logger.warning("Could not save BalanceList sublist in cache because the item size exceeded 1MB")
-            items_stored_in_cache += 1
-
-        self.memcached_client.set(f"balance-list_items", items_stored_in_cache)
 
     def get_address_ids(self):
         # Fetch all known addresses and their ids
