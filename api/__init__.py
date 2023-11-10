@@ -38,10 +38,11 @@ from api.connect import (
     create_witnet_node,
 )
 from api.gunicorn_config import toml_config
+from mockups.config import mock_config
 from util.logger import configure_logger
 
 
-def create_app():
+def create_app(mock=False):
     # Create app
     app = Flask(__name__)
 
@@ -63,8 +64,10 @@ def create_app():
         "show-header": "false",
     }
 
-    # Create configuration
-    explorer_config = toml.load(toml_config)
+    if not mock:
+        explorer_config = toml.load(toml_config)
+    else:
+        explorer_config = mock_config
     app.config["explorer"] = explorer_config
 
     # Setup logger
@@ -72,16 +75,16 @@ def create_app():
     app.extensions["logger"] = configure_logger("api", log_file, "info")
 
     # Create connections to external resources
-    address_caching_server = create_address_caching_server(explorer_config)
+    address_caching_server = create_address_caching_server(explorer_config, mock=mock)
     address_caching_server.init_app(app, "address_caching_server")
 
-    cache = create_cache(explorer_config)
+    cache = create_cache(explorer_config, mock=mock)
     cache.init_app(app)
 
-    database = create_database(explorer_config)
+    database = create_database(explorer_config, mock=mock)
     database.init_app(app)
 
-    witnet_node = create_witnet_node(explorer_config)
+    witnet_node = create_witnet_node(explorer_config, mock=mock)
     witnet_node.init_app(app)
 
     # Create top-level blueprints
