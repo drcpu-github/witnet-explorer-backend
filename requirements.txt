@@ -3,6 +3,7 @@ Flask==2.3.2
 Flask_Caching==2.0.2
 gevent==23.7.0
 gunicorn==21.2.0
+marshmallow==3.20.1
 matplotlib==3.5.3
 numpy==1.24.4
 Pillow==10.0.0
