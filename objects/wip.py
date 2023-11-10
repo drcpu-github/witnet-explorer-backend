@@ -7,10 +7,17 @@ from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
 
 class WIP(object):
-    def __init__(self, database_config=None, node_config=None, mockup=False):
-        if database_config:
+    def __init__(self, database=None, database_config=None, witnet_node=None, node_config=None, mockup=False):
+        if database:
+            self.db_mngr = database
+            self.fetch_wips()
+        elif database_config:
             self.db_mngr = DatabaseManager(database_config)
             self.fetch_wips()
+
+        self.witnet_node = None
+        if witnet_node is not None:
+            self.witnet_node = witnet_node
 
         self.node_config = node_config
 
@@ -189,7 +196,8 @@ class WIP(object):
             sys.stderr.write("Cannot process TAPI signals on a mockup\n")
             return
 
-        witnet_node = WitnetNode(self.node_config)
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(self.node_config)
 
         for wip in self.wips:
             wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
@@ -221,7 +229,7 @@ class WIP(object):
                 if confirmed and tapi_signals == None:
                     print(f"Fetching TAPI signal for epoch {epoch}")
 
-                    block = witnet_node.get_block(bytes(block_hash).hex())
+                    block = self.witnet_node.get_block(bytes(block_hash).hex())
                     if type(block) is dict and "error" in block:
                         sys.stderr.write(f"Could not fetch block: {block}\n")
                         continue
