@@ -96,11 +96,6 @@ class NetworkStats(Client):
         self.logger.info(f"Calculated burn rate statistics for {len(self.burn_rate_period)} periods in {time.perf_counter() - start_inner:.2f}s")
 
         start_inner = time.perf_counter()
-        self.logger.info("Calculating TRS statistics")
-        self.get_trs_data_per_period(reset)
-        self.logger.info(f"Calculated TRS statistics for {len(self.trs_data_period)} periods in {time.perf_counter() - start_inner:.2f}s")
-
-        start_inner = time.perf_counter()
         self.logger.info("Calculating value transfer statistics")
         self.get_value_transfers_per_period(reset)
         self.logger.info(f"Calculated value transfer statistics for {len(self.value_transfers_period)} periods in {time.perf_counter() - start_inner:.2f}s")
@@ -595,121 +590,6 @@ class NetworkStats(Client):
                 num_liar_addresses = 0
             self.burn_rate_period[per_period_key][1] += num_liar_addresses * collateral
 
-    def get_trs_data_per_period(self, reset):
-        # Read data from database (unless reset was set)
-        epoch, self.trs_data_period = 0, {}
-        if not reset:
-            epoch, trs_data_period = read_from_database("trs", self.aggregation_epochs, self.database_client)
-            self.trs_data_period = {(tdp[0], tdp[1]): tdp[2] for tdp in trs_data_period}
-
-        self.logger.info(f"Calculating TRS statistics from epoch {epoch} to {self.last_confirmed_epoch}")
-
-        # Add all keys upfront to make sure periods without data are initialized as empty
-        for key in self.construct_keys(epoch, self.last_confirmed_epoch):
-            if key not in self.trs_data_period:
-                self.trs_data_period[key] = [
-                    0,  # Amount of TRS nodes
-                    0,  # Average reputation of TRS nodes
-                    0,  # Median reputation of TRS nodes
-                    0,  # Highest reputation of TRS nodes
-                ]
-
-        # Fetch most recent reputation data prior to the first epoch
-        sql = """
-            SELECT
-                trs.reputations
-            FROM trs
-            LEFT JOIN
-                blocks
-            ON
-                blocks.epoch = trs.epoch
-            WHERE
-                blocks.confirmed = true
-            AND
-                blocks.epoch < %s
-            ORDER BY
-                blocks.epoch
-            DESC LIMIT 1
-        """ % epoch
-        self.database.reset_cursor()
-        previous_reputation = self.database.sql_return_one(re_sql(sql))
-        if not previous_reputation:
-            previous_reputation = []
-        else:
-            previous_reputation = previous_reputation[0]
-
-        previous_epoch = epoch
-
-        # Fetch reputation data
-        sql = """
-            SELECT
-                blocks.epoch,
-                trs.reputations
-            FROM trs
-            LEFT JOIN
-                blocks
-            ON
-                blocks.epoch = trs.epoch
-            WHERE
-                blocks.confirmed = true
-            AND
-                blocks.epoch BETWEEN %s AND %s
-            ORDER BY
-                blocks.epoch
-            ASC
-        """ % (epoch, self.last_confirmed_epoch)
-        self.database.reset_cursor()
-        trs_data = self.database.sql_return_all(re_sql(sql))
-
-        if trs_data == None:
-            return
-
-        next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-        per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
-
-        epoch_counter = 0
-        for epoch, reputation in trs_data:
-            # Check if the next aggregation period was reached
-            if epoch >= next_aggregation_period:
-                # Add values of the last epoch in an aggregation period
-                if len(previous_reputation) > 0:
-                    self.trs_data_period[per_period_key][0] += len(previous_reputation) * (next_aggregation_period - previous_epoch)
-                    self.trs_data_period[per_period_key][1] += numpy.average(previous_reputation) * (next_aggregation_period - previous_epoch)
-                    self.trs_data_period[per_period_key][2] += numpy.median(previous_reputation) * (next_aggregation_period - previous_epoch)
-
-                next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
-
-                # Divide summed statistics to get a time-weighted average
-                self.trs_data_period[per_period_key][0] /= self.aggregation_epochs
-                self.trs_data_period[per_period_key][1] /= self.aggregation_epochs
-                self.trs_data_period[per_period_key][2] /= self.aggregation_epochs
-
-                per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
-
-                epoch_counter = 0
-
-            # Create data structure
-
-            # Time-weighted average statistics taking into account the amount of epochs they lasted
-            aggregation_lower_bound = int(epoch / self.aggregation_epochs) * self.aggregation_epochs
-            if len(previous_reputation) > 0:
-                self.trs_data_period[per_period_key][0] += len(previous_reputation) * (epoch - max(aggregation_lower_bound, previous_epoch))
-                self.trs_data_period[per_period_key][1] += numpy.average(previous_reputation) * (epoch - max(aggregation_lower_bound, previous_epoch))
-                self.trs_data_period[per_period_key][2] += numpy.median(previous_reputation) * (epoch - max(aggregation_lower_bound, previous_epoch))
-
-            # Track the maximum reputation
-            if len(previous_reputation) > 0 and max(previous_reputation) > self.trs_data_period[per_period_key][3]:
-                self.trs_data_period[per_period_key][3] = max(previous_reputation)
-
-            previous_epoch = epoch
-            previous_reputation = reputation
-
-            epoch_counter += 1
-
-        self.trs_data_period[per_period_key][0] /= epoch_counter
-        self.trs_data_period[per_period_key][1] /= epoch_counter
-        self.trs_data_period[per_period_key][2] /= epoch_counter
-
     def get_value_transfers_per_period(self, reset):
         # Read data from database (unless reset was set)
         epoch, self.value_transfers_period = 0, {}
@@ -859,7 +739,6 @@ class NetworkStats(Client):
             ["data_requests", self.data_requests_period],
             ["lie_rate", self.lie_rates_period],
             ["burn_rate", self.burn_rate_period],
-            ["trs", self.trs_data_period],
             ["value_transfers", self.value_transfers_period],
         ]
         for sn, pps in per_period_stats:

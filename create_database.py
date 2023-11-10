@@ -110,19 +110,6 @@ def create_enums(connection, cursor):
 
         """DO $$
             BEGIN
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'reputation_type') THEN
-                    CREATE TYPE reputation_type AS ENUM (
-                        'gain',
-                        'expire',
-                        'lie'
-                    );
-                END IF;
-            END
-        $$;
-        COMMIT;""",
-
-        """DO $$
-            BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'network_stat') THEN
                     CREATE TYPE network_stat AS ENUM (
                         'epoch',
@@ -132,7 +119,6 @@ def create_enums(connection, cursor):
                         'data_requests',
                         'lie_rate',
                         'burn_rate',
-                        'trs',
                         'value_transfers',
                         'staking'
                     );
@@ -318,19 +304,6 @@ def create_tables(connection, cursor):
             tapi_json JSONB
         );""",
 
-        """CREATE TABLE IF NOT EXISTS reputation (
-            address CHAR(42) NOT NULL,
-            epoch INT NOT NULL,
-            reputation INT NOT NULL,
-            type reputation_type NOT NULL
-        );""",
-
-        """CREATE TABLE IF NOT EXISTS trs (
-            epoch INT PRIMARY KEY,
-            addresses INT ARRAY NOT NULL,
-            reputations INT ARRAY NOT NULL
-        );""",
-
         """CREATE TABLE IF NOT EXISTS network_stats (
             stat network_stat NOT NULL,
             from_epoch INT,
@@ -368,7 +341,6 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_commit_txn_data_request ON commit_txns USING HASH (data_request);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_address ON reveal_txns USING HASH (txn_address);",
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_data_request ON reveal_txns USING HASH (data_request);",
-        "CREATE INDEX IF NOT EXISTS idx_reputation_address ON reputation USING HASH (address);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_input_addresses ON value_transfer_txns USING GIN (input_addresses);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_output_addresses ON value_transfer_txns USING GIN (output_addresses);",
         "CREATE INDEX IF NOT EXISTS idx_mint_txn_epoch ON mint_txns (epoch);",
@@ -377,7 +349,6 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_epoch ON reveal_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_tally_txn_epoch ON tally_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_txn_epoch ON value_transfer_txns (epoch);",
-        "CREATE INDEX IF NOT EXISTS idx_trs_epoch ON trs (epoch);",
     ]
 
     for index in indexes:
