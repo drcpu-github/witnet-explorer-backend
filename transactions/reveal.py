@@ -1,52 +1,51 @@
 import cbor
 import json
-import psycopg2
 
+from schemas.component.reveal_schema import RevealTransactionForApi, RevealTransactionForBlock, RevealTransactionForDataRequest, RevealTransactionForExplorer
 from transactions.transaction import Transaction
-
 from util.radon_translator import RadonTranslator
 
 class Reveal(Transaction):
     def process_transaction(self, call_from):
-        if self.json_txn == {}:
-            return self.json_txn
-
         # Calculate transaction addresses
         addresses = self.calculate_addresses(self.json_txn["signatures"])
         assert len(list(set(addresses))) == 1
-        self.txn_details["txn_address"] = addresses[0]
+        self.txn_details["address"] = addresses[0]
 
         # Data request transaction hash
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
-        # Add reveal value
-        if call_from == "explorer":
-            self.txn_details["reveal_value"] = bytearray(self.json_txn["body"]["reveal"])
-
         # Translate revealed value
         success, reveal_translation = translate_reveal(self.txn_hash, self.json_txn["body"]["reveal"])
         self.txn_details["success"] = success
-        self.txn_details["reveal_translation"] = reveal_translation
 
-        return self.txn_details
+        # Add reveal value
+        if call_from == "explorer":
+            self.txn_details["reveal"] = bytearray(self.json_txn["body"]["reveal"])
+
+            return RevealTransactionForExplorer().load(self.txn_details)
+
+        if call_from == "api":
+            self.txn_details["reveal"] = reveal_translation
+
+            return RevealTransactionForBlock().load(self.txn_details)
 
     def get_data_request_hash(self, txn_hash):
         sql = """
             SELECT
                 data_request
-            FROM reveal_txns
+            FROM
+                reveal_txns
             WHERE
                 reveal_txns.txn_hash=%s
             LIMIT 1
-        """ % psycopg2.Binary(bytes.fromhex(txn_hash))
-        result = self.database.sql_return_one(sql)
+        """
+        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
 
         if result:
             return result[0].hex()
         else:
-            return {
-                "error": "could not find reveal transaction"
-            }
+            return {"error": "transaction not found"}
 
     def get_reveals_for_data_request(self, data_request_hash):
         sql = """
@@ -58,14 +57,19 @@ class Reveal(Transaction):
                 reveal_txns.txn_address,
                 reveal_txns.result,
                 reveal_txns.epoch
-            FROM reveal_txns
-            LEFT JOIN blocks ON 
+            FROM
+                reveal_txns
+            LEFT JOIN
+                blocks
+            ON
                 reveal_txns.epoch=blocks.epoch
             WHERE
                 reveal_txns.data_request=%s
-            ORDER BY epoch DESC
-        """ % psycopg2.Binary(bytes.fromhex(data_request_hash))
-        results = self.database.sql_return_all(sql)
+            ORDER BY
+                reveal_txns.epoch
+            DESC
+        """
+        results = self.database.sql_return_all(sql, parameters=[bytearray.fromhex(data_request_hash)])
 
         if results == None:
             return []
@@ -75,18 +79,10 @@ class Reveal(Transaction):
         for reveal in results:
             block_hash, block_confirmed, block_reverted, txn_hash, txn_address, reveal_result, epoch = reveal
 
-            success, reveal_result = translate_reveal(txn_hash.hex(), reveal_result)
-
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
             if block_confirmed:
                 found_confirmed = True
-                status = "confirmed"
-            elif block_reverted:
-                status = "reverted"
-            else:
+            elif not block_reverted:
                 found_mined = True
-                status = "mined"
 
             # Do not append reverted reveals when there are newer mined or confirmed reveals
             if (found_confirmed or found_mined) and block_reverted:
@@ -96,20 +92,69 @@ class Reveal(Transaction):
             if block_hash is None:
                 continue
 
-            reveals.append({
-                "block_hash": block_hash.hex(),
-                "txn_hash": txn_hash.hex(),
-                "txn_address": txn_address,
-                "reveal": reveal_result,
-                "success": success,
-                "error": False,
-                "liar": False,
-                "epoch": epoch,
-                "time": timestamp,
-                "status": status,
-            })
+            success, reveal_result = translate_reveal(txn_hash.hex(), reveal_result)
+
+            timestamp = self.start_time + (epoch + 1) * self.epoch_period
+
+            reveals.append(
+                {
+                    "block": block_hash.hex(),
+                    "hash": txn_hash.hex(),
+                    "address": txn_address,
+                    "reveal": reveal_result,
+                    "success": success,
+                    "error": not success,
+                    "liar": False,
+                    "epoch": epoch,
+                    "timestamp": timestamp,
+                    "confirmed": block_confirmed,
+                    "reverted": block_reverted,
+                }
+            )
 
         return reveals
+
+    def get_transaction_from_database(self, txn_hash):
+        sql = """
+            SELECT
+                blocks.block_hash,
+                blocks.confirmed,
+                blocks.reverted,
+                reveal_txns.txn_address,
+                reveal_txns.result,
+                reveal_txns.epoch
+            FROM
+                reveal_txns
+            LEFT JOIN blocks ON
+                reveal_txns.epoch=blocks.epoch
+            WHERE
+                txn_hash=%s
+            LIMIT 1
+        """
+        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
+
+        if result:
+            block_hash, block_confirmed, block_reverted, txn_address, reveal_result, epoch = result
+
+            txn_time = self.start_time + (epoch + 1) * self.epoch_period
+
+            success, reveal_result = translate_reveal(txn_hash, reveal_result)
+
+            return RevealTransactionForApi().load(
+                {
+                    "hash": txn_hash,
+                    "block": block_hash.hex(),
+                    "epoch": epoch,
+                    "timestamp": txn_time,
+                    "address": txn_address,
+                    "success": success,
+                    "reveal": reveal_result,
+                    "confirmed": block_confirmed,
+                    "reverted": block_reverted,
+                }
+            )
+        else:
+            return {"error": "transaction not found"}
 
 def translate_reveal(txn_hash, reveal):
     success = True
