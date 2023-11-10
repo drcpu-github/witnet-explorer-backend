@@ -1,7 +1,19 @@
 [tool.isort]
 include_trailing_comma = "true"
 known_third_party = [
-    "PIL", "cbor", "flask", "marshmallow", "matplotlib", "numpy","prometheus_client", "psutil","psycopg2", "pylibmc", "pytest", "toml"
+    "PIL",
+    "cbor",
+    "flask",
+    "marshmallow",
+    "matplotlib",
+    "numpy",
+    "prometheus_client",
+    "psutil",
+    "psycopg",
+    "psycopg-pool",
+    "pylibmc",
+    "pytest",
+    "toml",
 ]
 line_length = 88
 multi_line_output = 3

@@ -1,7 +1,6 @@
 import logging
 import logging.handlers
 import os
-import psycopg2
 import sys
 
 from util.database_manager import DatabaseManager
@@ -268,7 +267,7 @@ class WitnetDatabase(object):
                 commit,
                 reveal,
                 tally
-            ) VALUES %s
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT ON CONSTRAINT
                 addresses_pkey
             DO UPDATE SET
@@ -300,7 +299,7 @@ class WitnetDatabase(object):
                     hash,
                     type,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     hashes_pkey
                 DO UPDATE SET
@@ -329,7 +328,7 @@ class WitnetDatabase(object):
                     epoch,
                     tapi_signals,
                     confirmed
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     blocks_pkey
                 DO UPDATE SET
@@ -349,7 +348,7 @@ class WitnetDatabase(object):
                     output_addresses,
                     output_values,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     mint_txns_pkey
                 DO NOTHING
@@ -374,7 +373,7 @@ class WitnetDatabase(object):
                     timelocks,
                     weight,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     value_transfer_txns_pkey
                 DO UPDATE SET
@@ -383,7 +382,6 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(
                 sql,
                 self.value_transfers,
-                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s::CHAR(42)[], %s, %s, %s, %s)",
             )
             if self.logger:
                 self.logger.info(
@@ -418,7 +416,7 @@ class WitnetDatabase(object):
                     RAD_bytes_hash,
                     DRO_bytes_hash,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     data_request_txns_pkey
                 DO UPDATE SET
@@ -427,7 +425,6 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(
                 sql,
                 self.data_requests,
-                template="(%s, %s::CHAR(42)[], %s, %s::utxo[], %s, %s, %s, %s, %s, %s, %s, %s, %s::retrieve_kind[], %s, %s, %s, %s::filter[], %s, %s::filter[], %s, %s, %s, %s)",
             )
             if self.logger:
                 self.logger.info(
@@ -446,13 +443,13 @@ class WitnetDatabase(object):
                     output_value,
                     data_request,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     commit_txns_pkey
                 DO NOTHING
             """
             self.db_mngr.sql_execute_many(
-                sql, self.commits, template="(%s, %s, %s, %s::utxo[], %s, %s, %s)"
+                sql, self.commits
             )
             if self.logger:
                 self.logger.info(
@@ -470,7 +467,7 @@ class WitnetDatabase(object):
                     result,
                     success,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     reveal_txns_pkey
                 DO UPDATE SET
@@ -498,7 +495,7 @@ class WitnetDatabase(object):
                     result,
                     success,
                     epoch
-                ) VALUES %s
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     tally_txns_pkey
                 DO UPDATE SET
@@ -519,41 +516,38 @@ class WitnetDatabase(object):
 
     def confirm_block(self, block_hash, epoch):
         sql = """
-            UPDATE blocks
+            UPDATE
+                blocks
             SET
                 confirmed=true
             WHERE
                 block_hash=%s
-        """ % psycopg2.Binary(
-            bytearray.fromhex(block_hash)
-        )
-        result = self.db_mngr.sql_update_table(sql)
+        """
+        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Confirmed block {block_hash} for epoch {epoch}")
 
     def revert_block(self, block_hash, epoch):
         sql = """
-            UPDATE blocks
+            UPDATE
+                blocks
             SET
                 confirmed=false,
                 reverted=true
             WHERE block_hash=%s
-        """ % psycopg2.Binary(
-            bytearray.fromhex(block_hash)
-        )
-        result = self.db_mngr.sql_update_table(sql)
+        """
+        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Reverted block {block_hash} for epoch {epoch}")
 
     def remove_block(self, block_hash, epoch):
         sql = """
-            DELETE FROM blocks
+            DELETE FROM
+                blocks
             WHERE
                 block_hash=%s
-        """ % psycopg2.Binary(
-            bytearray.fromhex(block_hash)
-        )
-        result = self.db_mngr.sql_update_table(sql)
+        """
+        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
 
@@ -607,5 +601,5 @@ class WitnetDatabase(object):
         result = self.db_mngr.sql_return_all(sql)
         return result
 
-    def sql_execute_many(self, sql, data, template=None):
-        self.db_mngr.sql_execute_many(sql, data, template=template)
+    def sql_execute_many(self, sql, data):
+        self.db_mngr.sql_execute_many(sql, data)

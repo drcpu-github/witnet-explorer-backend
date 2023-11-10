@@ -1,8 +1,9 @@
 import logging
 import logging.handlers
-import psycopg2
+import psycopg
 import time
-from psycopg2.sql import SQL, Identifier
+
+from psycopg.sql import SQL, Identifier
 
 from node.witnet_node import WitnetNode
 

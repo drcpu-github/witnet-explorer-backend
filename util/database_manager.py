@@ -1,5 +1,5 @@
-import psycopg2
-import psycopg2.extras
+import psycopg
+from psycopg.types.composite import CompositeInfo, register_composite
 import sys
 
 class DatabaseManager(object):
@@ -13,32 +13,34 @@ class DatabaseManager(object):
 
         self.logger = logger
 
-        self.connect()
+        self.connect(custom_types)
 
-        for ct in custom_types:
-            self.register_type(ct)
-
-    def connect(self):
+    def connect(self, custom_types):
         try:
             if self.db_pass:
-                self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
             else:
-                self.connection = psycopg2.connect(user=self.db_user, dbname=self.db_name)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name)
+
+            for ct in custom_types:
+                self.register_type(ct)
+
             if self.named_cursor:
                 self.cursor = self.connection.cursor("cursor")
                 self.cursor.itersize = self.fetch_rows # Limit number of rows fetched
             else:
                 self.cursor = self.connection.cursor()
-        except psycopg2.OperationalError as e:
+        except psycopg.OperationalError as e:
             str_error = str(e).replace("\n", "").replace("\t", " ")
             if self.logger:
                 self.logger.error(f"Could not connect to database, error message: {str_error}")
             else:
                 sys.stderr.write(f"Could not connect to database, error message: {str_error}\n")
-            raise psycopg2.OperationalError(e)
+            raise psycopg.OperationalError(e)
 
     def register_type(self, type_name):
-        psycopg2.extras.register_composite(type_name, self.connection)
+        info = CompositeInfo.fetch(self.connection, type_name)
+        register_composite(info, self.connection)
 
     def terminate(self, verbose=False, commit=False):
         if verbose:
@@ -61,10 +63,12 @@ class DatabaseManager(object):
         else:
             self.cursor = self.connection.cursor()
 
-    def sql_insert_one(self, sql, data):
+    def sql_insert_one(self, sql, parameters=None):
         try:
-            sql = self.cursor.mogrify(sql, data)
-            self.cursor.execute(sql)
+            if parameters:
+                self.cursor.execute(sql, parameters)
+            else:
+                self.cursor.execute(sql)
             self.connection.commit()
         except Exception as e:
             if self.logger:
@@ -117,12 +121,9 @@ class DatabaseManager(object):
                 sys.stderr.write("Could not execute SQL statement '" + str(sql) + "', error: " + str(e) + "\n")
 
     # Note: custom types is unused here, but the option exists to have the same calling convention as when using a database pool connection
-    def sql_execute_many(self, sql, data, template=None, custom_types=[]):
+    def sql_execute_many(self, sql, data, custom_types=[]):
         try:
-            if template:
-                psycopg2.extras.execute_values(self.cursor, sql, data, template=template, page_size=256)
-            else:
-                psycopg2.extras.execute_values(self.cursor, sql, data, page_size=256)
+            self.cursor.executemany(sql, data)
             self.connection.commit()
         except Exception as e:
             if self.logger:

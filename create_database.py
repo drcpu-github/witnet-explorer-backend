@@ -1,6 +1,5 @@
 import optparse
-import psycopg2
-import psycopg2.extras
+import psycopg
 import subprocess
 import sys
 import toml
@@ -38,7 +37,6 @@ def create_user(user, password):
 
 def create_database(name, user):
     connection, cursor = connect_to_database("postgres")
-    connection.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
     cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname='{name}'")
     result = cursor.fetchone()
     if not result:
@@ -51,16 +49,16 @@ def connect_to_database(name, user="", password=""):
     try:
         if user == "":
             if password == "":
-                connection = psycopg2.connect(dbname=name)
+                connection = psycopg.connect(dbname=name)
             else:
-                connection = psycopg2.connect(dbname=name, password=password)
+                connection = psycopg.connect(dbname=name, password=password)
         else:
             if password == "":
-                connection = psycopg2.connect(dbname=name, user=user)
+                connection = psycopg.connect(dbname=name, user=user)
             else:
-                connection = psycopg2.connect(dbname=name, user=user, password=password)
+                connection = psycopg.connect(dbname=name, user=user, password=password)
         cursor = connection.cursor()
-    except psycopg2.OperationalError as e:
+    except psycopg.OperationalError as e:
         str_error = str(e).replace("\n", "").replace("\t", " ")
         sys.stderr.write(f"Could not connect to database, error message: {str_error}\n")
         sys.exit(2)

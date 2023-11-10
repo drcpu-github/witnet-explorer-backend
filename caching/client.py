@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg
 import pylibmc
 import sys
 
@@ -38,7 +38,7 @@ class Client(object):
                     logger=self.logger,
                     custom_types=["utxo", "filter"],
                 )
-        except psycopg2.OperationalError:
+        except psycopg.OperationalError:
             self.logger.error("Could not connect to the database!")
             sys.exit(1)
 
