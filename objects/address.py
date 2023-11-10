@@ -2,27 +2,22 @@ import logging
 import sys
 import time
 
+from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 
 from transactions.reveal import translate_reveal
 from transactions.tally import translate_tally
 
+from util.common_functions import calculate_block_reward
 from util.database_manager import DatabaseManager
-from util.helper_functions import calculate_block_reward
 
 class Address(object):
-    def __init__(self, address, config, consensus_constants, logging_queue=None):
+    def __init__(self, address, config, logging_queue=None):
         # Set address
         self.address = address.strip()
 
-        # Save configs
-        self.database_config = config["database"]
-        self.node_config = config["node-pool"]
-
-        # Save consensus constants
-        self.consensus_constants = consensus_constants
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
+        # Save config
+        self.config = config
 
         # Create logger
         if logging_queue:
@@ -38,18 +33,31 @@ class Address(object):
         root.addHandler(handler)
         root.setLevel(logging.DEBUG)
 
-    def connect_to_database(self):
-        self.db_mngr = DatabaseManager(self.database_config, named_cursor=False, logger=self.logger)
+    def initialize_connections(self):
+        # Connect to the database
+        self.db_mngr = DatabaseManager(self.config["database"], named_cursor=False, logger=self.logger)
 
-    def close_database_connection(self):
-        self.db_mngr.terminate(verbose=False)
+        # Connect to node pool
+        self.witnet_node = WitnetNode(self.config["node-pool"], logger=self.logger)
+
+        # Save consensus constants
+        consensus_constants = ConsensusConstants(
+            database=self.db_mngr,
+            witnet_node=self.witnet_node,
+            error_retry=config["api"]["error_retry"],
+        )
+        self.start_time = consensus_constants.checkpoint_zero_timestamp
+        self.epoch_period = consensus_constants.checkpoints_period
+        self.halving_period = consensus_constants.halving_period
+        self.initial_block_reward = consensus_constants.initial_block_reward
+
+    def close_connections(self):
+        self.db_mngr.terminate()
+        self.witnet_node.close_connection()
 
     def get_details(self):
-        # Connect to node pool
-        witnet_node = WitnetNode(self.node_config, logger=self.logger)
-
         # Get balance
-        balance = witnet_node.get_balance(self.address)
+        balance = self.witnet_node.get_balance(self.address)
         if type(balance) is dict and "error" in balance:
             balance = "Could not retrieve balance"
         else:
@@ -57,7 +65,7 @@ class Address(object):
             balance = balance[self.address]["total"]
 
         # Get reputation
-        reputation = witnet_node.get_reputation(self.address)
+        reputation = self.witnet_node.get_reputation(self.address)
         if type(reputation) is dict and "error" in reputation:
             total_reputation = "Could not retrieve total reputation"
             eligibility = "Could not retrieve eligibility"
@@ -275,7 +283,7 @@ class Address(object):
                 timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
 
                 block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(block_epoch, self.consensus_constants)
+                block_fees = sum(output_values) - calculate_block_reward(block_epoch, halving_period, initial_block_reward)
 
                 blocks_minted.append((block_hash.hex(), timestamp, block_epoch, block_reward, block_fees, value_transfers, data_requests, commits, reveals, tallies, block_reverted))
 
@@ -489,6 +497,5 @@ class Address(object):
         return non_zero_reputation, non_zero_reputation_regions
 
     def get_utxos(self):
-        witnet_node = WitnetNode(self.node_config, logger=self.logger)
-        utxos = witnet_node.get_utxos(self.address)
+        utxos = self.witnet_node.get_utxos(self.address)
         return utxos
