@@ -1,0 +1,113 @@
+{
+    "rpc": {
+        "stats": {
+            "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm": {
+                "eligibility": 953,
+                "is_active": true,
+                "reputation": 4062
+            },
+            "wit107cup7h5rctrgr4akenn9pfy3t8cq8lhalwcu2": {
+                "eligibility": 937,
+                "is_active": true,
+                "reputation": 2606
+            },
+            "wit102htq4u6zl29y6dhwfsn7kevjm2kyj4k96gy2d": {
+                "eligibility": 927,
+                "is_active": true,
+                "reputation": 2082
+            },
+            "wit1002ddelarnf9d266nc4hecp6yag5w49xzrz90m": {
+                "eligibility": 913,
+                "is_active": true,
+                "reputation": 1586
+            },
+            "wit107lg02c4tcy8rd0sx24snn8xuuzt3hulk258f0": {
+                "eligibility": 910,
+                "is_active": true,
+                "reputation": 1573
+            },
+            "wit10dm22g8d3lhtkhzw79qlajpr48snj4gzwlz3pj": {
+                "eligibility": 861,
+                "is_active": true,
+                "reputation": 1089
+            },
+            "wit100neq6mdwsfutgktmfwe62yxsfnk4hk7uh5qzx": {
+                "eligibility": 857,
+                "is_active": true,
+                "reputation": 1064
+            },
+            "wit10gvrdxsnn7u47wwz4xsk0r62twhyazvxrj3a6k": {
+                "eligibility": 829,
+                "is_active": true,
+                "reputation": 883
+            },
+            "wit103fhg3g309r2z7g7577smh0pck9a675jq348er": {
+                "eligibility": 813,
+                "is_active": true,
+                "reputation": 817
+            },
+            "wit10555tpppkuw23fyu6wwaeeuu60welvqa6h29r5": {
+                "eligibility": 810,
+                "is_active": true,
+                "reputation": 798
+            }
+        },
+        "total_reputation": 16560
+    },
+    "cache": {
+        "reputation": [
+            {
+                "address": "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm",
+                "reputation": 4062,
+                "eligibility": 5.754830917874396
+            },
+            {
+                "address": "wit107cup7h5rctrgr4akenn9pfy3t8cq8lhalwcu2",
+                "reputation": 2606,
+                "eligibility": 5.658212560386473
+            },
+            {
+                "address": "wit102htq4u6zl29y6dhwfsn7kevjm2kyj4k96gy2d",
+                "reputation": 2082,
+                "eligibility": 5.597826086956522
+            },
+            {
+                "address": "wit1002ddelarnf9d266nc4hecp6yag5w49xzrz90m",
+                "reputation": 1586,
+                "eligibility": 5.513285024154589
+            },
+            {
+                "address": "wit107lg02c4tcy8rd0sx24snn8xuuzt3hulk258f0",
+                "reputation": 1573,
+                "eligibility": 5.495169082125604
+            },
+            {
+                "address": "wit10dm22g8d3lhtkhzw79qlajpr48snj4gzwlz3pj",
+                "reputation": 1089,
+                "eligibility": 5.199275362318841
+            },
+            {
+                "address": "wit100neq6mdwsfutgktmfwe62yxsfnk4hk7uh5qzx",
+                "reputation": 1064,
+                "eligibility": 5.17512077294686
+            },
+            {
+                "address": "wit10gvrdxsnn7u47wwz4xsk0r62twhyazvxrj3a6k",
+                "reputation": 883,
+                "eligibility": 5.006038647342995
+            },
+            {
+                "address": "wit103fhg3g309r2z7g7577smh0pck9a675jq348er",
+                "reputation": 817,
+                "eligibility": 4.909420289855072
+            },
+            {
+                "address": "wit10555tpppkuw23fyu6wwaeeuu60welvqa6h29r5",
+                "reputation": 798,
+                "eligibility": 4.891304347826087
+            }
+        ],
+        "total_reputation": 16560,
+        "last_updated": 0
+    }
+}

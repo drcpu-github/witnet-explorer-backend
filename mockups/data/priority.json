@@ -1,0 +1,42 @@
+{
+    "drt_high": {
+        "priority": 1000,
+        "time_to_block": 300
+    },
+    "drt_low": {
+        "priority": 500,
+        "time_to_block": 3600
+    },
+    "drt_medium": {
+        "priority": 500,
+        "time_to_block": 900
+    },
+    "drt_opulent": {
+        "priority": 1000,
+        "time_to_block": 60
+    },
+    "drt_stinky": {
+        "priority": 1,
+        "time_to_block": 21600
+    },
+    "vtt_high": {
+        "priority": 10,
+        "time_to_block": 300
+    },
+    "vtt_low": {
+        "priority": 3,
+        "time_to_block": 3600
+    },
+    "vtt_medium": {
+        "priority": 5,
+        "time_to_block": 900
+    },
+    "vtt_opulent": {
+        "priority": 20,
+        "time_to_block": 60
+    },
+    "vtt_stinky": {
+        "priority": 1,
+        "time_to_block": 21600
+    }
+}

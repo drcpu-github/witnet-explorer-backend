@@ -1,0 +1,96 @@
+{
+    "balance-list_0-1000": {
+        "balances": [
+            {
+                "address": "wit1ggyjwgx7rcec079ne5xvjm83keythmtncryrhj",
+                "balance": 79689131,
+                "label": "Gate.io wallet"
+            },
+            {
+                "address": "wit1hrl4ke8n9qnk7kxtcpluwsl38aq820amaqp3k7",
+                "balance": 72631824,
+                "label": "Witnet Foundation"
+            },
+            {
+                "address": "wit1jvp0626d2sntek82pf2euf89f9zqwjgcpfdw6r",
+                "balance": 61318915,
+                "label": ""
+            },
+            {
+                "address": "wit1dgxn75gf53ptdk24pmset7lgpxaffr7t2fkdpl",
+                "balance": 33200530,
+                "label": ""
+            },
+            {
+                "address": "wit1tafyaeqacmh2r48p9quujt9sw5drud4hsnsv7z",
+                "balance": 28093797,
+                "label": ""
+            },
+            {
+                "address": "wit1942mxkj8xxrtdfm6htm7ssnwwx744gsxgp3wju",
+                "balance": 18014398,
+                "label": ""
+            },
+            {
+                "address": "wit1gwyn0ffqen4d2nnaugcsxs5qgyhjf88q8kqrtx",
+                "balance": 18014398,
+                "label": ""
+            },
+            {
+                "address": "wit163262h8syf70n9rs7mv4klqqjwn7ljmxlcuyvg",
+                "balance": 15094049,
+                "label": ""
+            }
+        ],
+        "total_items": 16,
+        "total_balance_sum": 327182938,
+        "last_updated": 1697007634
+    },
+    "balance-list_1000-2000": {
+        "balances": [
+            {
+                "address": "wit1l8p9qt2hfpuc6r6w5hu24wjln88u52s5vsh4r8",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1lt8vfletcq4c4fqawwa5m5za237gaazf9rjrfh",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1maauvllnznkaadjxwa48dyx6gq4hjpu8e086lq",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1mdgxujpc694ljwkdt057pj7z92zlzjqe06nrga",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1mflhjarwpj804re9mznsww0xduwypk728sufg5",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1mm64rn5plkrz446g3cylr7gudjcpcare4hwfvm",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1ms59xn8lzhcyn52g3nmact2yupdjenjq5tpcdx",
+                "balance": 140737,
+                "label": ""
+            },
+            {
+                "address": "wit1muupmqtc07gfr6smdc3xl8q8sd6x5r6mxvhe4z",
+                "balance": 140737,
+                "label": ""
+            }
+        ],
+        "total_items": 16,
+        "total_balance_sum": 327182938,
+        "last_updated": 1697007634
+    }
+}

@@ -1,0 +1,156 @@
+{
+    "response_type": "data_request_history",
+    "data_request_history": {
+        "history": [
+            {
+                "success": true,
+                "epoch": 2002284,
+                "timestamp": 1692768825,
+                "data_request": "40154603f62f60da0293151b994ce35232dcc32de54cee5d0788f6404dfc4d3f",
+                "witnesses": 10,
+                "witness_reward": 15000000,
+                "collateral": 1500000000,
+                "consensus_percentage": 51,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "7230",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 2001260,
+                "timestamp": 1692722745,
+                "data_request": "cdf76eb25f7f8418387d13c1edf3468e0fd2186d1f8bdf898fd825a436f5ea06",
+                "witnesses": 5,
+                "witness_reward": 150000000,
+                "collateral": 15000000000,
+                "consensus_percentage": 51,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "7359",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": false,
+                "epoch": 2001244,
+                "timestamp": 1692722025,
+                "data_request": "32db57516cb83a135a5bc512bad1f7f72d4cbead29067d7ab17fde885c4dd7a7",
+                "witnesses": 5,
+                "witness_reward": 150000000,
+                "collateral": 15000000000,
+                "consensus_percentage": 51,
+                "num_errors": 5,
+                "num_liars": 0,
+                "result": "HTTPError: 429",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 2001244,
+                "timestamp": 1692722025,
+                "data_request": "5b67b9e2919a3c2a08c3b00266b45919ba422f33cd96c3556b2ba4231a6e79f4",
+                "witnesses": 10,
+                "witness_reward": 15000000,
+                "collateral": 1500000000,
+                "consensus_percentage": 51,
+                "num_errors": 2,
+                "num_liars": 0,
+                "result": "7365",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 1999122,
+                "timestamp": 1692626535,
+                "data_request": "1e609e4169ce956e6fbf21fb6e1d8c2d417f23c0d59ac4be69b48f4a1ebd2703",
+                "witnesses": 5,
+                "witness_reward": 150000000,
+                "collateral": 15000000000,
+                "consensus_percentage": 51,
+                "num_errors": 1,
+                "num_liars": 0,
+                "result": "7167",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 1999122,
+                "timestamp": 1692626535,
+                "data_request": "f30f5558d062f9ea165a3a30c76c31929cb76e28938ffc94c69b856418f735e9",
+                "witnesses": 10,
+                "witness_reward": 15000000,
+                "collateral": 1500000000,
+                "consensus_percentage": 51,
+                "num_errors": 2,
+                "num_liars": 0,
+                "result": "7197",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 1998925,
+                "timestamp": 1692617670,
+                "data_request": "c3eb1ff06979ec7ea03557ca821a73fa7651760aa2fb1d564e6ca30042d3c95d",
+                "witnesses": 5,
+                "witness_reward": 150000000,
+                "collateral": 15000000000,
+                "consensus_percentage": 51,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "7288",
+                "confirmed": true,
+                "reverted": false
+            },
+            {
+                "success": true,
+                "epoch": 1998908,
+                "timestamp": 1692616905,
+                "data_request": "09306358bc4a3d6a1c44f248971e171885a7a21ed6eff800b3fa06bc8cd607d4",
+                "witnesses": 10,
+                "witness_reward": 15000000,
+                "collateral": 1500000000,
+                "consensus_percentage": 51,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "7320",
+                "confirmed": true,
+                "reverted": false
+            }
+        ],
+        "hash_type": "RAD_bytes_hash",
+        "hash": "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a",
+        "num_data_requests": 8,
+        "first_epoch": 1998908,
+        "last_epoch": 2002284,
+        "RAD_data": {
+            "retrieve": [
+                {
+                    "kind": "HTTP-GET",
+                    "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=WIT_USDT",
+                    "body": "",
+                    "script": "StringParseJSONMap().MapGetMap(data).MapGetArray(tickers).ArrayGetMap(0).MapGetFloat(last_price).FloatMultiply(1000000).FloatRound()"
+                },
+                {
+                    "kind": "HTTP-GET",
+                    "url": "https://data.gateapi.io/api2/1/ticker/wit_usdt",
+                    "body": "",
+                    "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
+                },
+                {
+                    "kind": "HTTP-GET",
+                    "url": "https://www.mexc.com/open/api/v2/market/ticker?symbol=WIT_USDT",
+                    "body": "",
+                    "script": "StringParseJSONMap().MapGetArray(data).ArrayGetMap(0).MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
+                }
+            ],
+            "aggregate": "filter(DeviationStandard, 1.4).reduce(AverageMedian)",
+            "tally": "filter(DeviationStandard, 2.5).reduce(AverageMedian)"
+        }
+    }
+}
