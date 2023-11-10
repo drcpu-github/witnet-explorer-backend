@@ -12,12 +12,22 @@ from util.common_functions import calculate_block_reward
 from util.database_manager import DatabaseManager
 
 class Address(object):
-    def __init__(self, address, config, logging_queue=None):
+    def __init__(self, address, config, database=None, witnet_node=None, logging_queue=None, connect=True):
         # Set address
         self.address = address.strip()
 
         # Save config
         self.config = config
+
+        # Initialize database manager if provided
+        self.db_mngr = None
+        if database:
+            self.db_mngr = database
+
+        # Initialize the witnet node if provided
+        self.witnet_node = None
+        if witnet_node:
+            self.witnet_node = witnet_node
 
         # Create logger
         if logging_queue:
@@ -25,6 +35,11 @@ class Address(object):
             self.logger = logging.getLogger("address")
         else:
             self.logger = None
+
+        # Finish connecting to database, witnet_node and get the consensus constants
+        # Do not automatically initialize when the address object is used from the caching server
+        if connect:
+            self.initialize_connections()
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -34,11 +49,13 @@ class Address(object):
         root.setLevel(logging.DEBUG)
 
     def initialize_connections(self):
-        # Connect to the database
-        self.db_mngr = DatabaseManager(self.config["database"], named_cursor=False, logger=self.logger)
+        # Connect to the database if necessary
+        if self.db_mngr is None:
+            self.db_mngr = DatabaseManager(self.config["database"], named_cursor=False, logger=self.logger)
 
         # Connect to node pool
-        self.witnet_node = WitnetNode(self.config["node-pool"], logger=self.logger)
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(self.config["node-pool"], logger=self.logger)
 
         # Save consensus constants
         consensus_constants = ConsensusConstants(
