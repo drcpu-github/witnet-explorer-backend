@@ -70,12 +70,6 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getBlockChain", "params": [epoch, num_blocks], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
-    def get_address(self):
-        if self.logger:
-            self.logger.info("get_address()")
-        request = {"jsonrpc": "2.0", "method": "getPkh", "id": str(WitnetNode.request_id)}
-        return self.execute_request(request)
-
     def get_balance(self, node_address, simple=True):
         if self.logger:
             self.logger.info(f"get_balance({node_address}, {simple})")
@@ -104,12 +98,6 @@ class WitnetNode(object):
         if self.logger:
             self.logger.info(f"get_transaction({txn_hash})")
         request = {"jsonrpc": "2.0", "method": "getTransaction", "params": [txn_hash], "id": str(WitnetNode.request_id)}
-        return self.execute_request(request)
-
-    def get_data_request_report(self, txn_hash):
-        if self.logger:
-            self.logger.info(f"get_data_request_report({txn_hash})")
-        request = {"jsonrpc": "2.0", "method": "dataRequestReport", "params": [txn_hash], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_sync_status(self):
