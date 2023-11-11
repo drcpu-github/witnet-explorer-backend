@@ -552,32 +552,32 @@ class WitnetDatabase(object):
             self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
 
     #####################################################
-    #       Create pending transactions histograms      #
+    #       Insert mempool data into the database       #
     #####################################################
 
-    def insert_pending_data_request_txns(self, timestamp, fee_per_unit, num_txns):
+    def insert_mempool_data_requests(self, timestamp, fees, weights):
         if self.logger:
-            self.logger.info(f"Inserting pending data requests at {timestamp}")
+            self.logger.info(f"Inserting mempool data requests at {timestamp}")
         sql = """
-            INSERT INTO pending_data_request_txns (
+            INSERT INTO data_request_mempool (
                 timestamp,
-                fee_per_unit,
-                num_txns
+                fee,
+                weight
             ) VALUES (%s, %s, %s)
         """
-        self.db_mngr.sql_insert_one(sql, (timestamp, fee_per_unit, num_txns))
+        self.db_mngr.sql_insert_one(sql, parameters=[timestamp, fees, weights])
 
-    def insert_pending_value_transfer_txns(self, timestamp, fee_per_unit, num_txns):
+    def insert_mempool_value_transfers(self, timestamp, fees, weights):
         if self.logger:
-            self.logger.info(f"Inserting pending value transfers at {timestamp}")
+            self.logger.info(f"Inserting mempool value transfers at {timestamp}")
         sql = """
-            INSERT INTO pending_value_transfer_txns (
+            INSERT INTO value_transfer_mempool (
                 timestamp,
-                fee_per_unit,
-                num_txns
+                fee,
+                weight
             ) VALUES (%s, %s, %s)
         """
-        self.db_mngr.sql_insert_one(sql, (timestamp, fee_per_unit, num_txns))
+        self.db_mngr.sql_insert_one(sql, parameters=[timestamp, fees, weights])
 
     #####################################################
     #                  Helper functions                 #

@@ -278,16 +278,16 @@ def create_tables(connection, cursor):
             epoch INT NOT NULL
         );""",
 
-        """CREATE TABLE IF NOT EXISTS pending_data_request_txns (
+        """CREATE TABLE IF NOT EXISTS data_request_mempool (
             timestamp INT NOT NULL,
-            fee_per_unit BIGINT ARRAY NOT NULL,
-            num_txns INT ARRAY NOT NULL
+            fee BIGINT ARRAY NOT NULL,
+            weight INT ARRAY NOT NULL
         );""",
 
-        """CREATE TABLE IF NOT EXISTS pending_value_transfer_txns (
+        """CREATE TABLE IF NOT EXISTS value_transfer_mempool (
             timestamp INT NOT NULL,
-            fee_per_unit BIGINT ARRAY NOT NULL,
-            num_txns INT ARRAY NOT NULL
+            fee BIGINT ARRAY NOT NULL,
+            weight INT ARRAY NOT NULL
         );""",
 
         """CREATE TABLE IF NOT EXISTS wips (

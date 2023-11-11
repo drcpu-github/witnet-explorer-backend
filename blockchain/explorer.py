@@ -36,7 +36,7 @@ class BlockExplorer(object):
     def __init__(self, config, log_queue):
         error_retry = config["explorer"]["error_retry"]
 
-        self.pending_interval = config["explorer"]["pending_interval"]
+        self.mempool_interval = config["explorer"]["mempool_interval"]
 
         # Set up logger
         self.configure_logging_process(log_queue, "explorer")
@@ -62,7 +62,7 @@ class BlockExplorer(object):
         # Create database objects
         self.insert_blocks_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-insert")
         self.confirm_blocks_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-confirm")
-        self.insert_pending_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-pending")
+        self.mempool_database = WitnetDatabase(self.database_config, log_queue=self.log_queue, log_label="db-pending")
 
         # Get configuration to connect to the address caching server
         self.addresses_config = config["api"]["caching"]["scripts"]["addresses"]
@@ -76,7 +76,7 @@ class BlockExplorer(object):
     def terminate(self):
         self.insert_blocks_database.terminate()
         self.confirm_blocks_database.terminate()
-        self.insert_pending_database.terminate()
+        self.mempool_database.terminate()
         self.logger.info("Terminating explorer")
 
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
@@ -380,13 +380,13 @@ class BlockExplorer(object):
             sleep_for = max(0, next_poll_interval - time.time())
             time.sleep(sleep_for)
 
-    def insert_pending_transactions(self, log_queue):
+    def insert_mempool_transactions(self, log_queue):
         # Set up logger
         self.configure_logging_process(log_queue, "explorer-pending")
         logger = logging.getLogger("explorer-pending")
 
         # sleep until the next poll interval
-        next_poll_interval = (int(time.time() / self.pending_interval) + 1) * self.pending_interval
+        next_poll_interval = (int(time.time() / self.mempool_interval) + 1) * self.mempool_interval
         sleep_for = max(0, next_poll_interval - time.time())
         time.sleep(sleep_for)
 
@@ -395,8 +395,8 @@ class BlockExplorer(object):
 
         while True:
             current_time = time.time()
-            timestamp = int(current_time / self.pending_interval) * self.pending_interval
-            next_poll_interval = (int(current_time / self.pending_interval) + 1) * self.pending_interval
+            timestamp = int(current_time / self.mempool_interval) * self.mempool_interval
+            next_poll_interval = (int(current_time / self.mempool_interval) + 1) * self.mempool_interval
 
             current_epoch = self.insert_pending_node.get_current_epoch()
             if current_epoch == 0:
@@ -426,14 +426,13 @@ class BlockExplorer(object):
 
             logger.info(f"Mempool: {len(transactions_pool['data_request'])} data requests, {len(transactions_pool['value_transfer'])} value transfers")
 
-            data_requests = {}
             mapped_transactions, queried_transactions = 0, 0
+            data_request = DataRequest(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
             for transaction in transactions_pool["data_request"]:
                 if transaction in mapped_data_requests:
                     data_request_fee, data_request_size = mapped_data_requests[transaction]
                     mapped_transactions += 1
                 else:
-                    data_request = DataRequest(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
                     try:
                         data_request.set_transaction(transaction, current_epoch)
                         txn_details = data_request.process_transaction("explorer")
@@ -442,19 +441,12 @@ class BlockExplorer(object):
 
                     queried_transactions += 1
 
-                    data_request_fee = txn_details["miner_fee"]
-                    data_request_weight = txn_details["weight"]
+                    mapped_data_requests[transaction] = (
+                        txn_details["miner_fee"],
+                        txn_details["weight"],
+                    )
 
-                    mapped_data_requests[transaction] = (data_request_fee, data_request_weight)
-
-                # Create a histogram of request priorities
-                priority = calculate_priority(data_request_fee, data_request_weight, round_priority=True)
-                if priority in data_requests:
-                    data_requests[priority] += 1
-                else:
-                    data_requests[priority] = 1
-
-                # If less than 3 seconds are left until the next interval, break out of the loop and leave the transactions for the next iteration
+                # If less than 3 seconds are left until the next interval, break out of the loop and leave the remaining transactions for the next iteration
                 if time.time() + 3 > next_poll_interval:
                     logger.warning("Too many data requests to process, leaving some to process in the next iteration")
                     break
@@ -462,14 +454,13 @@ class BlockExplorer(object):
             unprocessed_data_requests = len(transactions_pool["data_request"]) - mapped_transactions - queried_transactions
             logger.info(f"Processed data requests: {mapped_transactions} mapped, {queried_transactions} fetched, {unprocessed_data_requests} left")
 
-            value_transfers = {}
             mapped_transactions, queried_transactions = 0, 0
+            value_transfer = ValueTransfer(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
             for transaction in transactions_pool["value_transfer"]:
                 if transaction in mapped_value_transfers:
                     value_transfer_fee, value_transfer_size = mapped_value_transfers[transaction]
                     mapped_transactions += 1
                 else:
-                    value_transfer = ValueTransfer(self.consensus_constants, logger=logger, database_config=self.database_config, node_config=self.node_config)
                     try:
                         value_transfer.set_transaction(transaction, current_epoch)
                         txn_details = value_transfer.process_transaction("explorer")
@@ -478,19 +469,12 @@ class BlockExplorer(object):
 
                     queried_transactions += 1
 
-                    value_transfer_fee = txn_details["fee"]
-                    value_transfer_weight = txn_details["weight"]
+                    mapped_value_transfers[transaction] = (
+                        txn_details["fee"],
+                        txn_details["weight"],
+                    )
 
-                    mapped_value_transfers[transaction] = (value_transfer_fee, value_transfer_weight)
-
-                # Create a histogram
-                priority = calculate_priority(value_transfer_fee, value_transfer_weight, round_priority=True)
-                if priority in value_transfers:
-                    value_transfers[priority] += 1
-                else:
-                    value_transfers[priority] = 1
-
-                # If less than 3 seconds are left until the next interval, break out of the loop and leave the transactions for the next iteration
+                # If less than 3 seconds are left until the next interval, break out of the loop and leave the remaining transactions for the next iteration
                 if time.time() + 3 > next_poll_interval:
                     logger.warning("Too many value transfers to process, leaving some for the next iteration")
                     break
@@ -498,17 +482,15 @@ class BlockExplorer(object):
             unprocessed_value_transfers = len(transactions_pool["value_transfer"]) - mapped_transactions - queried_transactions
             logger.info(f"Processed value transfers: {mapped_transactions} mapped, {queried_transactions} fetched, {unprocessed_value_transfers} left")
 
-            if len(data_requests) > 0:
-                data_requests_lst = sorted(data_requests.items())
-                data_requests_fee_lst = [dr[0] for dr in data_requests_lst]
-                data_requests_num_lst = [dr[1] for dr in data_requests_lst]
-                self.insert_pending_database.insert_pending_data_request_txns(timestamp, data_requests_fee_lst, data_requests_num_lst)
+            if len(mapped_data_requests) > 0:
+                data_requests_fee = [dr[0] for dr in mapped_data_requests.values()]
+                data_requests_weight = [dr[1] for dr in mapped_data_requests.values()]
+                self.mempool_database.insert_mempool_data_requests(timestamp, data_requests_fee, data_requests_weight)
 
-            if len(value_transfers) > 0:
-                value_transfers_lst = sorted(value_transfers.items())
-                value_transfers_fee_lst = [vt[0] for vt in value_transfers_lst]
-                value_transfers_num_lst = [vt[1] for vt in value_transfers_lst]
-                self.insert_pending_database.insert_pending_value_transfer_txns(timestamp, value_transfers_fee_lst, value_transfers_num_lst)
+            if len(mapped_value_transfers) > 0:
+                value_transfers_fee = [vt[0] for vt in mapped_value_transfers.values()]
+                value_transfers_weight = [vt[1] for vt in mapped_value_transfers.values()]
+                self.mempool_database.insert_mempool_value_transfers(timestamp, value_transfers_fee, value_transfers_weight)
 
             # Clean the map with already processed transactions
             cleaned_data_requests = 0
@@ -642,7 +624,7 @@ def main():
     # This process will query the node and confirm all new blocks
     confirm_process = Process(target=explorer.confirm_blocks_and_transactions, args=(log_queue, unconfirmed_blocks_queue))
     # This process will query the node and fetch pending transactions from the memory pool
-    pending_process = Process(target=explorer.insert_pending_transactions, args=(log_queue,))
+    pending_process = Process(target=explorer.insert_mempool_transactions, args=(log_queue,))
 
     # Catch ctrl+c
     def signal_handler(*args):

@@ -64,11 +64,11 @@ log_file = "/path/to/logs/node-2.log"
 
 # path: path to explorer directory
 # error_retry: timeout before retrying a request that returned an error
-# pending_interval: time between querying how many pending requests there are in the network
+# mempool_interval: time between querying how many pending requests there are in the network
 [explorer]
 path = "/home/witnet/explorer"
 error_retry = 60
-pending_interval = 60
+mempool_interval = 60
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
