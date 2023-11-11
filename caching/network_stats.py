@@ -26,6 +26,8 @@ class NetworkStats(Client):
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period
+        self.halving_period = self.consensus_constants.halving_period
+        self.initial_block_reward = self.consensus_constants.initial_block_reward
 
         # Granularity at which network statistics are aggregated
         self.aggregation_epochs = config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
@@ -569,7 +571,7 @@ class NetworkStats(Client):
                         next_aggregation_period = int(e / self.aggregation_epochs + 1) * self.aggregation_epochs
                         per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
-                    block_reward = calculate_block_reward(epoch, self.consensus_constants)
+                    block_reward = calculate_block_reward(epoch, self.halving_period, self.initial_block_reward)
                     self.burn_rate_period[per_period_key][0] += block_reward
 
             previous_epoch = epoch
@@ -725,7 +727,7 @@ class NetworkStats(Client):
                 from_epoch,
                 to_epoch,
                 data
-            ) VALUES %s
+            ) VALUES (%s, %s, %s, %s)
             ON CONFLICT ON CONSTRAINT
                 network_stats_stat_from_epoch_to_epoch_key
             DO UPDATE SET
