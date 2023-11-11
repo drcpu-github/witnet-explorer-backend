@@ -32,10 +32,11 @@ class HomeStats(Client):
         self.current_epoch = int((time.time() - self.start_time) / self.epoch_period)
 
         last_saved_home = self.memcached_client.get("home")
-        self.default_supply_info = last_saved_home["supply_info"]
-        self.last_saved_num_active_nodes = last_saved_home["network_stats"]["num_active_nodes"]
-        self.last_saved_num_reputed_nodes = last_saved_home["network_stats"]["num_reputed_nodes"]
-        self.last_saved_num_pending_requests = last_saved_home["network_stats"]["num_pending_requests"]
+        if last_saved_home:
+            self.default_supply_info = last_saved_home["supply_info"]
+            self.last_saved_num_active_nodes = last_saved_home["network_stats"]["num_active_nodes"]
+            self.last_saved_num_reputed_nodes = last_saved_home["network_stats"]["num_reputed_nodes"]
+            self.last_saved_num_pending_requests = last_saved_home["network_stats"]["num_pending_requests"]
 
     def collect_home_stats(self):
         start = time.perf_counter()
