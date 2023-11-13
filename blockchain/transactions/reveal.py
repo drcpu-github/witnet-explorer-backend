@@ -2,7 +2,7 @@ import cbor
 import json
 
 from schemas.component.reveal_schema import RevealTransactionForApi, RevealTransactionForBlock, RevealTransactionForDataRequest, RevealTransactionForExplorer
-from transactions.transaction import Transaction
+from blockchain.transactions.transaction import Transaction
 from util.radon_translator import RadonTranslator
 
 class Reveal(Transaction):

@@ -7,7 +7,7 @@ from psycopg.sql import SQL, Identifier
 
 from node.witnet_node import WitnetNode
 
-from objects.wip import WIP
+from blockchain.objects.wip import WIP
 
 from util.address_generator import AddressGenerator
 from util.database_manager import DatabaseManager

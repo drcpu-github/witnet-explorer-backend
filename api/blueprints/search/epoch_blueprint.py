@@ -4,8 +4,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.objects.block import Block
 from node.consensus_constants import ConsensusConstants
-from objects.block import Block
 from schemas.misc.abort_schema import AbortSchema
 from schemas.search.epoch_schema import SearchEpochArgs, SearchEpochResponse
 

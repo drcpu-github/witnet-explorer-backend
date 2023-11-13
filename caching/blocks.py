@@ -7,7 +7,7 @@ import toml
 from marshmallow import ValidationError
 
 from caching.client import Client
-from objects.block import Block
+from blockchain.objects.block import Block
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout

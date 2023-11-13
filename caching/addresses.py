@@ -22,7 +22,7 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Manager
 
-from objects.address import Address
+from blockchain.objects.address import Address
 
 from schemas.address.block_view_schema import BlockView
 from schemas.address.data_request_view_schema import DataRequestCreatedView, DataRequestSolvedView

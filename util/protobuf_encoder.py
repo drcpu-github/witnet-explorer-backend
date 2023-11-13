@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from typing import Union, List
-from objects.wip import WIP
+from blockchain.objects.wip import WIP
 
 sha256 = lambda x: hashlib.sha256(x).digest()
 str_or_none = Union[str, None]
