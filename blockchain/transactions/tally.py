@@ -1,7 +1,7 @@
 import cbor
 import json
 
-from transactions.transaction import Transaction
+from blockchain.transactions.transaction import Transaction
 from schemas.component.tally_schema import TallyTransactionForApi, TallyTransactionForBlock, TallyTransactionForDataRequest, TallyTransactionForExplorer
 from util.radon_translator import RadonTranslator
 

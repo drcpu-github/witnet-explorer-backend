@@ -7,7 +7,7 @@ import toml
 
 from marshmallow import ValidationError
 
-from objects.data_request_report import DataRequestReport
+from blockchain.objects.data_request_report import DataRequestReport
 from caching.client import Client
 from util.data_transformer import re_sql
 from util.logger import configure_logger

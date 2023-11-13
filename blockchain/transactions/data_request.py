@@ -7,7 +7,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
-from transactions.transaction import Transaction
+from blockchain.transactions.transaction import Transaction
 from util.common_functions import calculate_priority
 from util.radon_translator import RadonTranslator
 

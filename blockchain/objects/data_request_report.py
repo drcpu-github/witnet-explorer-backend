@@ -2,10 +2,10 @@ import logging
 import logging.handlers
 
 from schemas.search.data_request_report_schema import DataRequestReport as DataRequestReportSchema
-from transactions.data_request import DataRequest
-from transactions.commit import Commit
-from transactions.reveal import Reveal
-from transactions.tally import Tally
+from blockchain.transactions.data_request import DataRequest
+from blockchain.transactions.commit import Commit
+from blockchain.transactions.reveal import Reveal
+from blockchain.transactions.tally import Tally
 from util.database_manager import DatabaseManager
 
 class DataRequestReport(object):

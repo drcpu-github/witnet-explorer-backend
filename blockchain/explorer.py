@@ -23,10 +23,10 @@ from blockchain.witnet_database import WitnetDatabase
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 
-from objects.block import Block
+from blockchain.objects.block import Block
 
-from transactions.data_request import DataRequest
-from transactions.value_transfer import ValueTransfer
+from blockchain.transactions.data_request import DataRequest
+from blockchain.transactions.value_transfer import ValueTransfer
 
 from util.socket_manager import SocketManager
 from util.common_functions import calculate_priority, calculate_current_epoch

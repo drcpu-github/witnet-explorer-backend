@@ -6,7 +6,7 @@ import time
 import toml
 
 from caching.client import Client
-from objects.wip import WIP
+from blockchain.objects.wip import WIP
 from schemas.misc.home_schema import HomeBlock, HomeNetworkStats, HomeTransaction, HomeResponse
 from schemas.network.supply_schema import NetworkSupply
 from util.data_transformer import re_sql

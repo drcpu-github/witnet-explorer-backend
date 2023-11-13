@@ -5,8 +5,8 @@ import time
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 
-from transactions.reveal import translate_reveal
-from transactions.tally import translate_tally
+from blockchain.transactions.reveal import translate_reveal
+from blockchain.transactions.tally import translate_tally
 
 from util.common_functions import calculate_block_reward
 from util.database_manager import DatabaseManager

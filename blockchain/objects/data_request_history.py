@@ -4,8 +4,8 @@ import logging.handlers
 from psycopg.sql import SQL, Identifier
 
 from schemas.search.data_request_history_schema import DataRequestHistory as DataRequestHistorySchema
-from transactions.data_request import DataRequest
-from transactions.tally import Tally
+from blockchain.transactions.data_request import DataRequest
+from blockchain.transactions.tally import Tally
 from util.database_manager import DatabaseManager
 from util.data_transformer import re_sql
 

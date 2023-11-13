@@ -5,7 +5,7 @@ from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForBlock,
     ValueTransferTransactionForExplorer,
 )
-from transactions.transaction import Transaction
+from blockchain.transactions.transaction import Transaction
 
 
 class ValueTransfer(Transaction):

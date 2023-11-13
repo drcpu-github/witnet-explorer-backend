@@ -1,5 +1,5 @@
 from schemas.component.mint_schema import MintTransactionForExplorer, MintTransactionForApi
-from transactions.transaction import Transaction
+from blockchain.transactions.transaction import Transaction
 
 class Mint(Transaction):
     def process_transaction(self, block_signature):

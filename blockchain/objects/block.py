@@ -5,12 +5,12 @@ import time
 from util.database_manager import DatabaseManager
 from node.witnet_node import WitnetNode
 from schemas.component.block_schema import BlockForExplorer, BlockForApi
-from transactions.mint import Mint
-from transactions.value_transfer import ValueTransfer
-from transactions.data_request import DataRequest
-from transactions.commit import Commit
-from transactions.reveal import Reveal
-from transactions.tally import Tally
+from blockchain.transactions.mint import Mint
+from blockchain.transactions.value_transfer import ValueTransfer
+from blockchain.transactions.data_request import DataRequest
+from blockchain.transactions.commit import Commit
+from blockchain.transactions.reveal import Reveal
+from blockchain.transactions.tally import Tally
 
 class Block(object):
     def __init__(self, consensus_constants, block_hash="", block_epoch=-1, logger=None, log_queue=None, database=None, database_config=None, block=None, tapi_periods=[], witnet_node=None, node_config=None):

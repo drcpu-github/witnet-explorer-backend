@@ -3,7 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
-from objects.address import Address
+from blockchain.objects.address import Address
 from schemas.address.mint_view_schema import MintView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
