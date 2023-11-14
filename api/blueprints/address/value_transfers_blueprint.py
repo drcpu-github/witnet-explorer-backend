@@ -7,6 +7,7 @@ from blockchain.objects.address import Address
 from schemas.address.value_transfer_view_schema import ValueTransferView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import send_address_caching_request
 
 address_value_transfers_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class AddressValueTransfers(MethodView):
         200,
         ValueTransferView(many=True),
         description="Returns a list of value transfers for an address.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_value_transfers_blueprint.alt_response(
         404,
@@ -60,7 +67,7 @@ class AddressValueTransfers(MethodView):
                 f"Found {len(cached_value_transfers)} value transfers for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_value_transfers)
-            return cached_value_transfers[start:stop]
+            return cached_value_transfers[start:stop], 200, {"X-Version": "v1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -85,4 +92,4 @@ class AddressValueTransfers(MethodView):
                     message=f"Incorrect message format for value transfer data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(value_transfers)
-            return value_transfers[start:stop]
+            return value_transfers[start:stop], 200, {"X-Version": "v1.0.0"}

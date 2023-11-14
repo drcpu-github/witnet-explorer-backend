@@ -48,7 +48,7 @@ def create_app(mock=False):
 
     # Configure app
     app.config["API_TITLE"] = "Witnet explorer REST API"
-    app.config["API_VERSION"] = "v1"
+    app.config["API_VERSION"] = "v1.0.0"
 
     # Set configurations for OpenAPI documentation
     app.config["OPENAPI_VERSION"] = "3.0.3"

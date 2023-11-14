@@ -7,6 +7,7 @@ from blockchain.objects.address import Address
 from schemas.address.mint_view_schema import MintView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import send_address_caching_request
 
 address_mints_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class AddressMints(MethodView):
         200,
         MintView(many=True),
         description="Returns a list of mint transactions received by an address.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_mints_blueprint.alt_response(
         404,
@@ -60,7 +67,7 @@ class AddressMints(MethodView):
                 f"Found {len(cached_mints)} mint transactions for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_mints)
-            return cached_mints[start:stop]
+            return cached_mints[start:stop], 200, {"X-Version": "v1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -85,4 +92,4 @@ class AddressMints(MethodView):
                     message=f"Incorrect message format for mint data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(mints)
-            return mints[start:stop]
+            return mints[start:stop], 200, {"X-Version": "v1.0.0"}

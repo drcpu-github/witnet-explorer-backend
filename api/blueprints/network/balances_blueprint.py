@@ -3,6 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.balances_schema import NetworkBalancesResponse
 
 network_balances_blueprint = Blueprint(
@@ -18,6 +19,12 @@ class BalanceList(MethodView):
         200,
         NetworkBalancesResponse,
         description="Returns a paginated list of addresses, their balance and a label.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_balances_blueprint.alt_response(
         404,
@@ -70,11 +77,15 @@ class BalanceList(MethodView):
             and idx <= stop % items_per_cache_entry
         ]
 
-        return NetworkBalancesResponse().load(
-            {
-                "balances": paginated_balances,
-                "total_items": balance_list_part["total_items"],
-                "total_balance_sum": balance_list_part["total_balance_sum"],
-                "last_updated": balance_list_part["last_updated"],
-            }
+        return (
+            NetworkBalancesResponse().load(
+                {
+                    "balances": paginated_balances,
+                    "total_items": balance_list_part["total_items"],
+                    "total_balance_sum": balance_list_part["total_balance_sum"],
+                    "last_updated": balance_list_part["last_updated"],
+                }
+            ),
+            200,
+            {"X-Version": "v1.0.0"},
         )

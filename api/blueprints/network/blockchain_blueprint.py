@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.blockchain_schema import NetworkBlockchainResponse
 from util.common_functions import (
     calculate_block_reward,
@@ -26,6 +27,12 @@ class NetworkBlockchain(MethodView):
         200,
         NetworkBlockchainResponse,
         description="Returns a paginated overview of the Witnet blockchain.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_blockchain_blueprint.alt_response(
         404,
@@ -54,7 +61,7 @@ class NetworkBlockchain(MethodView):
         if blockchain:
             logger.info(f"Found {cache_key} in memcached cache")
             pagination_parameters.item_count = blockchain["total_epochs"]
-            return blockchain
+            return blockchain, 200, {"X-Version": "v1.0.0"}
 
         logger.info(f"Could not find {cache_key} in memcached cache")
 
@@ -106,7 +113,7 @@ class NetworkBlockchain(MethodView):
             )
             abort(404, message="Incorrect message format for blockchain response.")
 
-        return blockchain
+        return blockchain, 200, {"X-Version": "v1.0.0"}
 
 
 def get_blockchain_details(database, last_epoch, start, stop, consensus_constants):

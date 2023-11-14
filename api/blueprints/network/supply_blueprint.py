@@ -3,6 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.supply_schema import NetworkSupplyArgs
 
 network_supply_blueprint = Blueprint(
@@ -18,6 +19,12 @@ class SupplyInfo(MethodView):
     @network_supply_blueprint.response(
         200,
         description="Returns a single integer value for the requested supply info key.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_supply_blueprint.alt_response(
         404,
@@ -50,6 +57,10 @@ class SupplyInfo(MethodView):
             "epoch",
             "in_flight_requests",
         ):
-            return str(int(home["supply_info"][key]))
+            return str(int(home["supply_info"][key])), 200, {"X-Version": "v1.0.0"}
         else:
-            return str(int(home["supply_info"][key] / 1e9))
+            return (
+                str(int(home["supply_info"][key] / 1e9)),
+                200,
+                {"X-Version": "v1.0.0"},
+            )

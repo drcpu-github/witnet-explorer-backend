@@ -7,6 +7,7 @@ from blockchain.objects.address import Address
 from schemas.address.data_request_view_schema import DataRequestSolvedView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import send_address_caching_request
 
 address_data_requests_solved_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class AddressDataRequestsSolved(MethodView):
         200,
         DataRequestSolvedView(many=True),
         description="Returns a list of data requests solved for an address.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_data_requests_solved_blueprint.alt_response(
         404,
@@ -60,7 +67,7 @@ class AddressDataRequestsSolved(MethodView):
                 f"Found {len(cached_data_requests_solved)} data requests solved for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_data_requests_solved)
-            return cached_data_requests_solved[start:stop]
+            return cached_data_requests_solved[start:stop], 200, {"X-Version": "v1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -85,4 +92,4 @@ class AddressDataRequestsSolved(MethodView):
                     message=f"Incorrect message format for data requests solved data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(data_requests_solved)
-            return data_requests_solved[start:stop]
+            return data_requests_solved[start:stop], 200, {"X-Version": "v1.0.0"}

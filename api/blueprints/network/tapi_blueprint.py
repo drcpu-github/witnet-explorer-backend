@@ -9,6 +9,7 @@ from marshmallow import ValidationError
 from PIL import Image
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.tapi_schema import NetworkTapiArgs, NetworkTapiResponse
 
 network_tapi_blueprint = Blueprint(
@@ -25,6 +26,12 @@ class NetworkTapi(MethodView):
         200,
         NetworkTapiResponse(many=True),
         description="Returns a list of TAPIs.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_tapi_blueprint.alt_response(
         404,
@@ -118,4 +125,4 @@ class NetworkTapi(MethodView):
             f"Returning TAPI's {', '.join(str(tapi['tapi_id']) for tapi in all_tapis)}"
         )
 
-        return all_tapis
+        return all_tapis, 200, {"X-Version": "v1.0.0"}

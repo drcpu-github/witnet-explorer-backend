@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from schemas.address.labels_schema import AddressLabelResponse
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.data_transformer import re_sql
 
 address_labels_blueprint = Blueprint(
@@ -20,6 +21,12 @@ class AddressLabels(MethodView):
         200,
         AddressLabelResponse(many=True),
         description="Returns a list of addresses with labels.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_labels_blueprint.alt_response(
         404,
@@ -50,14 +57,18 @@ class AddressLabels(MethodView):
         if addresses:
             logger.info(f"Returning {len(addresses)} addresses with labels")
             try:
-                return AddressLabelResponse(many=True).load(
-                    [
-                        {
-                            "address": address[0],
-                            "label": address[1],
-                        }
-                        for address in addresses
-                    ]
+                return (
+                    AddressLabelResponse(many=True).load(
+                        [
+                            {
+                                "address": address[0],
+                                "label": address[1],
+                            }
+                            for address in addresses
+                        ]
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -68,4 +79,4 @@ class AddressLabels(MethodView):
                     message=f"Incorrect message format for address labels for {addresses}.",
                 )
         else:
-            return []
+            return [], 200, {"X-Version": "v1.0.0"}

@@ -5,6 +5,7 @@ from marshmallow import INCLUDE, ValidationError
 
 from schemas.include.post_transaction_schema import PostTransaction
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.transaction.send_schema import ValueTransferArgs, ValueTransferResponse
 
 transaction_send_blueprint = Blueprint(
@@ -24,6 +25,12 @@ class TransactionSend(MethodView):
         201,
         ValueTransferResponse,
         description="Returns whether the value transfer was valid.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @transaction_send_blueprint.alt_response(
         404,
@@ -56,7 +63,11 @@ class TransactionSend(MethodView):
             abort(404, message="Failed to validate value transfer.")
 
         if args["test"]:
-            return ValueTransferResponse().load({"result": "Value transfer is valid."})
+            return (
+                ValueTransferResponse().load({"result": "Value transfer is valid."}),
+                201,
+                {"X-Version": "v1.0.0"},
+            )
         else:
             response = witnet_node.send_vtt({"transaction": args["transaction"]})
             if "reason" in response:
@@ -69,8 +80,12 @@ class TransactionSend(MethodView):
                 )
             else:
                 if "result" in response and response["result"]:
-                    return ValueTransferResponse().load(
-                        {"result": "Succesfully sent value transfer."}
+                    return (
+                        ValueTransferResponse().load(
+                            {"result": "Succesfully sent value transfer."}
+                        ),
+                        201,
+                        {"X-Version": "v1.0.0"},
                     )
                 else:
                     logger.error(
