@@ -103,19 +103,23 @@ class SearchHash(MethodView):
             transactions_pool = transactions_pool["result"]
             if hash_value in transactions_pool["data_request"]:
                 return (
-                    {
-                        "response_type": "pending",
-                        "pending": "Data request is pending.",
-                    },
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "pending",
+                            "pending": "Data request is pending.",
+                        }
+                    ),
                     200,
                     {"X-Version": "v1.0.0"},
                 )
             elif hash_value in transactions_pool["value_transfer"]:
                 return (
-                    {
-                        "response_type": "pending",
-                        "pending": "Value transfer is pending.",
-                    },
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "pending",
+                            "pending": "Value transfer is pending.",
+                        }
+                    ),
                     200,
                     {"X-Version": "v1.0.0"},
                 )
@@ -398,9 +402,7 @@ class SearchHash(MethodView):
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
                         return (
-                            SearchHashResponse().load(
-                                {"response_type": "commit", "commit": transaction}
-                            ),
+                            {"response_type": "commit", "commit": transaction},
                             200,
                             {"X-Version": "v1.0.0"},
                         )
@@ -438,9 +440,7 @@ class SearchHash(MethodView):
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
                         return (
-                            SearchHashResponse().load(
-                                {"response_type": "reveal", "reveal": transaction}
-                            ),
+                            {"response_type": "reveal", "reveal": transaction},
                             200,
                             {"X-Version": "v1.0.0"},
                         )
@@ -478,9 +478,7 @@ class SearchHash(MethodView):
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
                         return (
-                            SearchHashResponse().load(
-                                {"response_type": "tally", "tally": transaction}
-                            ),
+                            {"response_type": "tally", "tally": transaction},
                             200,
                             {"X-Version": "v1.0.0"},
                         )
