@@ -7,6 +7,7 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.reputation_schema import NetworkReputationResponse
 
 network_reputation_blueprint = Blueprint(
@@ -22,6 +23,12 @@ class Reputation(MethodView):
         200,
         NetworkReputationResponse,
         description="Returns a list of addresses, their reputation and eligibity.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_reputation_blueprint.alt_response(
         404,
@@ -89,4 +96,4 @@ class Reputation(MethodView):
         else:
             logger.info("Found reputation in our memcached instance.")
 
-        return reputation
+        return reputation, 200, {"X-Version": "v1.0.0"}

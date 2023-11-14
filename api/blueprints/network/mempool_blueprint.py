@@ -8,6 +8,7 @@ from marshmallow import ValidationError
 from psycopg.sql import SQL, Identifier
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.network.mempool_schema import NetworkMempoolArgs, NetworkMempoolResponse
 from util.common_functions import calculate_timestamp_from_epoch, get_network_times
 from util.data_transformer import re_sql
@@ -26,6 +27,12 @@ class NetworkMempool(MethodView):
         200,
         NetworkMempoolResponse(many=True),
         description="Returns a historical snapshot of the amount of pending transactions.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @network_mempool_blueprint.alt_response(
         404,
@@ -88,7 +95,7 @@ class NetworkMempool(MethodView):
         else:
             logger.info(f"Found {key} in memcached cache")
 
-        return mempool
+        return mempool, 200, {"X-Version": "v1.0.0"}
 
 
 def get_historical_mempool(database, transaction_type, timestamp_start, timestamp_stop):

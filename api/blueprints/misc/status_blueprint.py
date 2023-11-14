@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.status_schema import StatusResponse
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import calculate_current_epoch, get_network_times
 from util.common_sql import sql_last_block, sql_last_confirmed_block
 
@@ -21,6 +22,12 @@ class Status(MethodView):
         200,
         StatusResponse,
         description="Returns the status of different backend components.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @status_blueprint.alt_response(
         404,
@@ -137,4 +144,4 @@ class Status(MethodView):
         else:
             logger.info("Found status in memcached cache")
 
-        return status
+        return status, 200, {"X-Version": "v1.0.0"}

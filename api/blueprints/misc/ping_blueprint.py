@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.ping_schema import PingResponse
+from schemas.misc.version_schema import VersionSchema
 
 ping_blueprint = Blueprint(
     "ping",
@@ -19,6 +20,12 @@ class Ping(MethodView):
         200,
         PingResponse,
         description="Returns a pong response to indicate the API is online.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @ping_blueprint.alt_response(
         404,
@@ -34,7 +41,11 @@ class Ping(MethodView):
         logger = current_app.extensions["logger"]
         logger.info("ping()")
         try:
-            return PingResponse().load({"response": "pong"})
+            return (
+                PingResponse().load({"response": "pong"}),
+                200,
+                {"X-Version": "v1.0.0"},
+            )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for ping response: {err_info}")
             abort(404, message="Incorrect message format for ping response.")

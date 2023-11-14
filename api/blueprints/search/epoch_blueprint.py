@@ -7,6 +7,7 @@ from marshmallow import ValidationError
 from blockchain.objects.block import Block
 from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.search.epoch_schema import SearchEpochArgs, SearchEpochResponse
 
 search_epoch_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class SearchEpoch(MethodView):
         200,
         SearchEpochResponse,
         description="Returns the block associated with the requested epoch.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @search_epoch_blueprint.alt_response(
         404,
@@ -54,7 +61,7 @@ class SearchEpoch(MethodView):
                 logger.info(
                     f"Found block {epoch} with hash {cached_block_hash} in memcached cache"
                 )
-                return cached_block
+                return cached_block, 200, {"X-Version": "v1.0.0"}
 
         # Create consensus constants
         consensus_constants = ConsensusConstants(
@@ -132,11 +139,15 @@ class SearchEpoch(MethodView):
             )
 
         try:
-            return SearchEpochResponse().load(
-                {
-                    "response_type": "block",
-                    "block": block_json,
-                }
+            return (
+                SearchEpochResponse().load(
+                    {
+                        "response_type": "block",
+                        "block": block_json,
+                    }
+                ),
+                200,
+                {"X-Version": "v1.0.0"},
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for block {epoch}: {err_info}")

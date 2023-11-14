@@ -4,6 +4,7 @@ from flask_smorest import Blueprint, abort
 
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.home_schema import HomeArgs, HomeResponse
+from schemas.misc.version_schema import VersionSchema
 
 home_blueprint = Blueprint(
     "Home",
@@ -19,6 +20,12 @@ class Home(MethodView):
         200,
         HomeResponse,
         description="Returns recent network statistics used to build the homepage.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @home_blueprint.alt_response(
         404,
@@ -45,8 +52,12 @@ class Home(MethodView):
             logger.info("Found home in memcached cache")
 
         if key == "full":
-            return home
+            return home, 200, {"X-Version": "v1.0.0"}
         elif key in ("network_stats", "supply_info"):
-            return {key: home[key]}
+            return {key: home[key]}, 200, {"X-Version": "v1.0.0"}
         elif key in ("blocks", "data_requests", "value_transfers"):
-            return {f"latest_{key}": home[f"latest_{key}"]}
+            return (
+                {f"latest_{key}": home[f"latest_{key}"]},
+                200,
+                {"X-Version": "v1.0.0"},
+            )

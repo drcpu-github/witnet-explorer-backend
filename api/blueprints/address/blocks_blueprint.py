@@ -7,6 +7,7 @@ from blockchain.objects.address import Address
 from schemas.address.block_view_schema import BlockView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import send_address_caching_request
 
 address_blocks_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class AddressBlocks(MethodView):
         200,
         BlockView(many=True),
         description="Returns a list of blocks mined by an address.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_blocks_blueprint.alt_response(
         404,
@@ -58,7 +65,7 @@ class AddressBlocks(MethodView):
         if cached_blocks:
             logger.info(f"Found {len(cached_blocks)} blocks for {arg_address} in cache")
             pagination_parameters.item_count = len(cached_blocks)
-            return cached_blocks[start:stop]
+            return cached_blocks[start:stop], 200, {"X-Version": "v1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -83,4 +90,4 @@ class AddressBlocks(MethodView):
                     message=f"Incorrect message format for block data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(blocks)
-            return blocks[start:stop]
+            return blocks[start:stop], 200, {"X-Version": "v1.0.0"}

@@ -5,6 +5,7 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.transaction.mempool_schema import (
     TransactionMempoolArgs,
     TransactionMempoolResponse,
@@ -24,6 +25,12 @@ class TransactionMempool(MethodView):
         200,
         TransactionMempoolResponse,
         description="Returns a snapshot of the current mempool transactions split by data requests and value transfers.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @transaction_mempool_blueprint.alt_response(
         404,
@@ -71,7 +78,11 @@ class TransactionMempool(MethodView):
                     "Could not save the mempool in our memcached instance because the item size exceeded 1MB"
                 )
 
-            return build_return_value(args["type"], mempool)
+            return (
+                build_return_value(args["type"], mempool),
+                200,
+                {"X-Version": "v1.0.0"},
+            )
         else:
             logger.error(f"Could not fetch the live mempool: {mempool['error']}")
             abort(

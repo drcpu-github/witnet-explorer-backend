@@ -15,6 +15,7 @@ from blockchain.transactions.tally import Tally
 from blockchain.transactions.value_transfer import ValueTransfer
 from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.search.hash_schema import SearchHashArgs, SearchHashResponse
 
 search_hash_blueprint = Blueprint(
@@ -31,6 +32,12 @@ class SearchHash(MethodView):
         200,
         SearchHashResponse,
         description="Returns the block, transaction, data request report, RAD or DRO overview associated with the requested hash",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @search_hash_blueprint.alt_response(
         404,
@@ -68,7 +75,7 @@ class SearchHash(MethodView):
             logger.info(
                 f"Found {hashed_item['response_type'].replace('_', ' ')} hash {hash_value} in memcached cache"
             )
-            return hashed_item
+            return hashed_item, 200, {"X-Version": "v1.0.0"}
 
         sql = """
             SELECT
@@ -95,15 +102,23 @@ class SearchHash(MethodView):
 
             transactions_pool = transactions_pool["result"]
             if hash_value in transactions_pool["data_request"]:
-                return {
-                    "response_type": "pending",
-                    "pending": "Data request is pending.",
-                }
+                return (
+                    {
+                        "response_type": "pending",
+                        "pending": "Data request is pending.",
+                    },
+                    200,
+                    {"X-Version": "v1.0.0"},
+                )
             elif hash_value in transactions_pool["value_transfer"]:
-                return {
-                    "response_type": "pending",
-                    "pending": "Value transfer is pending.",
-                }
+                return (
+                    {
+                        "response_type": "pending",
+                        "pending": "Value transfer is pending.",
+                    },
+                    200,
+                    {"X-Version": "v1.0.0"},
+                )
             else:
                 logger.warning(f"Could not find transaction hash {hash_value}")
                 abort(404, message=f"Could not find transaction hash {hash_value}.")
@@ -174,11 +189,15 @@ class SearchHash(MethodView):
                     f"Did not add unconfirmed block {hash_value} to our memcached instance"
                 )
             try:
-                return SearchHashResponse().load(
-                    {
-                        "response_type": "block",
-                        "block": block_json,
-                    }
+                return (
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "block",
+                            "block": block_json,
+                        }
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(f"Incorrect message format for block: {err_info}")
@@ -228,8 +247,12 @@ class SearchHash(MethodView):
                     f"Did not add unconfirmed mint transaction {hash_value} to our memcached instance"
                 )
             try:
-                return SearchHashResponse().load(
-                    {"response_type": "mint", "mint": mint_txn}
+                return (
+                    SearchHashResponse().load(
+                        {"response_type": "mint", "mint": mint_txn}
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -287,11 +310,15 @@ class SearchHash(MethodView):
                     f"Did not add unconfirmed value transfer transaction {hash_value} to our memcached instance"
                 )
             try:
-                return SearchHashResponse().load(
-                    {
-                        "response_type": "value_transfer",
-                        "value_transfer": value_transfer_txn,
-                    }
+                return (
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "value_transfer",
+                            "value_transfer": value_transfer_txn,
+                        }
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -327,11 +354,15 @@ class SearchHash(MethodView):
                     try:
                         # Do not cache a the result of a query for a single data request transaction
                         # This would conflict with the data request report which uses the same hash_value as key
-                        return SearchHashResponse().load(
-                            {
-                                "response_type": "data_request",
-                                "data_request": transaction,
-                            }
+                        return (
+                            SearchHashResponse().load(
+                                {
+                                    "response_type": "data_request",
+                                    "data_request": transaction,
+                                }
+                            ),
+                            200,
+                            {"X-Version": "v1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -366,8 +397,12 @@ class SearchHash(MethodView):
                             ),
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
-                        return SearchHashResponse().load(
-                            {"response_type": "commit", "commit": transaction}
+                        return (
+                            SearchHashResponse().load(
+                                {"response_type": "commit", "commit": transaction}
+                            ),
+                            200,
+                            {"X-Version": "v1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -402,8 +437,12 @@ class SearchHash(MethodView):
                             ),
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
-                        return SearchHashResponse().load(
-                            {"response_type": "reveal", "reveal": transaction}
+                        return (
+                            SearchHashResponse().load(
+                                {"response_type": "reveal", "reveal": transaction}
+                            ),
+                            200,
+                            {"X-Version": "v1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -438,8 +477,12 @@ class SearchHash(MethodView):
                             ),
                             timeout=cache_config["views"]["hash"]["timeout"],
                         )
-                        return SearchHashResponse().load(
-                            {"response_type": "tally", "tally": transaction}
+                        return (
+                            SearchHashResponse().load(
+                                {"response_type": "tally", "tally": transaction}
+                            ),
+                            200,
+                            {"X-Version": "v1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -468,7 +511,7 @@ class SearchHash(MethodView):
                     logger.info(
                         f"Found a data request report {data_request_hash} for a {hash_type.replace('_', ' ')} in our memcached instance"
                     )
-                    return cached_data_request_report
+                    return cached_data_request_report, 200, {"X-Version": "v1.0.0"}
 
                 try:
                     data_request_report_json = data_request_report.get_report()
@@ -522,11 +565,15 @@ class SearchHash(MethodView):
                         )
 
                 try:
-                    return SearchHashResponse().load(
-                        {
-                            "response_type": "data_request_report",
-                            "data_request_report": data_request_report_json,
-                        }
+                    return (
+                        SearchHashResponse().load(
+                            {
+                                "response_type": "data_request_report",
+                                "data_request_report": data_request_report_json,
+                            }
+                        ),
+                        200,
+                        {"X-Version": "v1.0.0"},
                     )
                 except ValidationError as err_info:
                     logger.error(
@@ -547,11 +594,15 @@ class SearchHash(MethodView):
             # Data request histories change constantly, so we should not employ simple hash-based caching only
             try:
                 history = data_request_history.get_history(hash_type, hash_value)
-                return SearchHashResponse().load(
-                    {
-                        "response_type": "data_request_history",
-                        "data_request_history": history,
-                    }
+                return (
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "data_request_history",
+                            "data_request_history": history,
+                        }
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(

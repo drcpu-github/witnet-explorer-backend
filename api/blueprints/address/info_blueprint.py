@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from schemas.address.info_schema import AddressInfoArgs, AddressInfoResponse
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.data_transformer import re_sql
 
 address_info_blueprint = Blueprint(
@@ -21,6 +22,12 @@ class AddressInfo(MethodView):
         200,
         AddressInfoResponse(many=True),
         description="Returns a list of addresses with label, block and transaction metadata.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_info_blueprint.alt_response(
         404,
@@ -61,22 +68,26 @@ class AddressInfo(MethodView):
             logger.info(f"Found {len(addresses)} out of {len(addresses)}")
 
             try:
-                return AddressInfoResponse(many=True).load(
-                    [
-                        {
-                            "address": address[0],
-                            "label": address[1] if address[1] else "",
-                            "active": address[2],
-                            "block": address[3],
-                            "mint": address[4],
-                            "value_transfer": address[5],
-                            "data_request": address[6],
-                            "commit": address[7],
-                            "reveal": address[8],
-                            "tally": address[9],
-                        }
-                        for address in addresses
-                    ]
+                return (
+                    AddressInfoResponse(many=True).load(
+                        [
+                            {
+                                "address": address[0],
+                                "label": address[1] if address[1] else "",
+                                "active": address[2],
+                                "block": address[3],
+                                "mint": address[4],
+                                "value_transfer": address[5],
+                                "data_request": address[6],
+                                "commit": address[7],
+                                "reveal": address[8],
+                                "tally": address[9],
+                            }
+                            for address in addresses
+                        ]
+                    ),
+                    200,
+                    {"X-Version": "v1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -87,4 +98,4 @@ class AddressInfo(MethodView):
                     message=f"Incorrect message format for address info for {addresses}.",
                 )
         else:
-            return []
+            return [], 200, {"X-Version": "v1.0.0"}

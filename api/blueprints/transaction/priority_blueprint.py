@@ -4,6 +4,7 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from schemas.transaction.priority_schema import (
     TransactionPriorityArgs,
     TransactionPriorityResponse,
@@ -23,6 +24,12 @@ class TransactionPriority(MethodView):
         200,
         TransactionPriorityResponse,
         description="Returns a set of required transaction fees for a defined expected time to block.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @transaction_priority_blueprint.alt_response(
         404,
@@ -71,11 +78,11 @@ class TransactionPriority(MethodView):
             logger.info("Found 'priority' in memcached cache")
 
         if priority_key == "all":
-            return priority
+            return priority, 200, {"X-Version": "v1.0.0"}
         else:
             filtered_priority = {
                 key: priority[key]
                 for key in priority.keys()
                 if key.startswith(priority_key)
             }
-            return filtered_priority
+            return filtered_priority, 200, {"X-Version": "v1.0.0"}

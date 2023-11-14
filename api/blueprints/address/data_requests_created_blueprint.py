@@ -7,6 +7,7 @@ from blockchain.objects.address import Address
 from schemas.address.data_request_view_schema import DataRequestCreatedView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 from util.common_functions import send_address_caching_request
 
 address_data_requests_created_blueprint = Blueprint(
@@ -23,6 +24,12 @@ class AddressDataRequestsCreated(MethodView):
         200,
         DataRequestCreatedView(many=True),
         description="Returns a list of data requests created for an address.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_data_requests_created_blueprint.alt_response(
         404,
@@ -60,7 +67,11 @@ class AddressDataRequestsCreated(MethodView):
                 f"Found {len(cached_data_requests_created)} data requests created for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_data_requests_created)
-            return cached_data_requests_created[start:stop]
+            return (
+                cached_data_requests_created[start:stop],
+                200,
+                {"X-Version": "v1.0.0"},
+            )
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -85,4 +96,4 @@ class AddressDataRequestsCreated(MethodView):
                     message=f"Incorrect message format for data requests created data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(data_requests_created)
-            return data_requests_created[start:stop]
+            return data_requests_created[start:stop], 200, {"X-Version": "v1.0.0"}

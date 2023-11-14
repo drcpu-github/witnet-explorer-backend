@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from schemas.address.utxos_schema import AddressUtxosArgs, AddressUtxosResponse
 from schemas.misc.abort_schema import AbortSchema
+from schemas.misc.version_schema import VersionSchema
 
 address_utxos_blueprint = Blueprint(
     "address utxos",
@@ -20,6 +21,12 @@ class Reputation(MethodView):
         200,
         AddressUtxosResponse(many=True),
         description="Returns the utxos for one or more addresses.",
+        headers={
+            "X-Version": {
+                "description": "Version of this API endpoint.",
+                "schema": VersionSchema,
+            }
+        },
     )
     @address_utxos_blueprint.alt_response(
         404,
@@ -91,4 +98,4 @@ class Reputation(MethodView):
             )
             abort(404, message=f"Incorrect message format for UTXO data for {address}.")
 
-        return address_utxos
+        return address_utxos, 200, {"X-Version": "v1.0.0"}
