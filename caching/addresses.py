@@ -288,7 +288,6 @@ class Addresses(object):
                         "value-transfers",
                         "data-requests-solved",
                         "data-requests-created",
-                        "reputation",
                         "utxos",
                     ]
                     for function in all_functions:
@@ -332,16 +331,6 @@ class Addresses(object):
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
                             func_args = (logging_queue, "data requests created", address, address.get_data_requests_created, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
-                        elif function == "reputation":
-                            if "use-log-scale" in request:
-                                use_log_scale = request["use-log-scale"]
-                            else:
-                                logger.warning("Missing argument 'use-log-scale' in reputation request")
-                                use_log_scale = False
-                            logger.info(f"Queueing execution of plot_reputation({m_address})")
-                            plot_dir = config["api"]["caching"]["plot_directory"]
-                            func_args = (logging_queue, address, False, plot_dir, reputation_timeout)
-                            func_pool.apply_async(self.plot_reputation, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
                             func_args = (logging_queue, "utxos", address, address.get_utxos, utxos_timeout)
@@ -435,77 +424,6 @@ class Addresses(object):
             return logging_queue, None
 
         return logging_queue, f"Cached {label} data for {identity}"
-
-    def plot_reputation(self, logging_queue, address, use_log_scale, plot_dir, timeout):
-        # Set up logger
-        self.configure_logging_process(logging_queue, "function")
-        logger = logging.getLogger("function")
-
-        # Create memcached client
-        cache_config = self.config["api"]["caching"]
-        servers = cache_config["server"].split(",")
-        memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
-
-        identity = address.address
-
-        logger.info(f"Fetching reputation data for {identity}")
-        address.initialize_connections()
-        non_zero_reputation, non_zero_reputation_regions = address.get_reputation()
-        address.close_connections()
-
-        if len(non_zero_reputation_regions) == 0:
-            # Cache dummy variable to indicate a reputation plot was recently created
-            memcached_client.set(f"{identity}_reputation", True, time=timeout)
-            return logging_queue, f"Reputation plot for {identity} is empty"
-
-        # Create plot
-        logger.info(f"Creating reputation plot for {identity}")
-        fig, axes = plt.subplots(1, len(non_zero_reputation_regions), sharey=True)
-
-        if not isinstance(axes, numpy.ndarray):
-            axes = numpy.array([axes])
-
-        fig.set_size_inches(max(10, 2 * len(non_zero_reputation_regions)), 5)
-
-        for i, ax in enumerate(axes):
-            # Plot the reputation
-            x_range = range(non_zero_reputation_regions[i][0], non_zero_reputation_regions[i][1])
-            ax.plot(x_range, non_zero_reputation[i])
-            # Set the plot range
-            ax.set_xlim(non_zero_reputation_regions[i])
-            # Set the only x-ticks at region start and end
-            ax.set_xticks(non_zero_reputation_regions[i])
-            # Rotate x-labels 
-            ax.tick_params(axis="x", rotation=90)
-            if i != 0:
-                ax.tick_params(axis="y", color="w")
-            # Remove spine lines (except for the left-most and right-most spine)
-            if i != len(axes) - 1:
-                ax.spines['right'].set_visible(False)
-            if i != 0:
-                ax.spines['left'].set_visible(False)
-            # Disable scientific notation of the axis
-            ax.ticklabel_format(useOffset=False, style='plain')
-
-        # Logarithmic y-axis
-        if use_log_scale:
-            plt.yscale("log")
-            plt.minorticks_off()
-
-        if not os.path.exists(plot_dir):
-            os.makedirs(plot_dir)
-        plt.savefig(os.path.join(plot_dir, f"{identity}.png"), bbox_inches="tight")
-
-        plt.cla()
-        plt.clf()
-        plt.close(fig)
-
-        gc.collect()
-
-        # Cache dummy variable to indicate a reputation plot was recently created
-        memcached_client.set(f"{identity}_reputation", True, time=timeout)
-
-        return logging_queue, f"Reputation plot for {identity} created"
 
 def main():
     parser = optparse.OptionParser()
