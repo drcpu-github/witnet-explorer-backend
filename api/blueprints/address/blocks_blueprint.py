@@ -46,7 +46,7 @@ class AddressBlocks(MethodView):
         arg_address = args["address"]
         logger.info(f"address_blocks({arg_address})")
 
-        request = {"method": "track", "addresses": [], "id": 1}
+        request = {"method": "track", "addresses": [arg_address], "id": 1}
         send_address_caching_request(logger, address_caching_server, request)
 
         start = (pagination_parameters.page - 1) * pagination_parameters.page_size
