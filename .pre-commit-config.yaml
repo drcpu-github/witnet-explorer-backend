@@ -1,4 +1,4 @@
-files: api/|schemas/|tests/|mockups/
+files: api/|blockchain/|mockups/|schemas/|tests/
 repos:
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
@@ -14,7 +14,7 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        args: ["--extend-ignore=E501"]
+        args: ["--extend-ignore=E203,E501"]
         additional_dependencies:
           - flake8-bugbear
           - flake8-implicit-str-concat

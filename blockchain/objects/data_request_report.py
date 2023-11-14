@@ -1,15 +1,27 @@
 import logging
 import logging.handlers
 
-from schemas.search.data_request_report_schema import DataRequestReport as DataRequestReportSchema
-from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.commit import Commit
+from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.reveal import Reveal
 from blockchain.transactions.tally import Tally
+from schemas.search.data_request_report_schema import (
+    DataRequestReport as DataRequestReportSchema,
+)
 from util.database_manager import DatabaseManager
 
+
 class DataRequestReport(object):
-    def __init__(self, transaction_type, transaction_hash, consensus_constants, logger=None, log_queue=None, database=None, database_config=None):
+    def __init__(
+        self,
+        transaction_type,
+        transaction_hash,
+        consensus_constants,
+        logger=None,
+        log_queue=None,
+        database=None,
+        database_config=None,
+    ):
         self.transaction_type = transaction_type
         self.transaction_hash = transaction_hash
 
@@ -31,7 +43,9 @@ class DataRequestReport(object):
         if database:
             self.database = database
         elif database_config:
-            self.database = DatabaseManager(database_config, logger=self.logger, custom_types=["utxo", "filter"])
+            self.database = DatabaseManager(
+                database_config, logger=self.logger, custom_types=["utxo", "filter"]
+            )
         else:
             self.database = None
 
@@ -49,17 +63,23 @@ class DataRequestReport(object):
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "commit":
             self.logger.info(f"commit, get_report({self.transaction_hash})")
-            self.commit = Commit(self.consensus_constants, logger=self.logger, database=self.database)
+            self.commit = Commit(
+                self.consensus_constants, logger=self.logger, database=self.database
+            )
             data_request_hash = self.commit.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "reveal":
             self.logger.info(f"reveal, get_report({self.transaction_hash})")
-            self.reveal = Reveal(self.consensus_constants, logger=self.logger, database=self.database)
+            self.reveal = Reveal(
+                self.consensus_constants, logger=self.logger, database=self.database
+            )
             data_request_hash = self.reveal.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "tally":
             self.logger.info(f"tally, get_report({self.transaction_hash})")
-            self.tally = Tally(self.consensus_constants, logger=self.logger, database=self.database)
+            self.tally = Tally(
+                self.consensus_constants, logger=self.logger, database=self.database
+            )
             data_request_hash = self.tally.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         return data_request_hash
@@ -69,10 +89,10 @@ class DataRequestReport(object):
 
         # If there was an error, return the error message
         if "error" in self.data_request_hash:
-            self.logger.error(f"Error when fetching data request hash: {self.data_request_hash['error']}")
-            return {
-                "error": self.data_request_hash["error"]
-            }
+            self.logger.error(
+                f"Error when fetching data request hash: {self.data_request_hash['error']}"
+            )
+            return {"error": self.data_request_hash["error"]}
 
         # Get details from data request transaction
         self.get_data_request_details()
@@ -102,22 +122,32 @@ class DataRequestReport(object):
 
     def get_data_request_details(self):
         self.logger.info(f"get_data_request_details({self.data_request_hash})")
-        data_request = DataRequest(self.consensus_constants, logger=self.logger, database=self.database)
-        self.data_request = data_request.get_transaction_from_database(self.data_request_hash)
+        data_request = DataRequest(
+            self.consensus_constants, logger=self.logger, database=self.database
+        )
+        self.data_request = data_request.get_transaction_from_database(
+            self.data_request_hash
+        )
 
     def get_commit_details(self):
         self.logger.info(f"get_commit_details({self.data_request_hash})")
-        commit = Commit(self.consensus_constants, logger=self.logger, database=self.database)
+        commit = Commit(
+            self.consensus_constants, logger=self.logger, database=self.database
+        )
         self.commits = commit.get_commits_for_data_request(self.data_request_hash)
 
     def get_reveal_details(self):
         self.logger.info(f"get_reveal_details({self.data_request_hash})")
-        reveal = Reveal(self.consensus_constants, logger=self.logger, database=self.database)
+        reveal = Reveal(
+            self.consensus_constants, logger=self.logger, database=self.database
+        )
         self.reveals = reveal.get_reveals_for_data_request(self.data_request_hash)
 
     def get_tally_details(self):
         self.logger.info(f"get_tally_details({self.data_request_hash})")
-        tally = Tally(self.consensus_constants, logger=self.logger, database=self.database)
+        tally = Tally(
+            self.consensus_constants, logger=self.logger, database=self.database
+        )
         self.tally = tally.get_tally_for_data_request(self.data_request_hash)
 
     def add_missing_reveals(self):
@@ -133,25 +163,29 @@ class DataRequestReport(object):
                     # No reveals, assume they would have been created the epoch after the commit
                     else:
                         missing_epoch = self.commits[0]["epoch"] + 1
-                        missing_time = self.start_time + (missing_epoch + 1) * self.epoch_period
+                        missing_time = (
+                            self.start_time + (missing_epoch + 1) * self.epoch_period
+                        )
 
-                    self.reveals.append({
-                        "block": "",
-                        "hash": "",
-                        "address": commit_address,
-                        "reveal": "No reveal",
-                        "success": False,
-                        "error": False,
-                        "liar": True,
-                        "epoch": missing_epoch,
-                        "timestamp": missing_time,
-                    })
+                    self.reveals.append(
+                        {
+                            "block": "",
+                            "hash": "",
+                            "address": commit_address,
+                            "reveal": "No reveal",
+                            "success": False,
+                            "error": False,
+                            "liar": True,
+                            "epoch": missing_epoch,
+                            "timestamp": missing_time,
+                        }
+                    )
 
     def sort_by_address(self):
         if self.commits:
-            self.commits = sorted(self.commits, key=lambda l: l["address"])
+            self.commits = sorted(self.commits, key=lambda commit: commit["address"])
         if self.reveals:
-            self.reveals = sorted(self.reveals, key=lambda l: l["address"])
+            self.reveals = sorted(self.reveals, key=lambda commit: commit["address"])
 
     def mark_errors(self):
         if self.reveals:

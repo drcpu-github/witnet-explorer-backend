@@ -1,7 +1,5 @@
 import logging
 import logging.handlers
-import os
-import sys
 
 from util.database_manager import DatabaseManager
 
@@ -448,9 +446,7 @@ class WitnetDatabase(object):
                     commit_txns_pkey
                 DO NOTHING
             """
-            self.db_mngr.sql_execute_many(
-                sql, self.commits
-            )
+            self.db_mngr.sql_execute_many(sql, self.commits)
             if self.logger:
                 self.logger.info(
                     f"Inserted {len(self.commits)} commit transaction(s) for epoch {epoch}"
@@ -523,7 +519,7 @@ class WitnetDatabase(object):
             WHERE
                 block_hash=%s
         """
-        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
+        self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Confirmed block {block_hash} for epoch {epoch}")
 
@@ -536,7 +532,7 @@ class WitnetDatabase(object):
                 reverted=true
             WHERE block_hash=%s
         """
-        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
+        self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Reverted block {block_hash} for epoch {epoch}")
 
@@ -547,7 +543,7 @@ class WitnetDatabase(object):
             WHERE
                 block_hash=%s
         """
-        result = self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
+        self.db_mngr.sql_update_table(sql, parameters=[bytearray.fromhex(block_hash)])
         if self.logger:
             self.logger.info(f"Deleted block {block_hash} for epoch {epoch}")
 

@@ -1,13 +1,12 @@
-import logging
-import logging.handlers
-
 from psycopg.sql import SQL, Identifier
 
-from schemas.search.data_request_history_schema import DataRequestHistory as DataRequestHistorySchema
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.tally import Tally
-from util.database_manager import DatabaseManager
+from schemas.search.data_request_history_schema import (
+    DataRequestHistory as DataRequestHistorySchema,
+)
 from util.data_transformer import re_sql
+
 
 class DataRequestHistory(object):
     def __init__(self, consensus_constants, logger, database):
@@ -18,7 +17,9 @@ class DataRequestHistory(object):
         self.logger = logger
         self.database = database
 
-        self.data_request = DataRequest(consensus_constants, logger=logger, database=database)
+        self.data_request = DataRequest(
+            consensus_constants, logger=logger, database=database
+        )
         self.tally = Tally(consensus_constants, logger=logger, database=database)
 
     def get_history(self, hash_type, bytes_hash):
@@ -49,7 +50,10 @@ class DataRequestHistory(object):
             DESC
         """
         sql = SQL(re_sql(sql)).format(column_name=Identifier(hash_type))
-        results = self.database.sql_return_all(sql, parameters=[bytearray.fromhex(bytes_hash)])
+        results = self.database.sql_return_all(
+            sql,
+            parameters=[bytearray.fromhex(bytes_hash)],
+        )
 
         num_data_requests = len(results) if results else 0
         first_epoch = min(r[0] for r in results) if results else 0
@@ -58,7 +62,14 @@ class DataRequestHistory(object):
         data_request = None
         data_request_history = []
         for result in results:
-            block_epoch, block_confirmed, block_reverted, data_request_hash, tally_txn_hash, tally_epoch = result
+            (
+                block_epoch,
+                block_confirmed,
+                block_reverted,
+                data_request_hash,
+                tally_txn_hash,
+                tally_epoch,
+            ) = result
 
             # Ignore tallies which happened before the data request / block epoch
             # These originate from errored requests and get replaced with newer ones
@@ -69,7 +80,9 @@ class DataRequestHistory(object):
             txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
 
             data_request_hash = data_request_hash.hex()
-            data_request = self.data_request.get_transaction_from_database(data_request_hash)
+            data_request = self.data_request.get_transaction_from_database(
+                data_request_hash
+            )
 
             tally_result = ""
             num_errors, num_liars = 0, 0
@@ -107,8 +120,16 @@ class DataRequestHistory(object):
         witnesses_set = set(drh["witnesses"] for drh in data_request_history)
         witness_reward_set = set(drh["witness_reward"] for drh in data_request_history)
         collateral_set = set(drh["collateral"] for drh in data_request_history)
-        consensus_percentage_set = set(drh["consensus_percentage"] for drh in data_request_history)
-        if len(witnesses_set) + len(witness_reward_set) + len(collateral_set) + len(consensus_percentage_set) == 4:
+        consensus_percentage_set = set(
+            drh["consensus_percentage"] for drh in data_request_history
+        )
+        if (
+            len(witnesses_set)
+            + len(witness_reward_set)
+            + len(collateral_set)
+            + len(consensus_percentage_set)
+            == 4
+        ):
             add_parameters = True
             data_request_history = [
                 {
@@ -121,7 +142,8 @@ class DataRequestHistory(object):
                     "result": drh["result"],
                     "confirmed": drh["confirmed"],
                     "reverted": drh["reverted"],
-                } for drh in data_request_history
+                }
+                for drh in data_request_history
             ]
 
         return_value = {
