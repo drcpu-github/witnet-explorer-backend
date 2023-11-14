@@ -1,9 +1,15 @@
-from schemas.component.mint_schema import MintTransactionForExplorer, MintTransactionForApi
 from blockchain.transactions.transaction import Transaction
+from schemas.component.mint_schema import (
+    MintTransactionForApi,
+    MintTransactionForExplorer,
+)
+
 
 class Mint(Transaction):
     def process_transaction(self, block_signature):
-        self.txn_details["miner"] = self.address_generator.signature_to_address(block_signature["compressed"], block_signature["bytes"])
+        self.txn_details["miner"] = self.address_generator.signature_to_address(
+            block_signature["compressed"], block_signature["bytes"]
+        )
 
         # Collect output values
         output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
@@ -32,10 +38,21 @@ class Mint(Transaction):
                 txn_hash=%s
             LIMIT 1
         """
-        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(txn_hash)],
+        )
 
         if result:
-            block_hash, block_confirmed, block_reverted, miner, output_addresses, output_values, epoch = result
+            (
+                block_hash,
+                block_confirmed,
+                block_reverted,
+                miner,
+                output_addresses,
+                output_values,
+                epoch,
+            ) = result
 
             block_hash = block_hash.hex()
 

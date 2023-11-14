@@ -1,5 +1,10 @@
 from blockchain.transactions.transaction import Transaction
-from schemas.component.commit_schema import CommitTransactionForApi, CommitTransactionForBlock, CommitTransactionForDataRequest, CommitTransactionForExplorer
+from schemas.component.commit_schema import (
+    CommitTransactionForApi,
+    CommitTransactionForBlock,
+    CommitTransactionForExplorer,
+)
+
 
 class Commit(Transaction):
     def process_transaction(self, call_from):
@@ -44,7 +49,10 @@ class Commit(Transaction):
                 commit_txns.txn_hash=%s
             LIMIT 1
         """
-        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(txn_hash)],
+        )
 
         if result:
             return result[0].hex()
@@ -72,15 +80,25 @@ class Commit(Transaction):
                 commit_txns.epoch
             DESC
         """
-        results = self.database.sql_return_all(sql, parameters=[bytearray.fromhex(data_request_hash)])
+        results = self.database.sql_return_all(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
 
-        if results == None:
+        if results is None:
             return []
 
         commits = []
         found_confirmed, found_mined = False, False
         for commit in results:
-            block_hash, block_confirmed, block_reverted, txn_hash, txn_address, epoch = commit
+            (
+                block_hash,
+                block_confirmed,
+                block_reverted,
+                txn_hash,
+                txn_address,
+                epoch,
+            ) = commit
 
             timestamp = self.start_time + (epoch + 1) * self.epoch_period
 
@@ -140,7 +158,16 @@ class Commit(Transaction):
         )
 
         if result:
-            block_hash, block_confirmed, block_reverted, txn_address, input_values, input_utxos, output_value, epoch = result
+            (
+                block_hash,
+                block_confirmed,
+                block_reverted,
+                txn_address,
+                input_values,
+                input_utxos,
+                output_value,
+                epoch,
+            ) = result
 
             input_utxo_values = []
             for value, (input_txn, input_idx) in zip(input_values, input_utxos):

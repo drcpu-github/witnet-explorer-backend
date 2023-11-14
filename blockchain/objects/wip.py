@@ -1,13 +1,21 @@
 import optparse
 import sys
+
 import toml
 
 from node.witnet_node import WitnetNode
-
 from util.database_manager import DatabaseManager
 
+
 class WIP(object):
-    def __init__(self, database=None, database_config=None, witnet_node=None, node_config=None, mockup=False):
+    def __init__(
+        self,
+        database=None,
+        database_config=None,
+        witnet_node=None,
+        node_config=None,
+        mockup=False,
+    ):
         if database:
             self.db_mngr = database
             self.fetch_wips()
@@ -91,14 +99,25 @@ class WIP(object):
             if self.mockup:
                 wip_id, title, activation_epoch = wip
             else:
-                wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
+                (
+                    wip_id,
+                    title,
+                    description,
+                    urls,
+                    activation_epoch,
+                    tapi_start_epoch,
+                    tapi_stop_epoch,
+                    tapi_bit,
+                ) = wip
             print(f"Entry {wip_id}")
             print(f"\tTitle: {title}")
             if not self.mockup:
                 print(f"\tDescription: {description}")
                 for counter, url in enumerate(urls):
                     print(f"\tURL of WIP {counter + 1}: {url}")
-            print(f"\tActivation epoch: {activation_epoch if activation_epoch else 'not activated'}")
+            print(
+                f"\tActivation epoch: {activation_epoch if activation_epoch else 'not activated'}"
+            )
             if not self.mockup:
                 if tapi_start_epoch:
                     print(f"\tStarted at epoch: {tapi_start_epoch}")
@@ -131,7 +150,9 @@ class WIP(object):
         # Read the epoch when this WIP was activated
         while True:
             try:
-                activation_epoch = input("Specify the activation epoch for this WIP (or press enter)? ")
+                activation_epoch = input(
+                    "Specify the activation epoch for this WIP (or press enter)? "
+                )
                 if len(activation_epoch) == 0:
                     activation_epoch = None
                 else:
@@ -143,7 +164,9 @@ class WIP(object):
         # Read the TAPI start epoch
         while True:
             try:
-                tapi_start_epoch = input("Set the TAPI start epoch for this WIP (or press enter)? ")
+                tapi_start_epoch = input(
+                    "Set the TAPI start epoch for this WIP (or press enter)? "
+                )
                 if len(tapi_start_epoch) == 0:
                     tapi_start_epoch = None
                 else:
@@ -155,7 +178,9 @@ class WIP(object):
         # Read the TAPI stop epoch
         while True:
             try:
-                tapi_stop_epoch = input("Specify the TAPI stop epoch for this WIP (or press enter)? ")
+                tapi_stop_epoch = input(
+                    "Specify the TAPI stop epoch for this WIP (or press enter)? "
+                )
                 if len(tapi_stop_epoch) == 0:
                     tapi_stop_epoch = None
                 else:
@@ -167,7 +192,9 @@ class WIP(object):
         # Read the bit used for the TAPI associated with this WIP
         while True:
             try:
-                tapi_bit = input("Specify the TAPI signaling bit used for this WIP (or press enter)? ")
+                tapi_bit = input(
+                    "Specify the TAPI signaling bit used for this WIP (or press enter)? "
+                )
                 if len(tapi_bit) == 0:
                     tapi_bit = None
                 else:
@@ -189,7 +216,18 @@ class WIP(object):
                 )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        self.db_mngr.sql_insert_one(sql, (wip_title, wip_description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit))
+        self.db_mngr.sql_insert_one(
+            sql,
+            (
+                wip_title,
+                wip_description,
+                urls,
+                activation_epoch,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit,
+            ),
+        )
 
     def process_tapi(self):
         if self.mockup:
@@ -200,11 +238,20 @@ class WIP(object):
             self.witnet_node = WitnetNode(self.node_config)
 
         for wip in self.wips:
-            wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
+            (
+                wip_id,
+                title,
+                description,
+                urls,
+                activation_epoch,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit,
+            ) = wip
 
             print(f"Checking TAPI signals for {title}")
 
-            if tapi_bit == None:
+            if tapi_bit is None:
                 continue
 
             sql = """
@@ -220,13 +267,16 @@ class WIP(object):
                 ORDER BY
                     epoch
                 ASC
-            """ % (tapi_start_epoch, tapi_stop_epoch)
-            result = self.db_mngr.sql_return_all(sql)
+            """
+            result = self.db_mngr.sql_return_all(
+                sql,
+                parameters=[tapi_start_epoch, tapi_stop_epoch],
+            )
 
             signals = []
             for db_block in result:
                 epoch, block_hash, tapi_signals, confirmed = db_block
-                if confirmed and tapi_signals == None:
+                if confirmed and tapi_signals is None:
                     print(f"Fetching TAPI signal for epoch {epoch}")
 
                     block = self.witnet_node.get_block(bytes(block_hash).hex())
@@ -259,7 +309,16 @@ class WIP(object):
             if self.mockup:
                 wip_id, title, activation_epoch = wip
             else:
-                wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
+                (
+                    wip_id,
+                    title,
+                    description,
+                    urls,
+                    activation_epoch,
+                    tapi_start_epoch,
+                    tapi_stop_epoch,
+                    tapi_bit,
+                ) = wip
             if wip_title == title:
                 return activation_epoch
         return None
@@ -270,7 +329,16 @@ class WIP(object):
             if self.mockup:
                 wip_id, title, activation_epoch = wip
             else:
-                wip_id, title, description, urls, activation_epoch, tapi_start_epoch, tapi_stop_epoch, tapi_bit = wip
+                (
+                    wip_id,
+                    title,
+                    description,
+                    urls,
+                    activation_epoch,
+                    tapi_start_epoch,
+                    tapi_stop_epoch,
+                    tapi_bit,
+                ) = wip
             if wip_title == title:
                 if activation_epoch and epoch >= activation_epoch:
                     return True
@@ -330,9 +398,12 @@ class WIP(object):
     def is_wip0027_active(self, epoch):
         return self.is_wip_active(epoch, wip_title="WIP0027")
 
+
 def main():
     parser = optparse.OptionParser()
-    parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
+    parser.add_option(
+        "--config-file", type="string", default="explorer.toml", dest="config_file"
+    )
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)
@@ -340,38 +411,39 @@ def main():
     # Run some tests
     wip = WIP(database_config=config["database"], node_config=config["node-pool"])
 
-    assert wip.is_wip0008_active(191999) == False
-    assert wip.is_wip0008_active(192000) == True
+    assert wip.is_wip0008_active(191999) is False
+    assert wip.is_wip0008_active(192000) is True
 
-    assert wip.is_wip0020_active(1059840) == False
-    assert wip.is_wip0020_active(1059861) == True
+    assert wip.is_wip0020_active(1059840) is False
+    assert wip.is_wip0020_active(1059861) is True
 
     mockup_wip = WIP(mockup=True)
 
-    assert mockup_wip.is_wip0008_active(192000) == False
+    assert mockup_wip.is_wip0008_active(192000) is False
 
-    assert mockup_wip.is_wip0017_active(683541) == True
-    assert mockup_wip.is_wip0018_active(683541) == True
-    assert mockup_wip.is_wip0019_active(683541) == True
+    assert mockup_wip.is_wip0017_active(683541) is True
+    assert mockup_wip.is_wip0018_active(683541) is True
+    assert mockup_wip.is_wip0019_active(683541) is True
 
     try:
         mockup_wip.set_mockup([{}])
-        assert False, "This function call should raise a KeyError exception"
+        raise AssertionError("This function call should raise a KeyError exception")
     except Exception as e:
-        assert type(e) == KeyError
+        assert isinstance(e, KeyError)
 
     try:
         mockup_wip.set_mockup([{"id": 1, "title": "WIP0014-0016"}])
-        assert False, "This function call should raise a KeyError exception"
+        raise AssertionError("This function call should raise a KeyError exception")
     except Exception as e:
-        assert type(e) == KeyError
+        assert isinstance(e, KeyError)
         assert e.args[0] == "Key activation_epoch not found in WIP"
 
     try:
         mockup_wip.add_wip()
     except Exception as e:
-        assert type(e) == TypeError
+        assert isinstance(e, TypeError)
         assert e.args[0] == "Cannot add a WIP on a mockup"
+
 
 if __name__ == "__main__":
     main()

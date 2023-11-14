@@ -1,11 +1,11 @@
 import time
 
+from blockchain.transactions.transaction import Transaction
 from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForApi,
     ValueTransferTransactionForBlock,
     ValueTransferTransactionForExplorer,
 )
-from blockchain.transactions.transaction import Transaction
 
 
 class ValueTransfer(Transaction):

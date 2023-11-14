@@ -1,4 +1,4 @@
-directories = api schemas tests mockups
+directories = api blockchain mockups schemas tests
 
 test:
 	PYTHONPATH=. pytest
@@ -6,7 +6,7 @@ test:
 lint-check:
 	isort -c $(directories)
 	black --check $(directories)
-	flake8 --extend-ignore=E501 $(directories)
+	flake8 --extend-ignore=E203,E501 $(directories)
 
 lint-diff:
 	isort --diff $(directories)
@@ -15,4 +15,4 @@ lint-diff:
 lint:
 	isort $(directories)
 	black $(directories)
-	flake8 --extend-ignore=E501 $(directories)
+	flake8 --extend-ignore=E203,E501 $(directories)

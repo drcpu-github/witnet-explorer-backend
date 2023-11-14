@@ -2,12 +2,12 @@ import re
 
 import cbor
 
+from blockchain.transactions.transaction import Transaction
 from schemas.component.data_request_schema import (
     DataRequestTransactionForApi,
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
-from blockchain.transactions.transaction import Transaction
 from util.common_functions import calculate_priority
 from util.radon_translator import RadonTranslator
 
@@ -153,9 +153,7 @@ class DataRequest(Transaction):
                 else:
                     self.txn_details["bodies"].append("")
 
-                self.txn_details["scripts"].append(
-                    translate_script(retrieve["script"])
-                )
+                self.txn_details["scripts"].append(translate_script(retrieve["script"]))
 
             # Collect aggregation stage details
             if len(self.data_request["aggregate"]["filters"]) > 0:
@@ -369,6 +367,7 @@ class DataRequest(Transaction):
         miner_fee = sum(input_values) - (output_value or 0) - dro_fee
         return dro_fee, miner_fee
 
+
 def translate_script(script):
     translator = RadonTranslator()
 
@@ -377,10 +376,9 @@ def translate_script(script):
         if type(op) is int:
             translation += translator.hex2str(op, "opcode") + "()."
         else:
-            translation += (
-                translator.hex2str(op[0], "opcode") + "(" + str(op[1]) + ")."
-            )
+            translation += translator.hex2str(op[0], "opcode") + "(" + str(op[1]) + ")."
     return translation[:-1]
+
 
 def translate_filters(filters):
     translator = RadonTranslator()
@@ -393,6 +391,7 @@ def translate_filters(filters):
         else:
             translation += ")."
     return translation[:-1]
+
 
 def translate_reducer(reducers):
     translator = RadonTranslator()

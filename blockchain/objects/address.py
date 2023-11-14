@@ -1,18 +1,23 @@
-import logging
-import sys
 import time
-
-from node.consensus_constants import ConsensusConstants
-from node.witnet_node import WitnetNode
 
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
-
+from node.consensus_constants import ConsensusConstants
+from node.witnet_node import WitnetNode
 from util.common_functions import calculate_block_reward
 from util.database_manager import DatabaseManager
 
+
 class Address(object):
-    def __init__(self, address, config, database=None, witnet_node=None, logger=None, connect=True):
+    def __init__(
+        self,
+        address,
+        config,
+        database=None,
+        witnet_node=None,
+        logger=None,
+        connect=True,
+    ):
         # Set address
         self.address = address.strip()
 
@@ -43,7 +48,9 @@ class Address(object):
     def initialize_connections(self):
         # Connect to the database if necessary
         if self.db_mngr is None:
-            self.db_mngr = DatabaseManager(self.config["database"], named_cursor=False, logger=self.logger)
+            self.db_mngr = DatabaseManager(
+                self.config["database"], named_cursor=False, logger=self.logger
+            )
 
         # Connect to node pool
         if self.witnet_node is None:
@@ -88,14 +95,17 @@ class Address(object):
 
         # Get label
         label = ""
-        sql = """
+        sql = (
+            """
             SELECT
                 label
             FROM
                 addresses
             WHERE
                 address='%s'
-        """ % self.address
+        """
+            % self.address
+        )
         result = self.db_mngr.sql_return_one(sql)
         if result:
             label = result[0]
@@ -114,7 +124,7 @@ class Address(object):
         value_transfers = []
         value_transfers.extend(self.get_value_transfers_in())
         value_transfers.extend(self.get_value_transfers_out())
-        return sorted(value_transfers, key=lambda l: l["epoch"], reverse=True)
+        return sorted(value_transfers, key=lambda vt: vt["epoch"], reverse=True)
 
     def get_value_transfers_in(self):
         # get value transfers arriving at our address
@@ -139,27 +149,51 @@ class Address(object):
                 blocks.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address, self.address])
+        result = self.db_mngr.sql_return_all(
+            sql,
+            parameters=[self.address, self.address],
+        )
 
         value_transfers_in = []
         if result:
             for value_transfer in result:
-                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_confirmed = value_transfer
+                (
+                    txn_hash,
+                    input_addresses,
+                    input_values,
+                    output_addresses,
+                    output_values,
+                    timelocks,
+                    weight,
+                    txn_epoch,
+                    block_confirmed,
+                ) = value_transfer
 
                 timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
                 total_value = 0
-                for output_address, output_value in zip(output_addresses, output_values):
+                for output_address, output_value in zip(
+                    output_addresses, output_values
+                ):
                     if output_address == self.address:
                         total_value += output_value
 
-                fee = sum(input_values) - sum(output_values) if len(input_values)  > 0 else 0
+                fee = (
+                    sum(input_values) - sum(output_values)
+                    if len(input_values) > 0
+                    else 0
+                )
 
                 priority = max(1, int(fee / weight))
 
                 # Only account for timelocks if any of the output_address are self.address
                 now = int(time.time())
-                locked = any([output_address == self.address and timelock > now for output_address, timelock in zip(output_addresses, timelocks)])
+                locked = any(
+                    [
+                        output_address == self.address and timelock > now
+                        for output_address, timelock in zip(output_addresses, timelocks)
+                    ]
+                )
 
                 value_transfers_in.append(
                     {
@@ -207,17 +241,31 @@ class Address(object):
         value_transfers_out = []
         if result:
             for value_transfer in result:
-                txn_hash, input_addresses, input_values, output_addresses, output_values, timelocks, weight, txn_epoch, block_confirmed = value_transfer
+                (
+                    txn_hash,
+                    input_addresses,
+                    input_values,
+                    output_addresses,
+                    output_values,
+                    timelocks,
+                    weight,
+                    txn_epoch,
+                    block_confirmed,
+                ) = value_transfer
 
                 timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
                 total_value = 0
-                for output_address, output_value in zip(output_addresses, output_values):
+                for output_address, output_value in zip(
+                    output_addresses, output_values
+                ):
                     # Discount change output
                     if output_address != self.address:
                         total_value += output_value
 
-                unique_output_addresses = list(set(output_addresses) - set([self.address]))
+                unique_output_addresses = list(
+                    set(output_addresses) - set([self.address])
+                )
                 # Transaction with multiple output_addresses different from the source address
                 if len(unique_output_addresses) > 1:
                     direction = "out"
@@ -286,12 +334,24 @@ class Address(object):
         blocks_minted = []
         if result:
             for block in result:
-                block_hash, value_transfers, data_requests, commits, reveals, tallies, block_epoch, block_confirmed, output_values = block
+                (
+                    block_hash,
+                    value_transfers,
+                    data_requests,
+                    commits,
+                    reveals,
+                    tallies,
+                    block_epoch,
+                    block_confirmed,
+                    output_values,
+                ) = block
 
                 timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
 
                 block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(block_epoch, self.halving_period, self.initial_block_reward)
+                block_fees = sum(output_values) - calculate_block_reward(
+                    block_epoch, self.halving_period, self.initial_block_reward
+                )
 
                 blocks_minted.append(
                     {
@@ -313,7 +373,7 @@ class Address(object):
         return blocks_minted
 
     def get_mints(self):
-        sql ="""
+        sql = """
             SELECT
                 mint_txns.txn_hash,
                 mint_txns.miner,
@@ -336,10 +396,19 @@ class Address(object):
         mints = []
         if result:
             for mint in result:
-                txn_hash, miner, output_addresses, output_values, epoch, confirmed = mint
+                (
+                    txn_hash,
+                    miner,
+                    output_addresses,
+                    output_values,
+                    epoch,
+                    confirmed,
+                ) = mint
 
                 value = 0
-                for output_address, output_value in zip(output_addresses, output_values):
+                for output_address, output_value in zip(
+                    output_addresses, output_values
+                ):
                     if output_address == self.address:
                         value = output_value
 
@@ -405,14 +474,26 @@ class Address(object):
         data_requests_solved = []
         if result:
             for data_request in result:
-                collateral, witness_reward, data_request_hash, reveal_txn_hash, reveal_value, tally_epoch, error_addresses, liar_addresses, success = data_request
+                (
+                    collateral,
+                    witness_reward,
+                    data_request_hash,
+                    reveal_txn_hash,
+                    reveal_value,
+                    tally_epoch,
+                    error_addresses,
+                    liar_addresses,
+                    success,
+                ) = data_request
 
                 # Calculate timestamp
                 timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
 
                 # Translate reveal value
                 if reveal_value:
-                    _, translated_reveal = translate_reveal(reveal_txn_hash, reveal_value)
+                    _, translated_reveal = translate_reveal(
+                        reveal_txn_hash, reveal_value
+                    )
                 else:
                     translated_reveal = ""
 
@@ -476,10 +557,24 @@ class Address(object):
         if result:
             # Loop and process
             for data_request in result:
-                data_request_hash, input_values, output_value, witnesses, collateral, consensus_percentage, tally_txn_hash, tally_epoch, error_addresses, liar_addresses, result, success, block_reverted = data_request
+                (
+                    data_request_hash,
+                    input_values,
+                    output_value,
+                    witnesses,
+                    collateral,
+                    consensus_percentage,
+                    tally_txn_hash,
+                    tally_epoch,
+                    error_addresses,
+                    liar_addresses,
+                    result,
+                    success,
+                    block_reverted,
+                ) = data_request
 
                 # Check if any of the values is None which would indicate this data request was not completed (or incorrectly processed)
-                if any(dr == None for dr in data_request):
+                if any(dr is None for dr in data_request):
                     continue
 
                 # Calculate timestamp
@@ -532,7 +627,8 @@ class Address(object):
     def get_reputation(self):
         last_epoch = self.get_last_epoch_processed()
 
-        sql = """
+        sql = (
+            """
             SELECT
                 epoch,
                 reputation
@@ -541,7 +637,9 @@ class Address(object):
                 address='%s'
             ORDER BY
                 epoch ASC
-        """ % self.address
+        """
+            % self.address
+        )
         reputations = self.db_mngr.sql_return_all(sql)
 
         # Interpolate the reputation of the address
@@ -557,18 +655,20 @@ class Address(object):
                     merged_reputations[-1][1] += reputation
 
             # Add zeros for the range from epoch one up to the first reputation gain
-            for i in range(1, merged_reputations[0][0]):
+            for _ in range(1, merged_reputations[0][0]):
                 interpolated_reputation.append(0)
 
             # Sum reputation differences and interpolate all regions in between
             for index, reputation in enumerate(merged_reputations):
-                interpolated_reputation.append(interpolated_reputation[-1] + reputation[1])
+                interpolated_reputation.append(
+                    interpolated_reputation[-1] + reputation[1]
+                )
                 if index < len(merged_reputations) - 1:
-                    for i in range(reputation[0] + 1, merged_reputations[index + 1][0]):
+                    for _ in range(reputation[0] + 1, merged_reputations[index + 1][0]):
                         interpolated_reputation.append(interpolated_reputation[-1])
 
             # Add zeros for the range from the last reputation gain epoch to the last observed epoch
-            for i in range(merged_reputations[-1][0] + 1, last_epoch):
+            for _ in range(merged_reputations[-1][0] + 1, last_epoch):
                 interpolated_reputation.append(0)
 
         # Get the non-zero reputation regions

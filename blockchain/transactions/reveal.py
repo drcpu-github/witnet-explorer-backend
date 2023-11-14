@@ -1,9 +1,15 @@
-import cbor
 import json
 
-from schemas.component.reveal_schema import RevealTransactionForApi, RevealTransactionForBlock, RevealTransactionForDataRequest, RevealTransactionForExplorer
+import cbor
+
 from blockchain.transactions.transaction import Transaction
+from schemas.component.reveal_schema import (
+    RevealTransactionForApi,
+    RevealTransactionForBlock,
+    RevealTransactionForExplorer,
+)
 from util.radon_translator import RadonTranslator
+
 
 class Reveal(Transaction):
     def process_transaction(self, call_from):
@@ -16,7 +22,9 @@ class Reveal(Transaction):
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
         # Translate revealed value
-        success, reveal_translation = translate_reveal(self.txn_hash, self.json_txn["body"]["reveal"])
+        success, reveal_translation = translate_reveal(
+            self.txn_hash, self.json_txn["body"]["reveal"]
+        )
         self.txn_details["success"] = success
 
         # Add reveal value
@@ -40,7 +48,10 @@ class Reveal(Transaction):
                 reveal_txns.txn_hash=%s
             LIMIT 1
         """
-        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(txn_hash)],
+        )
 
         if result:
             return result[0].hex()
@@ -69,15 +80,26 @@ class Reveal(Transaction):
                 reveal_txns.epoch
             DESC
         """
-        results = self.database.sql_return_all(sql, parameters=[bytearray.fromhex(data_request_hash)])
+        results = self.database.sql_return_all(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
 
-        if results == None:
+        if results is None:
             return []
 
         reveals = []
         found_confirmed, found_mined = False, False
         for reveal in results:
-            block_hash, block_confirmed, block_reverted, txn_hash, txn_address, reveal_result, epoch = reveal
+            (
+                block_hash,
+                block_confirmed,
+                block_reverted,
+                txn_hash,
+                txn_address,
+                reveal_result,
+                epoch,
+            ) = reveal
 
             if block_confirmed:
                 found_confirmed = True
@@ -131,10 +153,20 @@ class Reveal(Transaction):
                 txn_hash=%s
             LIMIT 1
         """
-        result = self.database.sql_return_one(sql, parameters=[bytearray.fromhex(txn_hash)])
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(txn_hash)],
+        )
 
         if result:
-            block_hash, block_confirmed, block_reverted, txn_address, reveal_result, epoch = result
+            (
+                block_hash,
+                block_confirmed,
+                block_reverted,
+                txn_address,
+                reveal_result,
+                epoch,
+            ) = result
 
             txn_time = self.start_time + (epoch + 1) * self.epoch_period
 
@@ -156,11 +188,12 @@ class Reveal(Transaction):
         else:
             return {"error": "transaction not found"}
 
+
 def translate_reveal(txn_hash, reveal):
     success = True
     translation = cbor.loads(bytearray(reveal))
 
-    if type(translation) == bytes:
+    if isinstance(translation, bytes):
         translation = translation.hex()
     else:
         translation = str(translation)
@@ -172,7 +205,8 @@ def translate_reveal(txn_hash, reveal):
             # Extract the array containing the error code and potentially some extra metadata
             translation_error_data = translation[8:-1]
             # Replace the quotes in the potentially included metadata
-            translation_error_data = translation_error_data.replace("\"", "").replace("\'", "\"")
+            translation_error_data = translation_error_data.replace('"', "")
+            translation_error_data = translation_error_data.replace("'", '"')
             error = json.loads(translation_error_data)
             error_code = int(error[0])
             error_text = error[1] if len(error) == 2 else ""
@@ -183,9 +217,9 @@ def translate_reveal(txn_hash, reveal):
 
             # Adding extra explanation
             if error_text != "":
-                translation += ": " + str(error_text)
+                translation += f": {error_text}"
         except Exception:
-            translation = translation[translation.find("[")+1:translation.find("]")]
+            translation = translation[translation.find("[") + 1 : translation.find("]")]
             print(f"Reveal exception ({txn_hash}): {translation}")
 
     return success, translation

@@ -1,21 +1,27 @@
 import logging
 import logging.handlers
-import psycopg
 import time
 
 from psycopg.sql import SQL, Identifier
 
-from node.witnet_node import WitnetNode
-
 from blockchain.objects.wip import WIP
-
+from node.witnet_node import WitnetNode
 from util.address_generator import AddressGenerator
-from util.database_manager import DatabaseManager
 from util.data_transformer import re_sql
+from util.database_manager import DatabaseManager
 from util.protobuf_encoder import ProtobufEncoder
 
+
 class Transaction(object):
-    def __init__(self, consensus_constants, logger=None, database=None, database_config=None, witnet_node=None, node_config=None):
+    def __init__(
+        self,
+        consensus_constants,
+        logger=None,
+        database=None,
+        database_config=None,
+        witnet_node=None,
+        node_config=None,
+    ):
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
@@ -24,7 +30,9 @@ class Transaction(object):
         if database is not None:
             self.database = database
         elif database_config is not None:
-            self.database = DatabaseManager(database_config, logger=logger, custom_types=["utxo", "filter"])
+            self.database = DatabaseManager(
+                database_config, logger=logger, custom_types=["utxo", "filter"]
+            )
         else:
             self.database = None
 
@@ -49,7 +57,9 @@ class Transaction(object):
         if database is not None:
             self.protobuf_encoder = ProtobufEncoder(WIP(database=database))
         elif database_config is not None:
-            self.protobuf_encoder = ProtobufEncoder(WIP(database_config=database_config))
+            self.protobuf_encoder = ProtobufEncoder(
+                WIP(database_config=database_config)
+            )
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -82,7 +92,9 @@ class Transaction(object):
         addresses = []
         for signature in signatures:
             public_key = signature["public_key"]
-            address = self.address_generator.signature_to_address(public_key["compressed"], public_key["bytes"])
+            address = self.address_generator.signature_to_address(
+                public_key["compressed"], public_key["bytes"]
+            )
             addresses.append(address)
         return addresses
 
@@ -122,23 +134,33 @@ class Transaction(object):
                 """
                 if hash_type[0] in ("data_request_txn", "commit_txn"):
                     assert input_index == 0, "Unexpectedly found a non-zero input index"
-                    sql = SQL(re_sql(sql)).format(column_name=Identifier("output_value"), table_name=Identifier(f"{hash_type[0]}s"))
+                    sql = SQL(re_sql(sql)).format(
+                        column_name=Identifier("output_value"),
+                        table_name=Identifier(f"{hash_type[0]}s"),
+                    )
                     outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
                     if outputs:
                         input_values.append(outputs[0])
                 else:
-                    sql = SQL(re_sql(sql)).format(column_name=Identifier("output_values"), table_name=Identifier(f"{hash_type[0]}s"))
+                    sql = SQL(re_sql(sql)).format(
+                        column_name=Identifier("output_values"),
+                        table_name=Identifier(f"{hash_type[0]}s"),
+                    )
                     outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
                     if outputs:
                         input_values.append(outputs[0][input_index])
 
             # Fall back: transaction not found in database, fetch it from the node
             if not outputs:
-                self.logger.info(f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database")
+                self.logger.info(
+                    f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database"
+                )
                 # Get the transaction
                 input_txn = self.get_transaction_from_node(input_hash)
                 if "error" in input_txn:
-                    self.logger.error(f"Could not fetch all inputs for transaction: {input_txn['error']}")
+                    self.logger.error(
+                        f"Could not fetch all inputs for transaction: {input_txn['error']}"
+                    )
                     return 0, [], [], []
 
                 # Figure out the transaction type as the parsing depends on that
@@ -147,12 +169,20 @@ class Transaction(object):
                     outputs = input_txn["transaction"][transaction_type]["outputs"]
                     # Append the correct output to the list of input_values
                     input_values.append(outputs[input_index]["value"])
-                elif list(input_txn["transaction"].keys())[0] in ("DataRequest", "Commit", "ValueTransfer"):
-                    outputs = input_txn["transaction"][transaction_type]["body"]["outputs"]
+                elif list(input_txn["transaction"].keys())[0] in (
+                    "DataRequest",
+                    "Commit",
+                    "ValueTransfer",
+                ):
+                    outputs = input_txn["transaction"][transaction_type]["body"][
+                        "outputs"
+                    ]
                     # Append the correct output to the list of input_values
                     input_values.append(outputs[input_index]["value"])
                 else:
-                    self.logger.error("Unexpected transaction type when querying ValueTransfer inputs")
+                    self.logger.error(
+                        "Unexpected transaction type when querying ValueTransfer inputs"
+                    )
 
         return input_utxos, input_values
 
