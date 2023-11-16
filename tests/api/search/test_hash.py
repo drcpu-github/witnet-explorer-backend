@@ -85,7 +85,7 @@ def test_search_data_request_simple_not_cached(client, data_requests):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
-    assert json.loads(response.data) == data_requests[hash_value]
+    assert json.loads(response.data) == data_requests[hash_value]["api"]
 
 
 def test_search_commit_simple_cached(client, commits):
