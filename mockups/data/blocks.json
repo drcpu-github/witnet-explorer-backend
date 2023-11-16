@@ -5298,6 +5298,23 @@
                             "RAD_bytes_hash": "aa56b6f59dd9460222f32583665cdaff56317f3a22574e9b9cc56c93596c1956",
                             "aggregate_filters":"filter(DeviationStandard, 1.5)",
                             "aggregate_reducer": "reduce(AverageMean)",
+                            "headers": [
+                                [
+                                    ""
+                                ],
+                                [
+                                    ""
+                                ],
+                                [
+                                    ""
+                                ],
+                                [
+                                    ""
+                                ],
+                                [
+                                    ""
+                                ]
+                            ],
                             "bodies": [
                                 "",
                                 "",
@@ -5347,6 +5364,14 @@
                             "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
                             "aggregate_filters": "",
                             "aggregate_reducer": "reduce(AverageMean)",
+                            "headers": [
+                                [
+                                    ""
+                                ],
+                                [
+                                    ""
+                                ]
+                            ],
                             "bodies": [
                                 "",
                                 ""
