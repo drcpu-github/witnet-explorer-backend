@@ -131,6 +131,7 @@ def data_request_transaction_for_api(data_request):
                 {
                     "kind": "HTTP-GET",
                     "url": "https://data.gateapi.io/api2/1/ticker/wit_usdt",
+                    "headers": [""],
                     "body": "",
                     "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()",
                 },
@@ -217,6 +218,7 @@ def data_request_transaction_for_block(data_request):
         {
             "kinds": ["HTTP-GET"],
             "urls": ["https://data.gateapi.io/api2/1/ticker/wit_usdt"],
+            "headers": [[""]],
             "bodies": [""],
             "scripts": [
                 "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
@@ -257,9 +259,10 @@ def test_data_request_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         DataRequestTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 21
+    assert len(err_info.value.messages) == 22
     assert err_info.value.messages["kinds"][0] == "Missing data for required field."
     assert err_info.value.messages["urls"][0] == "Missing data for required field."
+    assert err_info.value.messages["headers"][0] == "Missing data for required field."
     assert err_info.value.messages["bodies"][0] == "Missing data for required field."
     assert err_info.value.messages["scripts"][0] == "Missing data for required field."
     assert (
@@ -336,6 +339,7 @@ def data_request_transaction_for_explorer(data_request):
             "output_value": 100,
             "kinds": ["HTTP-GET"],
             "urls": ["https://data.gateapi.io/api2/1/ticker/wit_usdt"],
+            "headers": [[""]],
             "bodies": [bytearray()],
             "scripts": [
                 bytearray(
@@ -436,7 +440,7 @@ def test_data_request_transaction_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         DataRequestTransactionForExplorer().load(data)
-    assert len(err_info.value.messages) == 25
+    assert len(err_info.value.messages) == 26
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert (
@@ -485,6 +489,7 @@ def test_data_request_transaction_for_explorer_failure_missing():
     )
     assert err_info.value.messages["kinds"][0] == "Missing data for required field."
     assert err_info.value.messages["urls"][0] == "Missing data for required field."
+    assert err_info.value.messages["headers"][0] == "Missing data for required field."
     assert err_info.value.messages["bodies"][0] == "Missing data for required field."
     assert err_info.value.messages["scripts"][0] == "Missing data for required field."
     assert (
@@ -510,6 +515,7 @@ def data_request_retrieval():
     return {
         "kind": "HTTP-GET",
         "url": "https://data.gateapi.io/api2/1/ticker/wit_usdt",
+        "headers": [""],
         "body": "",
         "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()",
     }
@@ -545,8 +551,9 @@ def test_data_request_retrieval_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         DataRequestRetrieval().load(data)
-    assert len(err_info.value.messages) == 4
+    assert len(err_info.value.messages) == 5
     assert err_info.value.messages["kind"][0] == "Missing data for required field."
     assert err_info.value.messages["url"][0] == "Missing data for required field."
+    assert err_info.value.messages["headers"][0] == "Missing data for required field."
     assert err_info.value.messages["body"][0] == "Missing data for required field."
     assert err_info.value.messages["script"][0] == "Missing data for required field."
