@@ -152,15 +152,17 @@ class Transaction(object):
 
             # Fall back: transaction not found in database, fetch it from the node
             if not outputs:
-                self.logger.info(
-                    f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database"
-                )
+                if self.logger:
+                    self.logger.info(
+                        f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database"
+                    )
                 # Get the transaction
                 input_txn = self.get_transaction_from_node(input_hash)
                 if "error" in input_txn:
-                    self.logger.error(
-                        f"Could not fetch all inputs for transaction: {input_txn['error']}"
-                    )
+                    if self.logger:
+                        self.logger.error(
+                            f"Could not fetch all inputs for transaction: {input_txn['error']}"
+                        )
                     return 0, [], [], []
 
                 # Figure out the transaction type as the parsing depends on that
@@ -180,9 +182,10 @@ class Transaction(object):
                     # Append the correct output to the list of input_values
                     input_values.append(outputs[input_index]["value"])
                 else:
-                    self.logger.error(
-                        "Unexpected transaction type when querying ValueTransfer inputs"
-                    )
+                    if self.logger:
+                        self.logger.error(
+                            "Unexpected transaction type when querying ValueTransfer inputs"
+                        )
 
         return input_utxos, input_values
 
@@ -204,17 +207,22 @@ class Transaction(object):
         while "error" in transaction:
             # All our nodes in the pool were busy, retry as soon as possible
             if transaction["reason"] == "no available nodes found":
-                self.logger.warning("No available nodes found")
+                if self.logger:
+                    self.logger.warning("No available nodes found")
                 time.sleep(1)
                 transaction = self.witnet_node.get_transaction(txn_hash)
             # No synced nodes: give them some time to sync again and retry
             elif transaction["reason"] == "no synced nodes found":
-                self.logger.warning("No synced nodes found")
+                if self.logger:
+                    self.logger.warning("No synced nodes found")
                 time.sleep(60)
                 transaction = self.witnet_node.get_transaction(txn_hash)
             # Another error, do not retry
             else:
-                self.logger.error(f"Failed to get transaction: {transaction['error']}")
+                if self.logger:
+                    self.logger.error(
+                        f"Failed to get transaction: {transaction['error']}"
+                    )
                 return transaction
 
         return transaction["result"]
