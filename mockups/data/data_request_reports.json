@@ -36,18 +36,27 @@
                     {
                         "kind": "HTTP-GET",
                         "url": "https://www.bitstamp.net/api/v2/ticker/linkusd",
+                        "headers": [
+                            ""
+                        ],
                         "body": "",
                         "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
                     },
                     {
                         "kind": "HTTP-GET",
                         "url": "https://api.coinbase.com/v2/exchange-rates?currency=USD",
+                        "headers": [
+                            ""
+                        ],
                         "body": "",
                         "script": "StringParseJSONMap().MapGetMap(data).MapGetMap(rates).MapGetFloat(LINK).FloatPower(-1).FloatMultiply(1000000).FloatRound()"
                     },
                     {
                         "kind": "HTTP-GET",
                         "url": "https://api.kraken.com/0/public/Ticker?pair=LINKUSD",
+                        "headers": [
+                            ""
+                        ],
                         "body": "",
                         "script": "StringParseJSONMap().MapGetMap(result).MapValues().ArrayGetMap(0).MapGetArray(a).ArrayGetFloat(0).FloatMultiply(1000000).FloatRound()"
                     }

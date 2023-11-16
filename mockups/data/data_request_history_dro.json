@@ -57,18 +57,27 @@
                 {
                     "kind": "HTTP-GET",
                     "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=WIT_USDT",
+                    "headers": [
+                        ""
+                    ],
                     "body": "",
                     "script": "StringParseJSONMap().MapGetMap(data).MapGetArray(tickers).ArrayGetMap(0).MapGetFloat(last_price).FloatMultiply(1000000).FloatRound()"
                 },
                 {
                     "kind": "HTTP-GET",
                     "url": "https://data.gateapi.io/api2/1/ticker/wit_usdt",
+                    "headers": [
+                        ""
+                    ],
                     "body": "",
                     "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
                 },
                 {
                     "kind": "HTTP-GET",
                     "url": "https://www.mexc.com/open/api/v2/market/ticker?symbol=WIT_USDT",
+                    "headers": [
+                        ""
+                    ],
                     "body": "",
                     "script": "StringParseJSONMap().MapGetArray(data).ArrayGetMap(0).MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
                 }

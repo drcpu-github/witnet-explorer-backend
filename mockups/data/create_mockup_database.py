@@ -88,6 +88,7 @@ def create_tables(database):
                 weight INT NOT NULL,
                 kinds TEXT NOT NULL,
                 urls TEXT NOT NULL,
+                headers TEXT NOT NULL,
                 bodies TEXT NOT NULL,
                 scripts TEXT NOT NULL,
                 aggregate_filters TEXT NOT NULL,
@@ -1960,6 +1961,7 @@ def get_epoch_data(config, epochs):
             weight,
             kinds,
             urls,
+            headers,
             bodies,
             scripts,
             aggregate_filters,
@@ -1995,38 +1997,39 @@ def get_epoch_data(config, epochs):
             d[11],
             str(d[12]).replace("{", "[").replace("}", "]"),
             str(d[13]).replace("'", ""),
-            str([f"\\x{h.hex()}" for h in d[14]])
+            str(d[14]),
+            str([f"\\x{h.hex()}" for h in d[15]])
             .replace("'", "")
             .replace("\\\\", "\\"),
-            str([f"\\x{s.hex()}" for s in d[15]])
+            str([f"\\x{s.hex()}" for s in d[16]])
             .replace("'", "")
             .replace("\\\\", "\\"),
-            str([f"filter({f.type}, \\x{f.args.hex()})" for f in d[16]])
+            str([f"filter({f.type}, \\x{f.args.hex()})" for f in d[17]])
             .replace("'", "")
             .replace("\\\\", "\\"),
-            str(d[17]),
-            str([f"filter({f.type}, \\x{f.args.hex()})" for f in d[18]])
+            str(d[18]),
+            str([f"filter({f.type}, \\x{f.args.hex()})" for f in d[19]])
             .replace("'", "")
             .replace("\\\\", "\\"),
-            str(d[19]),
-            f"\\x{d[20].hex()}",
+            str(d[20]),
             f"\\x{d[21].hex()}",
-            d[22],
+            f"\\x{d[22].hex()}",
+            d[23],
         ]
         for d in data
     ]
 
     # Also insert RAD and DRO bytes hashes into the hash table
-    for d in sorted(data, key=lambda epoch: epoch[22], reverse=True):
-        if d[20].hex() not in hashes_seen:
-            hashes_seen.add(d[20].hex())
-            epoch_data["hash_data"].append(
-                [f"\\x{d[20].hex()}", "RAD_bytes_hash", d[22]]
-            )
+    for d in sorted(data, key=lambda epoch: epoch[23], reverse=True):
         if d[21].hex() not in hashes_seen:
             hashes_seen.add(d[21].hex())
             epoch_data["hash_data"].append(
-                [f"\\x{d[21].hex()}", "DRO_bytes_hash", d[22]]
+                [f"\\x{d[21].hex()}", "RAD_bytes_hash", d[23]]
+            )
+        if d[22].hex() not in hashes_seen:
+            hashes_seen.add(d[22].hex())
+            epoch_data["hash_data"].append(
+                [f"\\x{d[22].hex()}", "DRO_bytes_hash", d[23]]
             )
 
     sql = f"""
@@ -2160,7 +2163,7 @@ def insert_epoch_data(database, epoch_data):
         INSERT INTO
             data_request_txns
         VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     cursor.executemany(sql, epoch_data["data_request_data"])
 
@@ -2213,15 +2216,16 @@ def main():
     # fmt: off
     epochs = [
         753, 766, 30727, 31355, 31361, 48144, 135477, 135482, 135490, 135494, 135495,
-        135500, 686551, 686556, 687204, 687209, 1004126, 1004130, 1791134, 1826734,
-        1859757, 1885263, 1926888, 1937617, 1955191, 1982909, 1998908, 1998909, 1998910,
-        1998911, 1998925, 1998926, 1998927, 1998928, 1999122, 1999124, 1999125, 1999126,
-        2001244, 2001245, 2001246, 2001247, 2001260, 2001261, 2001262, 2001263, 2002284,
-        2002285, 2002286, 2002287, 2002462, 2002465, 2002482, 2002497, 2002517, 2002525,
-        2002529, 2002534, 2002537, 2002549, 2002552, 2002557, 2002561, 2004897, 2004898,
-        2004899, 2004900, 2004938, 2004939, 2004940, 2004941, 2005583, 2005584, 2005585,
-        2005586, 2005781, 2005782, 2005783, 2005784, 2005793, 2011834, 2011835, 2011836,
-        2011837, 2011838, 2024094, 2024095, 2024096, 2024097, 2024098, 2024099, 2024100
+        135500, 686551, 686556, 687204, 687209, 983037, 1004126, 1004130, 1059883,
+        1059887, 1059888, 1791134, 1826734, 1859757, 1885263, 1926888, 1937617, 1059886,
+        1955191, 1982909, 1998908, 1998909, 1998910, 1998911, 1998925, 1998926, 1998927,
+        1998928, 1999122, 1999124, 1999125, 1999126, 2001244, 2001245, 2001246, 2001247,
+        2001260, 2001261, 2001262, 2001263, 2002284, 2002285, 2002286, 2002287, 2002462,
+        2002465, 2002482, 2002497, 2002517, 2002525, 2002529, 2002534, 2002537, 2002549,
+        2002552, 2002557, 2002561, 2004897, 2004898, 2004899, 2004900, 2004938, 2004939,
+        2004940, 2004941, 2005583, 2005584, 2005585, 2005586, 2005781, 2005782, 2005783,
+        2005784, 2005793, 2011834, 2011835, 2011836, 2011837, 2011838, 2024094, 2024095,
+        2024096, 2024097, 2024098, 2024099, 2024100
     ]
     # fmt: on
 

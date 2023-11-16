@@ -145,17 +145,26 @@ class MockDatabase(object):
                                     "{" + ",".join(data[row][column]) + "}"
                                 )
                                 continue
-                            # Transform data to a UTXO if needed
+                            # Transform elements in array if needed
                             for i in range(len(data[row][column])):
                                 entry = data[row][column][i]
+                                # Transform data to a UTXO if needed
                                 if entry.startswith("\\x") and ":" in entry:
                                     hash_value, idx = entry.split(":")
                                     data[row][column][i] = (
                                         bytearray.fromhex(hash_value[2:]),
                                         int(idx),
                                     )
+                                # Transaction hash
                                 elif entry.startswith("\\x"):
                                     data[row][column][i] = bytearray.fromhex(entry[2:])
+                                # 2-dimensional array
+                                elif entry.startswith("[") and entry.endswith("]"):
+                                    data[row][column][i] = [
+                                        e.strip().replace("'", "")
+                                        for e in entry[1:-1].split(",")
+                                    ]
+
                 elif isinstance(value, str) and value == "True":
                     data[row][column] = True
                 elif isinstance(value, str) and value == "False":

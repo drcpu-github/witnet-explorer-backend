@@ -2,10 +2,11 @@ import json
 
 
 class MockWitnetNode(object):
-    def init_app(self, app):
-        app.extensions = getattr(app, "extensions", {})
-        if "witnet_node" not in app.extensions:
-            app.extensions["witnet_node"] = self
+    def init_app(self, app=None):
+        if app:
+            app.extensions = getattr(app, "extensions", {})
+            if "witnet_node" not in app.extensions:
+                app.extensions["witnet_node"] = self
 
     def get_block(self, block_hash):
         blocks = json.load(open("mockups/data/blocks.json"))
@@ -16,7 +17,27 @@ class MockWitnetNode(object):
         return {"result": reputation["rpc"]}
 
     def get_transaction(self, txn_hash):
-        pass
+        transactions = {}
+
+        mints = json.load(open("mockups/data/mints.json"))
+        transactions.update(mints)
+
+        value_transfers = json.load(open("mockups/data/value_transfers.json"))
+        transactions.update(value_transfers)
+
+        data_requests = json.load(open("mockups/data/data_requests.json"))
+        transactions.update(data_requests)
+
+        commits = json.load(open("mockups/data/commits.json"))
+        transactions.update(commits)
+
+        reveals = json.load(open("mockups/data/reveals.json"))
+        transactions.update(reveals)
+
+        tallies = json.load(open("mockups/data/tallies.json"))
+        transactions.update(tallies)
+
+        return transactions[txn_hash]["rpc"]
 
     def get_sync_status(self):
         sync_status = json.load(open("mockups/data/sync_status.json"))

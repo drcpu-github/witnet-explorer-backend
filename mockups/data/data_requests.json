@@ -1,50 +1,929 @@
 {
     "c1140872c3ca99771c7c16d9b7f1273647ebaa78c6f3cc55a1b47b446a5859f5": {
-        "response_type": "data_request",
-        "data_request": {
-            "hash": "c1140872c3ca99771c7c16d9b7f1273647ebaa78c6f3cc55a1b47b446a5859f5",
-            "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
-            "DRO_bytes_hash": "8f92c44d9ea2905989f134ae4a47a158ae232a176e9529342fc94d8415db773a",
-            "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
-            "input_addresses": [
-                "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9"
-            ],
-            "input_utxos": [
-                {
-                    "address": "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9",
-                    "value": 3093866144521,
-                    "input_utxo": "753921d9f14ee71a5ab3e5d8706e749ec214c2a66b2def7087d809901d06d3be:0"
-                }
-            ],
-            "miner_fee": 199999,
-            "dro_fee": 800020101,
-            "weight": 64044,
-            "priority": 3,
-            "witnesses": 100,
-            "witness_reward": 8000001,
-            "collateral": 1000000000,
-            "consensus_percentage": 51,
-            "commit_and_reveal_fee": 100,
-            "retrieve": [
-                {
-                    "kind": "HTTP-GET",
-                    "url": "https://www.bitstamp.net/api/ticker/",
-                    "body": "",
-                    "script": "StringParseJSONMap().MapGetFloat(last)"
+        "api": {
+            "response_type": "data_request",
+            "data_request": {
+                "hash": "c1140872c3ca99771c7c16d9b7f1273647ebaa78c6f3cc55a1b47b446a5859f5",
+                "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
+                "DRO_bytes_hash": "8f92c44d9ea2905989f134ae4a47a158ae232a176e9529342fc94d8415db773a",
+                "block": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                "input_addresses": [
+                    "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9"
+                ],
+                "input_utxos": [
+                    {
+                        "address": "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9",
+                        "value": 3093866144521,
+                        "input_utxo": "753921d9f14ee71a5ab3e5d8706e749ec214c2a66b2def7087d809901d06d3be:0"
+                    }
+                ],
+                "miner_fee": 199999,
+                "dro_fee": 800020101,
+                "weight": 64044,
+                "priority": 3,
+                "witnesses": 100,
+                "witness_reward": 8000001,
+                "collateral": 1000000000,
+                "consensus_percentage": 51,
+                "commit_and_reveal_fee": 100,
+                "retrieve": [
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://www.bitstamp.net/api/ticker/",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetFloat(last)"
+                    },
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)"
+                    }
+                ],
+                "aggregate": "reduce(AverageMean)",
+                "tally": "reduce(AverageMean)",
+                "epoch": 2024098,
+                "timestamp": 1693750455,
+                "confirmed": true,
+                "reverted": false
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 2024098,
+                "blockHash": "412eec1c249300749b9bad195ea532748503eda0305d6fddd7ea81be058ec2c7",
+                "confirmed": true,
+                "transaction": {
+                    "DataRequest": {
+                        "body": {
+                            "dr_output": {
+                                "collateral": 1000000000,
+                                "commit_and_reveal_fee": 100,
+                                "data_request": {
+                                    "aggregate": {
+                                        "filters": [],
+                                        "reducer": 3
+                                    },
+                                    "retrieve": [
+                                        {
+                                            "kind": "HTTP-GET",
+                                            "script": [
+                                                130,
+                                                24,
+                                                119,
+                                                130,
+                                                24,
+                                                100,
+                                                100,
+                                                108,
+                                                97,
+                                                115,
+                                                116
+                                            ],
+                                            "url": "https://www.bitstamp.net/api/ticker/"
+                                        },
+                                        {
+                                            "kind": "HTTP-GET",
+                                            "script": [
+                                                132,
+                                                24,
+                                                119,
+                                                130,
+                                                24,
+                                                102,
+                                                99,
+                                                98,
+                                                112,
+                                                105,
+                                                130,
+                                                24,
+                                                102,
+                                                99,
+                                                85,
+                                                83,
+                                                68,
+                                                130,
+                                                24,
+                                                100,
+                                                106,
+                                                114,
+                                                97,
+                                                116,
+                                                101,
+                                                95,
+                                                102,
+                                                108,
+                                                111,
+                                                97,
+                                                116
+                                            ],
+                                            "url": "https://api.coindesk.com/v1/bpi/currentprice.json"
+                                        }
+                                    ],
+                                    "tally": {
+                                        "filters": [],
+                                        "reducer": 3
+                                    },
+                                    "time_lock": 0
+                                },
+                                "min_consensus_percentage": 51,
+                                "witness_reward": 8000001,
+                                "witnesses": 100
+                            },
+                            "inputs": [
+                                {
+                                    "output_pointer": "753921d9f14ee71a5ab3e5d8706e749ec214c2a66b2def7087d809901d06d3be:0"
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "pkh": "wit1vrglvcx865jj7wkc474ys20smjgzqz7kzav7c9",
+                                    "time_lock": 0,
+                                    "value": 3093065924421
+                                }
+                            ]
+                        },
+                        "signatures": [
+                            {
+                                "public_key": {
+                                    "bytes": [
+                                        12,
+                                        185,
+                                        239,
+                                        240,
+                                        247,
+                                        7,
+                                        43,
+                                        19,
+                                        89,
+                                        154,
+                                        152,
+                                        165,
+                                        100,
+                                        33,
+                                        232,
+                                        32,
+                                        254,
+                                        191,
+                                        173,
+                                        213,
+                                        116,
+                                        97,
+                                        237,
+                                        143,
+                                        109,
+                                        141,
+                                        110,
+                                        101,
+                                        174,
+                                        246,
+                                        5,
+                                        90
+                                    ],
+                                    "compressed": 2
+                                },
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": [
+                                            48,
+                                            68,
+                                            2,
+                                            32,
+                                            54,
+                                            42,
+                                            75,
+                                            87,
+                                            166,
+                                            103,
+                                            117,
+                                            158,
+                                            66,
+                                            109,
+                                            6,
+                                            193,
+                                            92,
+                                            30,
+                                            237,
+                                            61,
+                                            58,
+                                            106,
+                                            244,
+                                            140,
+                                            200,
+                                            254,
+                                            15,
+                                            155,
+                                            182,
+                                            69,
+                                            140,
+                                            211,
+                                            138,
+                                            135,
+                                            18,
+                                            43,
+                                            2,
+                                            32,
+                                            94,
+                                            41,
+                                            91,
+                                            93,
+                                            15,
+                                            158,
+                                            38,
+                                            113,
+                                            146,
+                                            161,
+                                            120,
+                                            94,
+                                            48,
+                                            59,
+                                            19,
+                                            99,
+                                            93,
+                                            149,
+                                            35,
+                                            117,
+                                            205,
+                                            129,
+                                            244,
+                                            229,
+                                            77,
+                                            206,
+                                            50,
+                                            55,
+                                            90,
+                                            92,
+                                            6,
+                                            215
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
                 },
-                {
-                    "kind": "HTTP-GET",
-                    "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
-                    "body": "",
-                    "script": "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)"
-                }
-            ],
-            "aggregate": "reduce(AverageMean)",
-            "tally": "reduce(AverageMean)",
-            "epoch": 2024098,
-            "timestamp": 1693750455,
-            "confirmed": true,
-            "reverted": false
+                "weight": 64044
+            }
+        }
+    },
+    "c3fb68882075e755aa62777b5ad5986067ec024fc4007fb75a1d855771119c73": {
+        "rpc": {
+            "result": {
+                "blockEpoch": 1059883,
+                "blockHash": "e2ff67417adde115467bdabc092d57d14c80d83c3abfe49b57e52fc471d0ed7d",
+                "confirmed": true,
+                "transaction": {
+                    "DataRequest": {
+                        "body": {
+                            "dr_output": {
+                                "collateral": 1000000000,
+                                "commit_and_reveal_fee": 100,
+                                "data_request": {
+                                    "aggregate": {
+                                        "filters": [],
+                                        "reducer": 3
+                                    },
+                                    "retrieve": [
+                                        {
+                                            "kind": "HTTP-GET",
+                                            "script": [
+                                                130,
+                                                24,
+                                                119,
+                                                130,
+                                                24,
+                                                100,
+                                                100,
+                                                108,
+                                                97,
+                                                115,
+                                                116
+                                            ],
+                                            "url": "https://www.bitstamp.net/api/ticker/"
+                                        },
+                                        {
+                                            "kind": "HTTP-GET",
+                                            "script": [
+                                                132,
+                                                24,
+                                                119,
+                                                130,
+                                                24,
+                                                102,
+                                                99,
+                                                98,
+                                                112,
+                                                105,
+                                                130,
+                                                24,
+                                                102,
+                                                99,
+                                                85,
+                                                83,
+                                                68,
+                                                130,
+                                                24,
+                                                100,
+                                                106,
+                                                114,
+                                                97,
+                                                116,
+                                                101,
+                                                95,
+                                                102,
+                                                108,
+                                                111,
+                                                97,
+                                                116
+                                            ],
+                                            "url": "https://api.coindesk.com/v1/bpi/currentprice.json"
+                                        },
+                                        {
+                                            "body": [
+                                                123,
+                                                34,
+                                                113,
+                                                117,
+                                                101,
+                                                114,
+                                                121,
+                                                34,
+                                                58,
+                                                34,
+                                                113,
+                                                117,
+                                                101,
+                                                114,
+                                                121,
+                                                32,
+                                                112,
+                                                114,
+                                                105,
+                                                99,
+                                                101,
+                                                32,
+                                                123,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                109,
+                                                97,
+                                                114,
+                                                107,
+                                                101,
+                                                116,
+                                                115,
+                                                40,
+                                                102,
+                                                105,
+                                                108,
+                                                116,
+                                                101,
+                                                114,
+                                                58,
+                                                123,
+                                                32,
+                                                98,
+                                                97,
+                                                115,
+                                                101,
+                                                83,
+                                                121,
+                                                109,
+                                                98,
+                                                111,
+                                                108,
+                                                58,
+                                                32,
+                                                123,
+                                                95,
+                                                101,
+                                                113,
+                                                58,
+                                                92,
+                                                34,
+                                                66,
+                                                84,
+                                                67,
+                                                92,
+                                                34,
+                                                125,
+                                                32,
+                                                113,
+                                                117,
+                                                111,
+                                                116,
+                                                101,
+                                                83,
+                                                121,
+                                                109,
+                                                98,
+                                                111,
+                                                108,
+                                                58,
+                                                32,
+                                                123,
+                                                95,
+                                                105,
+                                                110,
+                                                58,
+                                                91,
+                                                92,
+                                                34,
+                                                85,
+                                                83,
+                                                68,
+                                                92,
+                                                34,
+                                                44,
+                                                92,
+                                                34,
+                                                85,
+                                                83,
+                                                68,
+                                                84,
+                                                92,
+                                                34,
+                                                93,
+                                                125,
+                                                32,
+                                                109,
+                                                97,
+                                                114,
+                                                107,
+                                                101,
+                                                116,
+                                                83,
+                                                116,
+                                                97,
+                                                116,
+                                                117,
+                                                115,
+                                                58,
+                                                32,
+                                                123,
+                                                32,
+                                                95,
+                                                101,
+                                                113,
+                                                58,
+                                                32,
+                                                65,
+                                                99,
+                                                116,
+                                                105,
+                                                118,
+                                                101,
+                                                32,
+                                                125,
+                                                125,
+                                                41,
+                                                32,
+                                                123,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                109,
+                                                97,
+                                                114,
+                                                107,
+                                                101,
+                                                116,
+                                                83,
+                                                121,
+                                                109,
+                                                98,
+                                                111,
+                                                108,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                116,
+                                                105,
+                                                99,
+                                                107,
+                                                101,
+                                                114,
+                                                32,
+                                                123,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                108,
+                                                97,
+                                                115,
+                                                116,
+                                                80,
+                                                114,
+                                                105,
+                                                99,
+                                                101,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                32,
+                                                32,
+                                                125,
+                                                92,
+                                                110,
+                                                32,
+                                                32,
+                                                125,
+                                                92,
+                                                110,
+                                                125,
+                                                34,
+                                                44,
+                                                34,
+                                                118,
+                                                97,
+                                                114,
+                                                105,
+                                                97,
+                                                98,
+                                                108,
+                                                101,
+                                                115,
+                                                34,
+                                                58,
+                                                110,
+                                                117,
+                                                108,
+                                                108,
+                                                44,
+                                                34,
+                                                111,
+                                                112,
+                                                101,
+                                                114,
+                                                97,
+                                                116,
+                                                105,
+                                                111,
+                                                110,
+                                                78,
+                                                97,
+                                                109,
+                                                101,
+                                                34,
+                                                58,
+                                                34,
+                                                112,
+                                                114,
+                                                105,
+                                                99,
+                                                101,
+                                                34,
+                                                125
+                                            ],
+                                            "headers": [
+                                                [
+                                                    "Content-Type",
+                                                    "application/json"
+                                                ]
+                                            ],
+                                            "kind": "HTTP-POST",
+                                            "script": [
+                                                135,
+                                                24,
+                                                119,
+                                                130,
+                                                24,
+                                                102,
+                                                100,
+                                                100,
+                                                97,
+                                                116,
+                                                97,
+                                                130,
+                                                24,
+                                                97,
+                                                103,
+                                                109,
+                                                97,
+                                                114,
+                                                107,
+                                                101,
+                                                116,
+                                                115,
+                                                130,
+                                                24,
+                                                24,
+                                                0,
+                                                130,
+                                                24,
+                                                102,
+                                                102,
+                                                116,
+                                                105,
+                                                99,
+                                                107,
+                                                101,
+                                                114,
+                                                130,
+                                                24,
+                                                103,
+                                                105,
+                                                108,
+                                                97,
+                                                115,
+                                                116,
+                                                80,
+                                                114,
+                                                105,
+                                                99,
+                                                101,
+                                                24,
+                                                114
+                                            ],
+                                            "url": "https://api.blocktap.io/graphql"
+                                        }
+                                    ],
+                                    "tally": {
+                                        "filters": [],
+                                        "reducer": 3
+                                    },
+                                    "time_lock": 1574703683
+                                },
+                                "min_consensus_percentage": 51,
+                                "witness_reward": 1000,
+                                "witnesses": 5
+                            },
+                            "inputs": [
+                                {
+                                    "output_pointer": "4eaac9ecdb2a95c8241f50f63f1f23828e57dd4f503e2479740dd73578b9e7a6:1"
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "pkh": "wit17nnjuxmfuu92l6rxhque2qc3u2kvmx2fske4l9",
+                                    "time_lock": 0,
+                                    "value": 2592696155
+                                }
+                            ]
+                        },
+                        "signatures": [
+                            {
+                                "public_key": {
+                                    "bytes": [
+                                        65,
+                                        119,
+                                        214,
+                                        250,
+                                        48,
+                                        141,
+                                        20,
+                                        239,
+                                        13,
+                                        163,
+                                        89,
+                                        150,
+                                        32,
+                                        199,
+                                        172,
+                                        105,
+                                        44,
+                                        0,
+                                        182,
+                                        151,
+                                        167,
+                                        252,
+                                        6,
+                                        238,
+                                        96,
+                                        190,
+                                        8,
+                                        89,
+                                        25,
+                                        31,
+                                        126,
+                                        161
+                                    ],
+                                    "compressed": 3
+                                },
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": [
+                                            48,
+                                            69,
+                                            2,
+                                            33,
+                                            0,
+                                            233,
+                                            212,
+                                            135,
+                                            255,
+                                            18,
+                                            37,
+                                            93,
+                                            89,
+                                            79,
+                                            127,
+                                            156,
+                                            248,
+                                            252,
+                                            102,
+                                            99,
+                                            147,
+                                            114,
+                                            149,
+                                            187,
+                                            39,
+                                            139,
+                                            104,
+                                            158,
+                                            13,
+                                            98,
+                                            160,
+                                            211,
+                                            56,
+                                            76,
+                                            10,
+                                            47,
+                                            89,
+                                            2,
+                                            32,
+                                            61,
+                                            144,
+                                            236,
+                                            83,
+                                            80,
+                                            16,
+                                            171,
+                                            56,
+                                            204,
+                                            200,
+                                            189,
+                                            62,
+                                            96,
+                                            126,
+                                            10,
+                                            222,
+                                            135,
+                                            83,
+                                            106,
+                                            166,
+                                            246,
+                                            13,
+                                            179,
+                                            172,
+                                            142,
+                                            183,
+                                            89,
+                                            83,
+                                            46,
+                                            129,
+                                            220,
+                                            177
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "weight": 3989
+            }
+        },
+        "api": {
+            "explorer": {
+                "input_utxos": [
+                    [
+                        "4eaac9ecdb2a95c8241f50f63f1f23828e57dd4f503e2479740dd73578b9e7a6",
+                        1
+                    ]
+                ],
+                "hash": "c3fb68882075e755aa62777b5ad5986067ec024fc4007fb75a1d855771119c73",
+                "epoch": 1059883,
+                "input_addresses": [
+                    "wit17nnjuxmfuu92l6rxhque2qc3u2kvmx2fske4l9"
+                ],
+                "witnesses": 5,
+                "witness_reward": 1000,
+                "commit_and_reveal_fee": 100,
+                "consensus_percentage": 51,
+                "dro_fee": 6001,
+                "miner_fee": 999999,
+                "collateral": 1000000000,
+                "RAD_bytes_hash": "cb862e29c9f86b15e10c580f7ded6b2d3722fb1ddd9f8cb4467f96ee6303bcef",
+                "DRO_bytes_hash": "001dba7ecc54cecfece71358de8cacf70f52f641c1ce716b3803b50bd248ad67",
+                "weight": 3989,
+                "input_values": [
+                    2593702155
+                ],
+                "output_address": "wit17nnjuxmfuu92l6rxhque2qc3u2kvmx2fske4l9",
+                "output_value": 2592696155,
+                "kinds": [
+                    "HTTP-GET",
+                    "HTTP-GET",
+                    "HTTP-POST"
+                ],
+                "urls": [
+                    "https://www.bitstamp.net/api/ticker/",
+                    "https://api.coindesk.com/v1/bpi/currentprice.json",
+                    "https://api.blocktap.io/graphql"
+                ],
+                "headers": [
+                    [
+                        ""
+                    ],
+                    [
+                        ""
+                    ],
+                    [
+                        "Content-Type: application/json"
+                    ]
+                ],
+                "bodies": [
+                    "",
+                    "",
+                    "{\"query\":\"query price {\\n  markets(filter:{ baseSymbol: {_eq:\\\"BTC\\\"} quoteSymbol: {_in:[\\\"USD\\\",\\\"USDT\\\"]} marketStatus: { _eq: Active }}) {\\n    marketSymbol\\n    ticker {\\n      lastPrice\\n    }\\n  }\\n}\",\"variables\":null,\"operationName\":\"price\"}"
+                ],
+                "scripts": [
+                    "821877821864646c617374",
+                    "84187782186663627069821866635553448218646a726174655f666c6f6174",
+                    "8718778218666464617461821861676d61726b65747382181800821866667469636b6572821867696c61737450726963651872"
+                ],
+                "aggregate_filters": [],
+                "aggregate_reducer": [
+                    3
+                ],
+                "tally_filters": [],
+                "tally_reducer": [
+                    3
+                ]
+            },
+            "api": {
+                "hash": "c3fb68882075e755aa62777b5ad5986067ec024fc4007fb75a1d855771119c73",
+                "epoch": 1059883,
+                "input_addresses": [
+                    "wit17nnjuxmfuu92l6rxhque2qc3u2kvmx2fske4l9"
+                ],
+                "witnesses": 5,
+                "witness_reward": 1000,
+                "commit_and_reveal_fee": 100,
+                "consensus_percentage": 51,
+                "dro_fee": 6001,
+                "miner_fee": 999999,
+                "collateral": 1000000000,
+                "RAD_bytes_hash": "cb862e29c9f86b15e10c580f7ded6b2d3722fb1ddd9f8cb4467f96ee6303bcef",
+                "DRO_bytes_hash": "001dba7ecc54cecfece71358de8cacf70f52f641c1ce716b3803b50bd248ad67",
+                "weight": 3989,
+                "kinds": [
+                    "HTTP-GET",
+                    "HTTP-GET",
+                    "HTTP-POST"
+                ],
+                "urls": [
+                    "https://www.bitstamp.net/api/ticker/",
+                    "https://api.coindesk.com/v1/bpi/currentprice.json",
+                    "https://api.blocktap.io/graphql"
+                ],
+                "headers": [
+                    [
+                        ""
+                    ],
+                    [
+                        ""
+                    ],
+                    [
+                        "Content-Type: application/json"
+                    ]
+                ],
+                "bodies": [
+                    "",
+                    "",
+                    "{\"query\":\"query price {\\n  markets(filter:{ baseSymbol: {_eq:\\\"BTC\\\"} quoteSymbol: {_in:[\\\"USD\\\",\\\"USDT\\\"]} marketStatus: { _eq: Active }}) {\\n    marketSymbol\\n    ticker {\\n      lastPrice\\n    }\\n  }\\n}\",\"variables\":null,\"operationName\":\"price\"}"
+                ],
+                "scripts": [
+                    "StringParseJSONMap().MapGetFloat(last)",
+                    "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)",
+                    "StringParseJSONMap().MapGetMap(data).MapGetArray(markets).ArrayGetMap(0).MapGetMap(ticker).MapGetString(lastPrice).StringAsFloat()"
+                ],
+                "aggregate_filters": "",
+                "aggregate_reducer": "reduce(AverageMean)",
+                "tally_filters": "",
+                "tally_reducer": "reduce(AverageMean)"
+            }
         }
     }
 }
