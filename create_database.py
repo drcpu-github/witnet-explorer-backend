@@ -236,6 +236,7 @@ def create_tables(connection, cursor):
             weight INT NOT NULL,
             kinds retrieve_kind ARRAY NOT NULL,
             urls VARCHAR ARRAY NOT NULL,
+            headers VARCHAR[][] NOT NULL,
             bodies BYTEA ARRAY NOT NULL,
             scripts BYTEA ARRAY NOT NULL,
             aggregate_filters filter ARRAY NOT NULL,

@@ -171,6 +171,7 @@ class WitnetDatabase(object):
                 txn_details["weight"],
                 txn_details["kinds"],
                 txn_details["urls"],
+                txn_details["headers"],
                 txn_details["bodies"],
                 txn_details["scripts"],
                 txn_details["aggregate_filters"],
@@ -405,6 +406,7 @@ class WitnetDatabase(object):
                     weight,
                     kinds,
                     urls,
+                    headers,
                     bodies,
                     scripts,
                     aggregate_filters,
@@ -414,7 +416,7 @@ class WitnetDatabase(object):
                     RAD_bytes_hash,
                     DRO_bytes_hash,
                     epoch
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     data_request_txns_pkey
                 DO UPDATE SET

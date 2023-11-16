@@ -80,6 +80,7 @@ class DataRequest(Transaction):
 
         self.txn_details["kinds"] = []
         self.txn_details["urls"] = []
+        self.txn_details["headers"] = []
         self.txn_details["bodies"] = []
         self.txn_details["scripts"] = []
 
@@ -108,6 +109,13 @@ class DataRequest(Transaction):
                     self.txn_details["urls"].append(retrieve["url"])
                 else:
                     self.txn_details["urls"].append(None)
+
+                if "headers" in retrieve:
+                    self.txn_details["headers"].append(
+                        [f"{header[0]}: {header[1]}" for header in retrieve["headers"]]
+                    )
+                else:
+                    self.txn_details["headers"].append([""])
 
                 if retrieve["kind"] == "HTTP-POST":
                     self.txn_details["bodies"].append(bytearray(retrieve["body"]))
@@ -145,6 +153,13 @@ class DataRequest(Transaction):
                     self.txn_details["urls"].append(retrieve["url"])
                 else:
                     self.txn_details["urls"].append(None)
+
+                if "headers" in retrieve:
+                    self.txn_details["headers"].append(
+                        [f"{header[0]}: {header[1]}" for header in retrieve["headers"]]
+                    )
+                else:
+                    self.txn_details["headers"].append([""])
 
                 if retrieve["kind"] == "HTTP-POST":
                     self.txn_details["bodies"].append(
@@ -219,6 +234,7 @@ class DataRequest(Transaction):
                 data_request_txns.weight,
                 data_request_txns.kinds,
                 data_request_txns.urls,
+                data_request_txns.headers,
                 data_request_txns.bodies,
                 data_request_txns.scripts,
                 data_request_txns.aggregate_filters,
@@ -261,6 +277,7 @@ class DataRequest(Transaction):
                 weight,
                 kinds,
                 urls,
+                all_headers,
                 bodies,
                 scripts,
                 aggregate_filters,
@@ -296,11 +313,14 @@ class DataRequest(Transaction):
             # handle as a string starting and ending with {} + split on commas
             txn_retrieve = []
             kinds = re.match(r"^{(.*)}$", kinds).group(1).split(",")
-            for kind, url, body, script in zip(kinds, urls, bodies, scripts):
+            for kind, url, headers, body, script in zip(
+                kinds, urls, all_headers, bodies, scripts
+            ):
                 txn_retrieve.append(
                     {
                         "kind": kind,
                         "url": url,
+                        "headers": headers,
                         "body": "".join([chr(c) for c in bytearray(body)]),
                         "script": translate_script(script),
                     }

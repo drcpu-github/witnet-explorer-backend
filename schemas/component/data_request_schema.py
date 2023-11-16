@@ -31,6 +31,7 @@ class DataRequestRetrieval(Schema):
         validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"]), required=True
     )
     url = fields.URL(allow_none=True, required=True)
+    headers = fields.List(fields.Str(), required=True)
     body = fields.String(required=True)
     script = fields.String(required=True)
 
@@ -59,6 +60,7 @@ class DataRequestTransactionForBlock(DataRequest):
         required=True,
     )
     urls = fields.List(fields.URL(allow_none=True), required=True)
+    headers = fields.List(fields.List(fields.Str()), required=True)
     bodies = fields.List(fields.Str(), required=True)
     scripts = fields.List(fields.Str(), required=True)
     aggregate_filters = fields.Str(required=True)
@@ -82,6 +84,7 @@ class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
         required=True,
     )
     urls = fields.List(fields.URL(allow_none=True), required=True)
+    headers = fields.List(fields.List(fields.Str()), required=True)
     bodies = fields.List(BytearrayField(), required=True)
     scripts = fields.List(BytearrayField(), required=True)
     aggregate_filters = fields.List(
