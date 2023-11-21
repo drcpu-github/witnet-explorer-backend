@@ -20,7 +20,51 @@ class TransactionSend(MethodView):
     # ValueTransferArgs does not include the actual transaction as an argument
     # The API does require the argument to be present (see test below)
     # But not testing it as part of the argument allows for custom error messages
-    @transaction_send_blueprint.arguments(ValueTransferArgs(unknown=INCLUDE))
+    @transaction_send_blueprint.arguments(
+        ValueTransferArgs(unknown=INCLUDE),
+        examples={
+            "Value transfer transaction": {
+                "description": "Example of an expected request body format to send a value transfer transaction.",
+                "value": {
+                    "test": False,
+                    "transaction": {
+                        "ValueTransfer": {
+                            "body": {
+                                "inputs": [{"output_pointer": "string"}],
+                                "outputs": [
+                                    {"pkh": "string", "time_lock": 0, "value": 1}
+                                ],
+                            },
+                            "signatures": [
+                                {
+                                    "public_key": {"bytes": "string", "compressed": 0},
+                                    "signature": None,
+                                }
+                            ],
+                        },
+                    },
+                },
+            },
+            "Stake transaction": {
+                "description": "Example of an expected request body format to send a stake transaction.",
+                "value": {
+                    "test": False,
+                    "transaction": {
+                        "Stake": {},
+                    },
+                },
+            },
+            "Unstake transaction": {
+                "description": "Example of an expected request body format to send an unstake transaction.",
+                "value": {
+                    "test": False,
+                    "transaction": {
+                        "Unstake": {},
+                    },
+                },
+            },
+        },
+    )
     @transaction_send_blueprint.response(
         201,
         ValueTransferResponse,
@@ -52,6 +96,7 @@ class TransactionSend(MethodView):
         logger.info(f"transaction_send({args['test']})")
 
         if "transaction" not in args:
+            logger.error(f"Missing transaction argument: {args}")
             abort(404, message="Missing transaction argument.")
         prefix = "Testing" if args["test"] else "Sending"
         logger.info(f"{prefix} transaction: {args['transaction']}")
