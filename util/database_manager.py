@@ -133,7 +133,13 @@ class DatabaseManager(object):
 
     def build_sql(self, sql, values):
         try:
-            return self.cursor.mogrify(sql, values)
+            # psycopg requires to build a client-side cursor to use mogrify
+            if self.db_pass:
+                connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass, cursor_factory=psycopg.ClientCursor)
+            else:
+                connection = psycopg.connect(user=self.db_user, dbname=self.db_name, cursor_factory=psycopg.ClientCursor)
+            cursor = connection.cursor()
+            return cursor.mogrify(sql, values)
         except Exception as e:
             if self.logger:
                 self.logger.error("Could not create SQL statement '" + str(sql) + "', error: " + str(e))

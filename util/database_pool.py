@@ -25,11 +25,11 @@ class DatabasePool(object):
 
     def connect(self):
         try:
-            connection_str = (
+            self.connection_str = (
                 f"postgresql://{self.user}:{self.password}@localhost/{self.database}"
             )
             self.connection_pool = psycopg_pool.ConnectionPool(
-                conninfo=connection_str,
+                conninfo=self.connection_str,
                 min_size=self.min_connections,
                 open=True,
             )
@@ -124,7 +124,10 @@ class DatabasePool(object):
 
     def build_sql(self, sql, parameters):
         try:
-            return self.cursor.mogrify(sql, parameters)
+            # psycopg requires to build a client-side cursor to use mogrify, create a single short-lived connection
+            connection = psycopg.connect(conninfo=self.connection_str, cursor_factory=psycopg.ClientCursor)
+            cursor = connection.cursor()
+            return cursor.mogrify(sql, parameters)
         except Exception as e:
             if self.logger:
                 self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
