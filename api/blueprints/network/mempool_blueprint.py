@@ -10,7 +10,11 @@ from psycopg.sql import SQL, Identifier
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.mempool_schema import NetworkMempoolArgs, NetworkMempoolResponse
-from util.common_functions import calculate_timestamp_from_epoch, get_network_times
+from util.common_functions import (
+    calculate_priority,
+    calculate_timestamp_from_epoch,
+    get_network_times,
+)
 from util.data_transformer import re_sql
 
 network_mempool_blueprint = Blueprint(
@@ -49,9 +53,12 @@ class NetworkMempool(MethodView):
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
 
+        config = current_app.config["explorer"]
+        sample_rate = int(60 / config["explorer"]["mempool_interval"])
+
         # Use the last 24h
         if "start_epoch" not in args or "stop_epoch" not in args:
-            timestamp_stop = int(time.time())
+            timestamp_stop = int(time.time() / 60) * 60
             timestamp_start = timestamp_stop - 24 * 60 * 60
         # Calculate timestamps from epochs
         else:
@@ -77,6 +84,7 @@ class NetworkMempool(MethodView):
                 transaction_type,
                 timestamp_start,
                 timestamp_stop,
+                sample_rate,
             )
 
             try:
@@ -98,23 +106,32 @@ class NetworkMempool(MethodView):
         return mempool, 200, {"X-Version": "v1.0.0"}
 
 
-def get_historical_mempool(database, transaction_type, timestamp_start, timestamp_stop):
+def get_historical_mempool(
+    database,
+    transaction_type,
+    timestamp_start,
+    timestamp_stop,
+    sample_rate,
+):
     mempool_transactions = {}
     table_mapping = {
-        "data_requests": "pending_data_request_txns",
-        "value_transfers": "pending_value_transfer_txns",
+        "data_requests": "data_request_mempool",
+        "value_transfers": "value_transfer_mempool",
     }
 
     # Get lists between the required timestamps
     sql = """
         SELECT
             timestamp,
-            fee_per_unit,
-            num_txns
-        FROM {}
+            fee,
+            weight
+        FROM
+            {}
         WHERE
             timestamp BETWEEN %s AND %s
-        ORDER BY timestamp ASC
+        ORDER BY
+            timestamp
+        ASC
     """
     sql = SQL(re_sql(sql)).format(Identifier(table_mapping[transaction_type]))
     data = database.sql_return_all(sql, [timestamp_start, timestamp_stop])
@@ -122,52 +139,54 @@ def get_historical_mempool(database, transaction_type, timestamp_start, timestam
     # Loop over the values and check if they're spaced per minute
     # If they are not, there were no pending transactions, add empty lists
     mempool_transactions = interpolate_and_transform(
-        timestamp_start, timestamp_stop, data
+        timestamp_start,
+        timestamp_stop,
+        data,
+        sample_rate,
     )
 
     return mempool_transactions
 
 
-def interpolate_and_transform(start_timestamp, stop_timestamp, data):
-    interpolated_data = []
-    # Edge case where there are no transactions
-    if len(data) == 0:
-        timestamp = start_timestamp
-        while stop_timestamp - timestamp >= 0:
-            interpolated_data.append({"timestamp": timestamp, "fee": [], "amount": []})
-            timestamp += 60
-    # Normal case
-    else:
-        # First check if we need to insert empty lists at the start
-        timestamp = data[0][0]
-        while timestamp - start_timestamp >= 60:
-            interpolated_data.append(
-                {"timestamp": start_timestamp, "fee": [], "amount": []}
-            )
-            start_timestamp += 60
-        interpolated_data.append(
-            {"timestamp": data[0][0], "fee": data[0][1], "amount": data[0][2]}
-        )
+def interpolate_and_transform(start_timestamp, stop_timestamp, raw_data, sample_rate):
+    histogram_data = [
+        {"timestamp": timestamp, "fee": [], "amount": []}
+        for timestamp in range(start_timestamp, stop_timestamp, 60)
+    ]
 
-        # Then loop over the available data and check if we need to interpolate
-        timestamp = interpolated_data[-1]["timestamp"]
-        for entry in data[1:]:
-            while entry[0] - timestamp > 60:
-                interpolated_data.append(
-                    {"timestamp": timestamp + 60, "fee": [], "amount": []}
-                )
-                timestamp += 60
-            interpolated_data.append(
-                {"timestamp": entry[0], "fee": entry[1], "amount": entry[2]}
-            )
-            timestamp = entry[0]
+    # Loop over the available data and check if we need to interpolate
+    counter = 0
+    for hd in range(0, len(histogram_data)):
+        aggregated_histogram = {}
+        for rd in range(counter, len(raw_data)):
+            if raw_data[rd][0] <= histogram_data[hd]["timestamp"]:
+                histogram = build_priority_histogram(raw_data[rd][1], raw_data[rd][2])
+                for priority, amount in histogram.items():
+                    if priority not in aggregated_histogram:
+                        aggregated_histogram[priority] = 0
+                    aggregated_histogram[priority] += amount
+            else:
+                break
+            counter += 1
+        if len(aggregated_histogram) > 0:
+            histogram_data[hd]["fee"] = [
+                priority for priority, _ in sorted(aggregated_histogram.items())
+            ]
+            histogram_data[hd]["amount"] = [
+                calculate_priority(amount, sample_rate, round_priority=True)
+                for _, amount in sorted(aggregated_histogram.items())
+            ]
 
-        # Last check if we need to append empty lists at the end
-        timestamp = interpolated_data[-1]["timestamp"]
-        while stop_timestamp - timestamp >= 60:
-            interpolated_data.append(
-                {"timestamp": timestamp + 60, "fee": [], "amount": []}
-            )
-            timestamp += 60
+    return histogram_data
 
-    return interpolated_data
+
+def build_priority_histogram(absolute_fee, weights):
+    priorities = {}
+
+    for abs_fee, weight in zip(absolute_fee, weights):
+        priority = calculate_priority(abs_fee, weight, round_priority=True)
+        if priority not in priorities:
+            priorities[priority] = 0
+        priorities[priority] += 1
+
+    return priorities

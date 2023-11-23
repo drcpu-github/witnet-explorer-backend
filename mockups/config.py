@@ -38,5 +38,8 @@ mock_config = {
             "log_file": "api.log",
         },
         "error_retry": 10,
-    }
+    },
+    "explorer": {
+        "mempool_interval": 15,
+    },
 }
