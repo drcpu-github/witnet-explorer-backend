@@ -54,7 +54,6 @@ class NetworkMempool(MethodView):
         logger = current_app.extensions["logger"]
 
         config = current_app.config["explorer"]
-        sample_rate = int(60 / config["explorer"]["mempool_interval"])
 
         # Use the last 24h
         if "start_epoch" not in args or "stop_epoch" not in args:
@@ -70,12 +69,15 @@ class NetworkMempool(MethodView):
                 start_time, epoch_period, args["stop_epoch"]
             )
 
+        granularity = args["granularity"]
+        sample_rate = int(granularity / config["explorer"]["mempool_interval"])
+
         transaction_type = args["transaction_type"]
         logger.info(
-            f"network_mempool({transaction_type}, {timestamp_start}, {timestamp_stop})"
+            f"network_mempool({transaction_type}, {timestamp_start}, {timestamp_stop}, {granularity})"
         )
 
-        key = f"network_mempool_{transaction_type}_{timestamp_start}_{timestamp_stop}"
+        key = f"network_mempool_{transaction_type}_{timestamp_start}_{timestamp_stop}_{granularity}"
         mempool = cache.get(key)
         if not mempool:
             logger.info(f"Could not find {key} in memcached cache")
@@ -85,6 +87,7 @@ class NetworkMempool(MethodView):
                 timestamp_start,
                 timestamp_stop,
                 sample_rate,
+                granularity,
             )
 
             try:
@@ -112,6 +115,7 @@ def get_historical_mempool(
     timestamp_start,
     timestamp_stop,
     sample_rate,
+    granularity,
 ):
     mempool_transactions = {}
     table_mapping = {
@@ -143,15 +147,18 @@ def get_historical_mempool(
         timestamp_stop,
         data,
         sample_rate,
+        granularity,
     )
 
     return mempool_transactions
 
 
-def interpolate_and_transform(start_timestamp, stop_timestamp, raw_data, sample_rate):
+def interpolate_and_transform(
+    start_timestamp, stop_timestamp, raw_data, sample_rate, granularity
+):
     histogram_data = [
         {"timestamp": timestamp, "fee": [], "amount": []}
-        for timestamp in range(start_timestamp, stop_timestamp, 60)
+        for timestamp in range(start_timestamp, stop_timestamp, granularity)
     ]
 
     # Loop over the available data and check if we need to interpolate

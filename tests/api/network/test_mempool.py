@@ -8,7 +8,7 @@ from api.blueprints.network.mempool_blueprint import (
 
 def test_mempool_data_requests_cached(client, network_mempool):
     cache = client.application.extensions["cache"]
-    cache_key = "network_mempool_data_requests_1696016115_1696017015"
+    cache_key = "network_mempool_data_requests_1696016115_1696017015_60"
     assert cache.get(cache_key) is not None
     response = client.get(
         "/api/network/mempool?transaction_type=data_requests&start_epoch=2074446&stop_epoch=2074466"
@@ -19,7 +19,7 @@ def test_mempool_data_requests_cached(client, network_mempool):
 
 def test_mempool_data_requests_not_cached(client, network_mempool):
     cache = client.application.extensions["cache"]
-    cache_key = "network_mempool_data_requests_1696016115_1696017015"
+    cache_key = "network_mempool_data_requests_1696016115_1696017015_60"
     cache.delete(cache_key)
     assert cache.get(cache_key) is None
     response = client.get(
@@ -32,7 +32,7 @@ def test_mempool_data_requests_not_cached(client, network_mempool):
 
 def test_mempool_value_transfers_cached(client, network_mempool):
     cache = client.application.extensions["cache"]
-    cache_key = "network_mempool_value_transfers_1696016115_1696017015"
+    cache_key = "network_mempool_value_transfers_1696016115_1696017015_60"
     assert cache.get(cache_key) is not None
     response = client.get(
         "/api/network/mempool?transaction_type=value_transfers&start_epoch=2074446&stop_epoch=2074466"
@@ -43,7 +43,7 @@ def test_mempool_value_transfers_cached(client, network_mempool):
 
 def test_mempool_value_transfers_not_cached(client, network_mempool):
     cache = client.application.extensions["cache"]
-    cache_key = "network_mempool_value_transfers_1696016115_1696017015"
+    cache_key = "network_mempool_value_transfers_1696016115_1696017015_60"
     cache.delete(cache_key)
     assert cache.get(cache_key) is None
     response = client.get(
@@ -90,9 +90,9 @@ def test_mempool_interpolation():
             [100, 200, 50, 40, 70, 100],
         ],  # {0: 1, 1: 1, 4: 3, 8: 1}
     ]
-    sample_rate = 4
 
-    expected_interpolation = [
+    sample_rate_60 = 4
+    expected_interpolation_60 = [
         {"timestamp": 120, "fee": [], "amount": []},
         {"timestamp": 180, "fee": [], "amount": []},
         {"timestamp": 240, "fee": [0, 1, 4, 8], "amount": [1, 1, 1, 1]},
@@ -101,11 +101,27 @@ def test_mempool_interpolation():
         {"timestamp": 420, "fee": [], "amount": []},
         {"timestamp": 480, "fee": [0, 1, 4, 8], "amount": [1, 1, 2, 1]},
     ]
-
-    interpolated_histogram = interpolate_and_transform(
+    interpolated_histogram_60 = interpolate_and_transform(
         start_timestamp,
         stop_timestamp,
         data,
-        sample_rate,
+        sample_rate_60,
+        60,
     )
-    assert expected_interpolation == interpolated_histogram
+    assert expected_interpolation_60 == interpolated_histogram_60
+
+    sample_rate_120 = 8
+    expected_interpolation_120 = [
+        {"timestamp": 120, "fee": [], "amount": []},
+        {"timestamp": 240, "fee": [0, 1, 4, 8], "amount": [1, 1, 1, 1]},
+        {"timestamp": 360, "fee": [], "amount": []},
+        {"timestamp": 480, "fee": [0, 1, 4, 8], "amount": [1, 1, 1, 1]},
+    ]
+    interpolated_histogram_120 = interpolate_and_transform(
+        start_timestamp,
+        stop_timestamp,
+        data,
+        sample_rate_120,
+        120,
+    )
+    assert expected_interpolation_120 == interpolated_histogram_120

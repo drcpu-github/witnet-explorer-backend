@@ -1,4 +1,11 @@
-from marshmallow import Schema, ValidationError, fields, validate, validates_schema
+from marshmallow import (
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    validate,
+    validates_schema,
+)
 
 
 class NetworkMempoolArgs(Schema):
@@ -13,6 +20,9 @@ class NetworkMempoolArgs(Schema):
     )
     start_epoch = fields.Int(validate=validate.Range(min=0))
     stop_epoch = fields.Int(validate=validate.Range(min=0))
+    granularity = fields.Int(
+        validate=validate.Range(min=60, max=86400), load_default=60
+    )
 
     @validates_schema
     def validate_fields(self, data, **kwargs):
@@ -24,6 +34,11 @@ class NetworkMempoolArgs(Schema):
             raise ValidationError(
                 "The stop_epoch parameter is smaller than the start_epoch parameter."
             )
+
+    @post_load
+    def round_granularity(self, data, **kwargs):
+        data["granularity"] = round(data["granularity"] / 60) * 60
+        return data
 
 
 class NetworkMempoolResponse(Schema):

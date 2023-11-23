@@ -11,9 +11,30 @@ def test_network_mempool_args_success():
 
     data = {"transaction_type": "data_requests", "start_epoch": 900, "stop_epoch": 1000}
     network_mempool = NetworkMempoolArgs().load(data)
+    assert len(network_mempool) == 4
     assert network_mempool["transaction_type"] == "data_requests"
     assert network_mempool["start_epoch"] == 900
     assert network_mempool["stop_epoch"] == 1000
+    assert network_mempool["granularity"] == 60
+
+
+def test_network_mempool_args_round_success():
+    data = {"transaction_type": "data_requests"}
+    network_mempool = NetworkMempoolArgs().load(data)
+    assert network_mempool["transaction_type"] == "data_requests"
+
+    data = {
+        "transaction_type": "data_requests",
+        "start_epoch": 900,
+        "stop_epoch": 1000,
+        "granularity": 100,
+    }
+    network_mempool = NetworkMempoolArgs().load(data)
+    assert len(network_mempool) == 4
+    assert network_mempool["transaction_type"] == "data_requests"
+    assert network_mempool["start_epoch"] == 900
+    assert network_mempool["stop_epoch"] == 1000
+    assert network_mempool["granularity"] == 120
 
 
 def test_network_mempool_args_failure_missing():
