@@ -538,5 +538,14 @@
                 "value": 50050000000
             }
         ]
+    },
+    "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm": {
+        "details": {
+            "balance": 546229542864,
+            "reputation": 4062,
+            "eligibility": 953,
+            "total_reputation": 16560,
+            "label": ""
+        }
     }
 }

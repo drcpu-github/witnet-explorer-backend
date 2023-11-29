@@ -8,9 +8,22 @@ class MockWitnetNode(object):
             if "witnet_node" not in app.extensions:
                 app.extensions["witnet_node"] = self
 
+    def get_balance(self, address):
+        balances = json.load(open("mockups/data/balances.json"))
+        return {"result": balances["rpc"][address]}
+
     def get_block(self, block_hash):
         blocks = json.load(open("mockups/data/blocks.json"))
         return {"result": blocks[block_hash]["rpc"]}
+
+    def get_reputation(self, address):
+        reputation = json.load(open("mockups/data/reputation.json"))
+        return {
+            "result": {
+                "stats": {address: reputation["rpc"]["stats"][address]},
+                "total_reputation": reputation["rpc"]["total_reputation"],
+            },
+        }
 
     def get_reputation_all(self):
         reputation = json.load(open("mockups/data/reputation.json"))

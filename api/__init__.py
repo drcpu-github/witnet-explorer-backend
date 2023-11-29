@@ -9,6 +9,7 @@ from api.blueprints.address.data_requests_created_blueprint import (
 from api.blueprints.address.data_requests_solved_blueprint import (
     address_data_requests_solved_blueprint,
 )
+from api.blueprints.address.details_blueprint import address_details_blueprint
 from api.blueprints.address.info_blueprint import address_info_blueprint
 from api.blueprints.address.labels_blueprint import address_labels_blueprint
 from api.blueprints.address.mints_blueprint import address_mints_blueprint
@@ -117,6 +118,7 @@ def create_app(mock=False):
     address_blueprint.register_blueprint(address_blocks_blueprint)
     address_blueprint.register_blueprint(address_data_requests_created_blueprint)
     address_blueprint.register_blueprint(address_data_requests_solved_blueprint)
+    address_blueprint.register_blueprint(address_details_blueprint)
     address_blueprint.register_blueprint(address_info_blueprint)
     address_blueprint.register_blueprint(address_labels_blueprint)
     address_blueprint.register_blueprint(address_mints_blueprint)

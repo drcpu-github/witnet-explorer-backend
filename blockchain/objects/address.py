@@ -111,8 +111,6 @@ class Address(object):
             label = result[0]
 
         return {
-            "type": "address",
-            "address": self.address,
             "balance": balance,
             "reputation": reputation,
             "eligibility": eligibility,
