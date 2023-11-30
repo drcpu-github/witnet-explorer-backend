@@ -82,7 +82,7 @@ class AddressValueTransfers(MethodView):
             )
             value_transfers = address.get_value_transfers()
             try:
-                ValueTransferView(many=True).load(value_transfers)
+                ValueTransferView(many=True).load(value_transfers[start:stop])
             except ValidationError as err_info:
                 logger.error(
                     f"Incorrect message format for value transfer data for {arg_address}: {err_info}"

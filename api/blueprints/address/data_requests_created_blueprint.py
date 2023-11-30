@@ -86,7 +86,9 @@ class AddressDataRequestsCreated(MethodView):
             )
             data_requests_created = address.get_data_requests_created()
             try:
-                DataRequestCreatedView(many=True).load(data_requests_created)
+                DataRequestCreatedView(many=True).load(
+                    data_requests_created[start:stop]
+                )
             except ValidationError as err_info:
                 logger.error(
                     f"Incorrect message format for data requests created for {arg_address}: {err_info}"

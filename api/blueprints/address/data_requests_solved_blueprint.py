@@ -82,7 +82,7 @@ class AddressDataRequestsSolved(MethodView):
             )
             data_requests_solved = address.get_data_requests_solved()
             try:
-                DataRequestSolvedView(many=True).load(data_requests_solved)
+                DataRequestSolvedView(many=True).load(data_requests_solved[start:stop])
             except ValidationError as err_info:
                 logger.error(
                     f"Incorrect message format for data requests solved for {arg_address}: {err_info}"

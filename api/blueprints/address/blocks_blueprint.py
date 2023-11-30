@@ -80,7 +80,7 @@ class AddressBlocks(MethodView):
             )
             blocks = address.get_blocks()
             try:
-                BlockView(many=True).load(blocks)
+                BlockView(many=True).load(blocks[start:stop])
             except ValidationError as err_info:
                 logger.error(
                     f"Incorrect message format for block data for {arg_address}: {err_info}"

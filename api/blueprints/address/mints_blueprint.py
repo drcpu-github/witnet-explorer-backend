@@ -82,7 +82,7 @@ class AddressMints(MethodView):
             )
             mints = address.get_mints()
             try:
-                MintView(many=True).load(mints)
+                MintView(many=True).load(mints[start:stop])
             except ValidationError as err_info:
                 logger.error(
                     f"Incorrect message format for mint data for {arg_address}: {err_info}"
