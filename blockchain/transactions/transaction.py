@@ -163,7 +163,7 @@ class Transaction(object):
                         self.logger.error(
                             f"Could not fetch all inputs for transaction: {input_txn['error']}"
                         )
-                    return 0, [], [], []
+                    return [], []
 
                 # Figure out the transaction type as the parsing depends on that
                 transaction_type = list(input_txn["transaction"].keys())[0]
