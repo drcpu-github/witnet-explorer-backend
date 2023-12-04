@@ -42,9 +42,6 @@ class DataRequestHistory(Schema):
         validate=is_valid_hash, data_key="hash", attribute="hash", required=True
     )
     history = fields.List(fields.Nested(DataRequestHistoryEntry), required=True)
-    num_data_requests = fields.Int(validate=validate.Range(min=1), required=True)
-    first_epoch = fields.Int(validate=validate.Range(min=0), required=True)
-    last_epoch = fields.Int(validate=validate.Range(min=0), required=True)
     RAD_data = fields.Nested(DataRequestHistoryRAD, required=True)
     RAD_bytes_hash = fields.String(validate=is_valid_hash)
     data_request_parameters = fields.Nested(DataRequestHistoryParameters)

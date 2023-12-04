@@ -59,7 +59,8 @@ class SearchHash(MethodView):
             ]
         },
     )
-    def get(self, args):
+    @search_hash_blueprint.paginate(page_size=50, max_page_size=1000)
+    def get(self, args, pagination_parameters):
         cache = current_app.extensions["cache"]
         config = current_app.config["explorer"]
         database = current_app.extensions["database"]
@@ -69,6 +70,9 @@ class SearchHash(MethodView):
         hash_value = args["value"]
         simple = args["simple"]
         logger.info(f"search_hash({hash_value}, {simple})")
+
+        # Set default item count for pagination header (only used for data request histories)
+        pagination_parameters.item_count = 1
 
         hashed_item = cache.get(hash_value)
         if hashed_item:
@@ -591,7 +595,16 @@ class SearchHash(MethodView):
             )
             # Data request histories change constantly, so we should not employ simple hash-based caching only
             try:
-                history = data_request_history.get_history(hash_type, hash_value)
+                start = (
+                    pagination_parameters.page - 1
+                ) * pagination_parameters.page_size
+                count, history = data_request_history.get_history(
+                    hash_type,
+                    hash_value,
+                    pagination_parameters.page_size,
+                    start,
+                )
+                pagination_parameters.item_count = count
                 return (
                     SearchHashResponse().load(
                         {

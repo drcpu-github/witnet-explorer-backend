@@ -1,7 +1,11 @@
 from psycopg.sql import SQL, Identifier
 
-from blockchain.transactions.data_request import DataRequest
-from blockchain.transactions.tally import Tally
+from blockchain.transactions.data_request import (
+    build_retrieval,
+    translate_filters,
+    translate_reducer,
+)
+from blockchain.transactions.tally import translate_tally
 from schemas.search.data_request_history_schema import (
     DataRequestHistory as DataRequestHistorySchema,
 )
@@ -17,13 +21,22 @@ class DataRequestHistory(object):
         self.logger = logger
         self.database = database
 
-        self.data_request = DataRequest(
-            consensus_constants, logger=logger, database=database
-        )
-        self.tally = Tally(consensus_constants, logger=logger, database=database)
-
-    def get_history(self, hash_type, bytes_hash):
+    def get_history(self, hash_type, bytes_hash, rows=50, row_offset=0):
         self.logger.info(f"{hash_type}, get_history({bytes_hash})")
+
+        sql = """
+            SELECT
+                COUNT(*)
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.{column_name}=%s
+        """
+        sql = SQL(re_sql(sql)).format(column_name=Identifier(hash_type.lower()))
+        (count,) = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(bytes_hash)],
+        )
 
         sql = """
             SELECT
@@ -31,8 +44,25 @@ class DataRequestHistory(object):
                 blocks.confirmed,
                 blocks.reverted,
                 data_request_txns.txn_hash,
+                data_request_txns.witnesses,
+                data_request_txns.witness_reward,
+                data_request_txns.collateral,
+                data_request_txns.consensus_percentage,
+                data_request_txns.RAD_bytes_hash,
+                data_request_txns.kinds,
+                data_request_txns.urls,
+                data_request_txns.headers,
+                data_request_txns.bodies,
+                data_request_txns.scripts,
+                data_request_txns.aggregate_filters,
+                data_request_txns.aggregate_reducer,
+                data_request_txns.tally_filters,
+                data_request_txns.tally_reducer,
                 tally_txns.txn_hash,
-                tally_txns.epoch
+                tally_txns.epoch,
+                tally_txns.error_addresses,
+                tally_txns.liar_addresses,
+                tally_txns.result
             FROM
                 data_request_txns
             LEFT JOIN
@@ -48,16 +78,17 @@ class DataRequestHistory(object):
             ORDER BY
                 blocks.epoch
             DESC
+            LIMIT
+                %s
+            OFFSET
+                %s
         """
-        sql = SQL(re_sql(sql)).format(column_name=Identifier(hash_type))
+        sql = SQL(re_sql(sql)).format(column_name=Identifier(hash_type.lower()))
         results = self.database.sql_return_all(
             sql,
-            parameters=[bytearray.fromhex(bytes_hash)],
+            parameters=[bytearray.fromhex(bytes_hash), rows, row_offset],
+            custom_types=["filter"],
         )
-
-        num_data_requests = len(results) if results else 0
-        first_epoch = min(r[0] for r in results) if results else 0
-        last_epoch = max(r[0] for r in results) if results else 0
 
         data_request = None
         data_request_history = []
@@ -67,8 +98,25 @@ class DataRequestHistory(object):
                 block_confirmed,
                 block_reverted,
                 data_request_hash,
+                data_request_witnesses,
+                data_request_witness_reward,
+                data_request_collateral,
+                data_request_consensus_percentage,
+                data_request_RAD_bytes_hash,
+                data_request_kinds,
+                data_request_urls,
+                data_request_headers,
+                data_request_bodies,
+                data_request_scripts,
+                data_request_aggregate_filters,
+                data_request_aggregate_reducer,
+                data_request_tally_filters,
+                data_request_tally_reducer,
                 tally_txn_hash,
                 tally_epoch,
+                tally_error_addresses,
+                tally_liar_addresses,
+                tally_result,
             ) = result
 
             # Ignore tallies which happened before the data request / block epoch
@@ -79,33 +127,28 @@ class DataRequestHistory(object):
             txn_epoch = block_epoch
             txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
 
-            data_request_hash = data_request_hash.hex()
-            data_request = self.data_request.get_transaction_from_database(
-                data_request_hash
-            )
-
-            tally_result = ""
-            num_errors, num_liars = 0, 0
-            tally_success = False
             if tally_txn_hash:
-                tally_txn_hash = tally_txn_hash.hex()
-                tally = self.tally.get_transaction_from_database(tally_txn_hash)
-
-                tally_result = tally["tally"]
-                num_errors = tally["num_error_addresses"]
-                num_liars = tally["num_liar_addresses"]
-                tally_success = tally["success"]
+                tally_success, tally_result = translate_tally(
+                    tally_txn_hash.hex(), tally_result
+                )
+            else:
+                tally_success = False
+                tally_result = ""
+            num_errors = (
+                0 if tally_error_addresses is None else len(tally_error_addresses)
+            )
+            num_liars = 0 if tally_liar_addresses is None else len(tally_liar_addresses)
 
             data_request_history.append(
                 {
                     "success": tally_success,
                     "epoch": txn_epoch,
                     "timestamp": txn_time,
-                    "data_request": data_request_hash,
-                    "witnesses": data_request["witnesses"],
-                    "witness_reward": data_request["witness_reward"],
-                    "collateral": data_request["collateral"],
-                    "consensus_percentage": data_request["consensus_percentage"],
+                    "data_request": data_request_hash.hex(),
+                    "witnesses": data_request_witnesses,
+                    "witness_reward": data_request_witness_reward,
+                    "collateral": data_request_collateral,
+                    "consensus_percentage": data_request_consensus_percentage,
                     "num_errors": num_errors,
                     "num_liars": num_liars,
                     "result": tally_result,
@@ -114,8 +157,44 @@ class DataRequestHistory(object):
                 }
             )
 
-        # post processing
-        # if all witnesses, witness_reward, collateral and consensus_percentage variables are the same, filter them out
+            # Intialize these variables once to use them after the loop
+            if data_request is None:
+                data_request_retrieval = build_retrieval(
+                    data_request_kinds,
+                    data_request_urls,
+                    data_request_headers,
+                    data_request_bodies,
+                    data_request_scripts,
+                )
+
+                # Translate aggregation stage
+                data_request_aggregate = translate_filters(
+                    data_request_aggregate_filters
+                )
+                if len(data_request_aggregate) > 0:
+                    data_request_aggregate += "."
+                data_request_aggregate += translate_reducer(
+                    data_request_aggregate_reducer
+                )
+
+                # Translate tally stage
+                data_request_tally = translate_filters(data_request_tally_filters)
+                if len(data_request_tally) > 0:
+                    data_request_tally += "."
+                data_request_tally += translate_reducer(data_request_tally_reducer)
+
+                data_request = {
+                    "witnesses": data_request_witnesses,
+                    "witness_reward": data_request_witness_reward,
+                    "collateral": data_request_collateral,
+                    "consensus_percentage": data_request_consensus_percentage,
+                    "RAD_bytes_hash": data_request_RAD_bytes_hash.hex(),
+                    "retrieve": data_request_retrieval,
+                    "aggregate": data_request_aggregate,
+                    "tally": data_request_tally,
+                }
+
+        # If all witnesses, witness_reward, collateral and consensus_percentage variables are the same, filter them out
         add_parameters = False
         witnesses_set = set(drh["witnesses"] for drh in data_request_history)
         witness_reward_set = set(drh["witness_reward"] for drh in data_request_history)
@@ -150,11 +229,9 @@ class DataRequestHistory(object):
             "hash": bytes_hash,
             "hash_type": hash_type,
             "history": data_request_history,
-            "num_data_requests": num_data_requests,
-            "first_epoch": first_epoch,
-            "last_epoch": last_epoch,
         }
 
+        # If all data request parameters are the same, add them as a separate structure
         if add_parameters and data_request:
             return_value["data_request_parameters"] = {
                 "witnesses": data_request["witnesses"],
@@ -172,4 +249,4 @@ class DataRequestHistory(object):
                 "tally": data_request["tally"],
             }
 
-        return DataRequestHistorySchema().load(return_value)
+        return count, DataRequestHistorySchema().load(return_value)

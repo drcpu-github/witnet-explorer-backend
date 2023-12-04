@@ -125,9 +125,6 @@
         ],
         "hash_type": "RAD_bytes_hash",
         "hash": "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a",
-        "num_data_requests": 8,
-        "first_epoch": 1998908,
-        "last_epoch": 2002284,
         "RAD_data": {
             "retrieve": [
                 {

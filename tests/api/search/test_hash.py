@@ -253,15 +253,51 @@ def test_search_data_request_report_from_tally_not_cached(client, data_request_r
     assert cache.get(dr_hash) is not None
 
 
-def test_search_data_request_history_DRO(client, data_request_history_dro):
+def test_search_data_request_history_DRO_page_1(client, data_request_history_dro):
     hash_value = "0332cb684de3bb0e9b2b0d8b43524eed7fc51b00fefa038ee3bf6f6ac9c7cc82"
-    response = client.get(f"/api/search/hash?value={hash_value}")
+    response = client.get(f"/api/search/hash?value={hash_value}&page_size=5")
     assert response.status_code == 200
+    assert json.loads(response.headers["X-Pagination"]) == {
+        "total": 4,
+        "total_pages": 1,
+        "first_page": 1,
+        "last_page": 1,
+        "page": 1,
+    }
     assert json.loads(response.data) == data_request_history_dro
 
 
-def test_search_data_request_history_RAD(client, data_request_history_rad):
+def test_search_data_request_history_RAD_page_1(client, data_request_history_rad):
     hash_value = "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a"
-    response = client.get(f"/api/search/hash?value={hash_value}")
+    response = client.get(f"/api/search/hash?value={hash_value}&page_size=5")
     assert response.status_code == 200
+    assert json.loads(response.headers["X-Pagination"]) == {
+        "total": 8,
+        "total_pages": 2,
+        "first_page": 1,
+        "last_page": 2,
+        "page": 1,
+        "next_page": 2,
+    }
+    data_request_history_rad["data_request_history"][
+        "history"
+    ] = data_request_history_rad["data_request_history"]["history"][:5]
+    assert json.loads(response.data) == data_request_history_rad
+
+
+def test_search_data_request_history_RAD_page_2(client, data_request_history_rad):
+    hash_value = "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a"
+    response = client.get(f"/api/search/hash?value={hash_value}&page_size=5&page=2")
+    assert response.status_code == 200
+    assert json.loads(response.headers["X-Pagination"]) == {
+        "total": 8,
+        "total_pages": 2,
+        "first_page": 1,
+        "last_page": 2,
+        "page": 2,
+        "previous_page": 1,
+    }
+    data_request_history_rad["data_request_history"][
+        "history"
+    ] = data_request_history_rad["data_request_history"]["history"][5:]
     assert json.loads(response.data) == data_request_history_rad

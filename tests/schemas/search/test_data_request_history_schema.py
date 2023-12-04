@@ -137,9 +137,6 @@ def data_request_history(
         "hash_type": "RAD_bytes_hash",
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "history": [data_request_history_entry, data_request_history_entry],
-        "num_data_requests": 2,
-        "first_epoch": 1,
-        "last_epoch": 10,
         "RAD_data": data_request_history_RAD,
         "RAD_bytes_hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "data_request_parameters": data_request_history_parameters,
@@ -187,18 +184,8 @@ def test_data_request_history_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         DataRequestHistory().load(data)
-    assert len(err_info.value.messages) == 7
+    assert len(err_info.value.messages) == 4
     assert err_info.value.messages["hash_type"][0] == "Missing data for required field."
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["history"][0] == "Missing data for required field."
-    assert (
-        err_info.value.messages["num_data_requests"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["first_epoch"][0] == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["last_epoch"][0] == "Missing data for required field."
-    )
     assert err_info.value.messages["RAD_data"][0] == "Missing data for required field."

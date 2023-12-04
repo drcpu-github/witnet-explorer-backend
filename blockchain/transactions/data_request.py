@@ -308,23 +308,8 @@ class DataRequest(Transaction):
             # Get an integer value for the weighted fee
             txn_priority = calculate_priority(miner_fee, weight)
 
-            # Add kinds, urls, bodies and translate scripts
-            # psycopg does not handle arrays of enums very well
-            # handle as a string starting and ending with {} + split on commas
-            txn_retrieve = []
-            kinds = re.match(r"^{(.*)}$", kinds).group(1).split(",")
-            for kind, url, headers, body, script in zip(
-                kinds, urls, all_headers, bodies, scripts
-            ):
-                txn_retrieve.append(
-                    {
-                        "kind": kind,
-                        "url": url,
-                        "headers": headers,
-                        "body": "".join([chr(c) for c in bytearray(body)]),
-                        "script": translate_script(script),
-                    }
-                )
+            # Build retrieve dictionary
+            txn_retrieval = build_retrieval(kinds, urls, all_headers, bodies, scripts)
 
             # Translate aggregation stage
             txn_aggregate = translate_filters(aggregate_filters)
@@ -357,7 +342,7 @@ class DataRequest(Transaction):
                     "collateral": collateral,
                     "consensus_percentage": consensus_percentage,
                     "commit_and_reveal_fee": commit_and_reveal_fee,
-                    "retrieve": txn_retrieve,
+                    "retrieve": txn_retrieval,
                     "aggregate": txn_aggregate,
                     "tally": txn_tally,
                     "epoch": block_epoch,
@@ -386,6 +371,27 @@ class DataRequest(Transaction):
         # This fee is divided by the transaction weight and determines the priority for being executed (included in a block)
         miner_fee = sum(input_values) - (output_value or 0) - dro_fee
         return dro_fee, miner_fee
+
+
+def build_retrieval(kinds, urls, all_headers, bodies, scripts):
+    # Add kinds, urls, bodies and translate scripts
+    # psycopg does not handle arrays of enums very well
+    # handle as a string starting and ending with {} + split on commas
+    txn_retrieve = []
+    kinds = re.match(r"^{(.*)}$", kinds).group(1).split(",")
+    for kind, url, headers, body, script in zip(
+        kinds, urls, all_headers, bodies, scripts
+    ):
+        txn_retrieve.append(
+            {
+                "kind": kind,
+                "url": url,
+                "headers": headers,
+                "body": "".join([chr(c) for c in bytearray(body)]),
+                "script": translate_script(script),
+            }
+        )
+    return txn_retrieve
 
 
 def translate_script(script):

@@ -49,9 +49,6 @@
         ],
         "hash_type": "DRO_bytes_hash",
         "hash": "0332cb684de3bb0e9b2b0d8b43524eed7fc51b00fefa038ee3bf6f6ac9c7cc82",
-        "num_data_requests": 4,
-        "first_epoch": 1998925,
-        "last_epoch": 2001260,
         "RAD_data": {
             "retrieve": [
                 {
