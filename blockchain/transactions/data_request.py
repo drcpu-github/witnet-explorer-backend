@@ -145,6 +145,11 @@ class DataRequest(Transaction):
             return DataRequestTransactionForExplorer().load(self.txn_details)
 
         if call_from == "api":
+            # Only keep a list of unique input addresses
+            self.txn_details["input_addresses"] = list(
+                set(self.txn_details["input_addresses"])
+            )
+
             # Process RAD sources and scripts
             for retrieve in self.data_request["retrieve"]:
                 self.txn_details["kinds"].append(retrieve["kind"])
