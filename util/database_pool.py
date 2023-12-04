@@ -4,8 +4,6 @@ import psycopg
 import psycopg_pool
 from psycopg.types.composite import CompositeInfo, register_composite
 
-from util.data_transformer import re_sql
-
 class DatabasePool(object):
     def __init__(self, config, logger=None):
         self.user = config["user"]
@@ -64,10 +62,10 @@ class DatabasePool(object):
                     return cursor.fetchone()
         except Exception as e:
             if self.logger:
-                self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
+                self.logger.error(f"Could not execute SQL statement:\n{sql}")
                 self.logger.error(f"Error:\n{e}")
             else:
-                sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
+                sys.stderr.write(f"Could not execute SQL statement:\n{sql}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
         return None
 
@@ -82,10 +80,10 @@ class DatabasePool(object):
                     return cursor.fetchall()
         except Exception as e:
             if self.logger:
-                self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
+                self.logger.error(f"Could not execute SQL statement:\n{sql}")
                 self.logger.error(f"Error:\n{e}")
             else:
-                sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
+                sys.stderr.write(f"Could not execute SQL statement:\n{sql}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
             return None
 
@@ -99,10 +97,10 @@ class DatabasePool(object):
                         return cursor.rowcount
         except Exception as e:
             if self.logger:
-                self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
+                self.logger.error(f"Could not execute SQL statement:\n{sql}")
                 self.logger.error(f"Error:\n{e}")
             else:
-                sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
+                sys.stderr.write(f"Could not execute SQL statement:\n{sql}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
 
     def sql_execute_many(self, sql, data, custom_types=[]):
@@ -116,10 +114,10 @@ class DatabasePool(object):
                     conn.commit()
         except Exception as e:
             if self.logger:
-                self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
+                self.logger.error(f"Could not execute SQL statement:\n{sql}")
                 self.logger.error(f"Error:\n{e}")
             else:
-                sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
+                sys.stderr.write(f"Could not execute SQL statement:\n{sql}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
 
     def build_sql(self, sql, parameters):
@@ -130,8 +128,8 @@ class DatabasePool(object):
             return cursor.mogrify(sql, parameters)
         except Exception as e:
             if self.logger:
-                self.logger.error(f"Could not execute SQL statement:\n{re_sql(sql)}")
+                self.logger.error(f"Could not execute SQL statement:\n{sql}")
                 self.logger.error(f"Error:\n{e}")
             else:
-                sys.stderr.write(f"Could not execute SQL statement:\n{re_sql(sql)}\n")
+                sys.stderr.write(f"Could not execute SQL statement:\n{sql}\n")
                 sys.stderr.write(f"Error:\n{e}\n")
