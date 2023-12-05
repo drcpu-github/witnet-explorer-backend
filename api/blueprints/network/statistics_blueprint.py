@@ -241,6 +241,7 @@ class NetworkStatistics(MethodView):
                     args["key"].replace("-", "_"): [
                         {"total": sd[0], "failure": sd[0] - sd[1]} for sd in stats_data
                     ],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-data-request-composition":
                 stats_data = [stats_data[i][2] for i in range(len(stats_data))]
@@ -256,39 +257,31 @@ class NetworkStatistics(MethodView):
                         }
                         for sd in stats_data
                     ],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-data-request-witness":
                 stats_data = [stats_data[i][2] for i in range(len(stats_data))]
                 response = {
                     "start_epoch": period[0],
                     "stop_epoch": period[1],
-                    "histogram_keys": sorted(
-                        list(set(k for sd in stats_data for k in sd[5].keys())),
-                        key=lambda to_int: int(to_int),
-                    ),
                     args["key"].replace("-", "_"): [sd[5] for sd in stats_data],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-data-request-reward":
                 stats_data = [stats_data[i][2] for i in range(len(stats_data))]
                 response = {
                     "start_epoch": period[0],
                     "stop_epoch": period[1],
-                    "histogram_keys": sorted(
-                        list(set(k for sd in stats_data for k in sd[6].keys())),
-                        key=lambda to_int: int(to_int),
-                    ),
                     args["key"].replace("-", "_"): [sd[6] for sd in stats_data],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-data-request-collateral":
                 stats_data = [stats_data[i][2] for i in range(len(stats_data))]
                 response = {
                     "start_epoch": period[0],
                     "stop_epoch": period[1],
-                    "histogram_keys": sorted(
-                        list(set(k for sd in stats_data for k in sd[7].keys())),
-                        key=lambda to_int: int(to_int),
-                    ),
                     args["key"].replace("-", "_"): [sd[7] for sd in stats_data],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-burn-rate":
                 stats_data = [stats_data[i][2] for i in range(len(stats_data))]
@@ -298,6 +291,7 @@ class NetworkStatistics(MethodView):
                     args["key"].replace("-", "_"): [
                         {"reverted": sd[0], "lies": sd[1]} for sd in stats_data
                     ],
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-value-transfers":
                 data = [{"value_transfers": sd[2][0]} for sd in stats_data]
@@ -305,6 +299,7 @@ class NetworkStatistics(MethodView):
                     "start_epoch": period[0],
                     "stop_epoch": period[1],
                     args["key"].replace("-", "_"): data,
+                    "histogram_period": aggregation_epochs,
                 }
             elif args["key"] == "histogram-data-request-lie-rate":
                 data = [
@@ -320,6 +315,7 @@ class NetworkStatistics(MethodView):
                     "start_epoch": period[0],
                     "stop_epoch": period[1],
                     args["key"].replace("-", "_"): data,
+                    "histogram_period": aggregation_epochs,
                 }
 
         # Validate the data before saving it in the cache

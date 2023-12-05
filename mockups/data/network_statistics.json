@@ -320,7 +320,8 @@
                 "total": 1079,
                 "failure": 6
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-requests_1965000_2025000": {
         "start_epoch": 1965000,
@@ -334,7 +335,8 @@
                 "total": 1011,
                 "failure": 23
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-composition_1000000_1002000": {
         "start_epoch": 1000000,
@@ -352,7 +354,8 @@
                 "http_post": 0,
                 "rng": 5
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-composition_1965000_2025000": {
         "start_epoch": 1965000,
@@ -370,16 +373,12 @@
                 "http_post": 97,
                 "rng": 1
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-witness_1000000_1002000": {
         "start_epoch": 1000000,
         "stop_epoch": 1002000,
-        "histogram_keys": [
-            "2",
-            "10",
-            "100"
-        ],
         "histogram_data_request_witness": [
             {
                 "2": 5,
@@ -391,16 +390,12 @@
                 "10": 826,
                 "100": 248
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-witness_1965000_2025000": {
         "start_epoch": 1965000,
         "stop_epoch": 2024098,
-        "histogram_keys": [
-            "2",
-            "10",
-            "100"
-        ],
         "histogram_data_request_witness": [
             {
                 "2": 1,
@@ -412,16 +407,12 @@
                 "10": 764,
                 "100": 246
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-collateral_1000000_1002000": {
         "start_epoch": 1000000,
         "stop_epoch": 1002000,
-        "histogram_keys": [
-            "1000000000",
-            "2500000000",
-            "5000000000"
-        ],
         "histogram_data_request_collateral": [
             {
                 "1000000000": 5,
@@ -433,16 +424,12 @@
                 "2500000000": 248,
                 "5000000000": 826
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-collateral_1965000_2025000": {
         "start_epoch": 1965000,
         "stop_epoch": 2024098,
-        "histogram_keys": [
-            "1000000000",
-            "2500000000",
-            "5000000000"
-        ],
         "histogram_data_request_collateral": [
             {
                 "1000000000": 1,
@@ -454,16 +441,12 @@
                 "2500000000": 246,
                 "5000000000": 764
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-reward_1000000_1002000": {
         "start_epoch": 1000000,
         "stop_epoch": 1002000,
-        "histogram_keys": [
-            "1",
-            "500000",
-            "1000000"
-        ],
         "histogram_data_request_reward": [
             {
                 "1": 248,
@@ -475,16 +458,12 @@
                 "500000": 5,
                 "1000000": 826
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-reward_1965000_2025000": {
         "start_epoch": 1965000,
         "stop_epoch": 2024098,
-        "histogram_keys": [
-            "1",
-            "500000",
-            "1000000"
-        ],
         "histogram_data_request_reward": [
             {
                 "1": 247,
@@ -496,7 +475,8 @@
                 "500000": 1,
                 "1000000": 764
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-lie-rate_1000000_1002000": {
         "start_epoch": 1000000,
@@ -514,7 +494,8 @@
                 "no_reveal_lies": 321,
                 "out_of_consensus_lies": 220
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-data-request-lie-rate_1965000_2025000": {
         "start_epoch": 1965000,
@@ -532,7 +513,8 @@
                 "no_reveal_lies": 594,
                 "out_of_consensus_lies": 135
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-burn-rate_1000000_1002000": {
         "start_epoch": 1000000,
@@ -546,7 +528,8 @@
                 "reverted": 0,
                 "lies": 0
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-burn-rate_1965000_2025000": {
         "start_epoch": 1965000,
@@ -560,7 +543,8 @@
                 "reverted": 0,
                 "lies": 550500000000
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-value-transfers_1000000_1002000": {
         "start_epoch": 1000000,
@@ -572,7 +556,8 @@
             {
                 "value_transfers": 266
             }
-        ]
+        ],
+        "histogram_period": 1000
     },
     "histogram-value-transfers_1965000_2025000": {
         "start_epoch": 1965000,
@@ -584,6 +569,7 @@
             {
                 "value_transfers": 98
             }
-        ]
+        ],
+        "histogram_period": 1000
     }
 }

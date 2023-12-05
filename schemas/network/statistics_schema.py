@@ -103,13 +103,13 @@ class ValueTransfers(Schema):
 class NetworkStatisticsResponse(Schema):
     start_epoch = fields.Int(validate=validate.Range(min=0))
     stop_epoch = fields.Int(validate=validate.Range(min=0))
-    histogram_keys = fields.List(fields.String())
     staking = fields.Nested(NetworkStaking)
     list_rollbacks = fields.List(fields.Nested(NetworkRollback))
     top_100_miners = fields.List(fields.Nested(Top100))
     top_100_data_request_solvers = fields.List(fields.Nested(Top100))
     num_unique_miners = fields.Int(validate=validate.Range(min=0))
     num_unique_data_request_solvers = fields.Int(validate=validate.Range(min=0))
+    histogram_period = fields.Int(validate=validate.Range(min=0))
     histogram_data_requests = fields.List(fields.Nested(DataRequests))
     histogram_data_request_composition = fields.List(
         fields.Nested(DataRequestsComposition)
@@ -138,18 +138,8 @@ class NetworkStatisticsResponse(Schema):
 
     @validates_schema
     def validate_histogram_keys(self, args, **kwargs):
-        if "histogram_data_request_witness" in args:
-            if "histogram_keys" not in args:
+        for a in args:
+            if a.startswith("histogram_") and "histogram_period" not in args:
                 raise ValidationError(
-                    "The histogram_keys field is required when a histogram_data_request_witness field is supplied."
-                )
-        if "histogram_data_request_collateral" in args:
-            if "histogram_keys" not in args:
-                raise ValidationError(
-                    "The histogram_keys field is required when a histogram_data_request_collateral field is supplied."
-                )
-        if "histogram_data_request_reward" in args:
-            if "histogram_keys" not in args:
-                raise ValidationError(
-                    "The histogram_keys field is required when a histogram_data_request_reward field is supplied."
+                    "The histogram_period field is required when a histogram_* field is supplied."
                 )
