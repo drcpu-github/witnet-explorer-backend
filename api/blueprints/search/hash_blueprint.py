@@ -79,6 +79,15 @@ class SearchHash(MethodView):
             logger.info(
                 f"Found {hashed_item['response_type'].replace('_', ' ')} hash {hash_value} in memcached cache"
             )
+            # Data request reports are cached on the data request hash (and thus indistinguishable from data requests)
+            # If simple is used in conjuction with a data request hash, only return the data request data
+            if simple and hashed_item["response_type"] == "data_request_report":
+                data_request = hashed_item["data_request_report"]["data_request"]
+                data_request["transaction_type"] = "data_request"
+                hashed_item = {
+                    "response_type": "data_request",
+                    "data_request": data_request,
+                }
             return hashed_item, 200, {"X-Version": "v1.0.0"}
 
         sql = """
