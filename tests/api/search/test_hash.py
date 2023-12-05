@@ -175,8 +175,9 @@ def test_search_data_request_report_from_commit_cached(client, data_request_repo
     commit_hash = "563eba0199a23283c0764bd8690522666ba56a5024eef7cc6f253be53efacb6a"
     response = client.get(f"/api/search/hash?value={commit_hash}")
     assert response.status_code == 200
-    # The cached data request report contains the wrong transaction type,
-    # but for the sake of code coverage testing, this does not matter
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "commit"
     assert json.loads(response.data) == data_request_reports[dr_hash]
 
 
@@ -204,8 +205,9 @@ def test_search_data_request_report_from_reveal_cached(client, data_request_repo
     reveal_hash = "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac"
     response = client.get(f"/api/search/hash?value={reveal_hash}")
     assert response.status_code == 200
-    # The cached data request report contains the wrong transaction type,
-    # but for the sake of code coverage testing, this does not matter
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "reveal"
     assert json.loads(response.data) == data_request_reports[dr_hash]
 
 
@@ -233,8 +235,9 @@ def test_search_data_request_report_from_tally_cached(client, data_request_repor
     tally_hash = "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11"
     response = client.get(f"/api/search/hash?value={tally_hash}")
     assert response.status_code == 200
-    # The cached data request report contains the wrong transaction type,
-    # but for the sake of code coverage testing, this does not matter
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "tally"
     assert json.loads(response.data) == data_request_reports[dr_hash]
 
 

@@ -74,6 +74,7 @@ class SearchHash(MethodView):
         # Set default item count for pagination header (only used for data request histories)
         pagination_parameters.item_count = 1
 
+        found = False
         hashed_item = cache.get(hash_value)
         if hashed_item:
             logger.info(
@@ -88,7 +89,15 @@ class SearchHash(MethodView):
                     "response_type": "data_request",
                     "data_request": data_request,
                 }
-            return hashed_item, 200, {"X-Version": "v1.0.0"}
+            # The commit, reveal or tally hash was found in the memcached cache, but the request was for the full data request report
+            if not simple and hashed_item["response_type"] in (
+                "commit",
+                "reveal",
+                "tally",
+            ):
+                found = True
+            else:
+                return hashed_item, 200, {"X-Version": "v1.0.0"}
 
         sql = """
             SELECT
@@ -140,9 +149,14 @@ class SearchHash(MethodView):
                 logger.warning(f"Could not find transaction hash {hash_value}")
                 abort(404, message=f"Could not find transaction hash {hash_value}.")
 
-        logger.info(
-            f"Could not find {hash_type.replace('_', ' ')} {hash_value} in memcached cache"
-        )
+        if found:
+            logger.info(
+                f"Found {hash_type.replace('_', ' ')} {hash_value} in memcached cache, but the full data request report was requested"
+            )
+        else:
+            logger.info(
+                f"Could not find {hash_type.replace('_', ' ')} {hash_value} in memcached cache"
+            )
 
         cache_config = config["api"]["caching"]
 
@@ -519,6 +533,10 @@ class SearchHash(MethodView):
                 cached_data_request_report = cache.get(data_request_hash)
 
                 if cached_data_request_report:
+                    # Replace the transaction type with the correct one since previous searches may have cached it using another type
+                    cached_data_request_report["data_request_report"][
+                        "transaction_type"
+                    ] = hash_type[:-4]
                     logger.info(
                         f"Found a data request report {data_request_hash} for a {hash_type.replace('_', ' ')} in our memcached instance"
                     )
