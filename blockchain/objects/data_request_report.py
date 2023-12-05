@@ -160,17 +160,21 @@ class DataRequestReport(object):
                     if len(self.reveals) > 0:
                         missing_epoch = self.reveals[0]["epoch"]
                         missing_time = self.reveals[0]["timestamp"]
+                        missing_confirmed = self.reveals[0]["confirmed"]
+                        missing_reverted = self.reveals[0]["reverted"]
                     # No reveals, assume they would have been created the epoch after the commit
                     else:
                         missing_epoch = self.commits[0]["epoch"] + 1
                         missing_time = (
                             self.start_time + (missing_epoch + 1) * self.epoch_period
                         )
+                        missing_confirmed = False
+                        missing_reverted = False
 
                     self.reveals.append(
                         {
-                            "block": "",
-                            "hash": "",
+                            "block": None,
+                            "hash": None,
                             "address": commit_address,
                             "reveal": "No reveal",
                             "success": False,
@@ -178,6 +182,8 @@ class DataRequestReport(object):
                             "liar": True,
                             "epoch": missing_epoch,
                             "timestamp": missing_time,
+                            "confirmed": missing_confirmed,
+                            "reverted": missing_reverted,
                         }
                     )
 

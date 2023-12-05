@@ -109,6 +109,14 @@ def test_reveal_transaction_for_data_request_success(
     RevealTransactionForDataRequest().load(reveal_transaction_for_data_request)
 
 
+def test_m_ssing_reveal_transaction_for_data_request_success(
+    reveal_transaction_for_data_request,
+):
+    reveal_transaction_for_data_request["hash"] = None
+    reveal_transaction_for_data_request["block"] = None
+    RevealTransactionForDataRequest().load(reveal_transaction_for_data_request)
+
+
 def test_reveal_transaction_for_data_request_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
