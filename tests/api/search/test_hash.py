@@ -198,6 +198,21 @@ def test_search_data_request_report_from_commit_not_cached(
     assert cache.get(dr_hash) is not None
 
 
+def test_search_data_request_report_from_cached_commit_cached(
+    client, data_request_reports
+):
+    cache = client.application.extensions["cache"]
+    dr_hash = "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6"
+    commit_hash = "563eba0199a23283c0764bd8690522666ba56a5024eef7cc6f253be53efacb6a"
+    assert cache.get(commit_hash) is not None
+    response = client.get(f"/api/search/hash?value={commit_hash}")
+    assert response.status_code == 200
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "commit"
+    assert json.loads(response.data) == response_data
+
+
 def test_search_data_request_report_from_reveal_cached(client, data_request_reports):
     cache = client.application.extensions["cache"]
     dr_hash = "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6"
@@ -228,6 +243,21 @@ def test_search_data_request_report_from_reveal_not_cached(
     assert cache.get(dr_hash) is not None
 
 
+def test_search_data_request_report_from_cached_reveal_cached(
+    client, data_request_reports
+):
+    cache = client.application.extensions["cache"]
+    dr_hash = "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6"
+    reveal_hash = "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac"
+    assert cache.get(reveal_hash) is not None
+    response = client.get(f"/api/search/hash?value={reveal_hash}")
+    assert response.status_code == 200
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "reveal"
+    assert json.loads(response.data) == response_data
+
+
 def test_search_data_request_report_from_tally_cached(client, data_request_reports):
     cache = client.application.extensions["cache"]
     dr_hash = "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6"
@@ -254,6 +284,21 @@ def test_search_data_request_report_from_tally_not_cached(client, data_request_r
     response_data["data_request_report"]["transaction_type"] = "tally"
     assert json.loads(response.data) == response_data
     assert cache.get(dr_hash) is not None
+
+
+def test_search_data_request_report_from_cached_tally_cached(
+    client, data_request_reports
+):
+    cache = client.application.extensions["cache"]
+    dr_hash = "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6"
+    tally_hash = "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11"
+    assert cache.get(tally_hash) is not None
+    response = client.get(f"/api/search/hash?value={tally_hash}")
+    assert response.status_code == 200
+    # Need to replace the transaction type when building the data request report from the database
+    response_data = data_request_reports[dr_hash]
+    response_data["data_request_report"]["transaction_type"] = "tally"
+    assert json.loads(response.data) == response_data
 
 
 def test_search_data_request_history_DRO_page_1(client, data_request_history_dro):

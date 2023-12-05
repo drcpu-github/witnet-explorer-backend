@@ -12,5 +12,19 @@
             "confirmed": true,
             "reverted": false
         }
+    },
+    "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac": {
+        "response_type": "reveal",
+        "reveal": {
+            "address": "wit1054dh7c34yp5vafncucrzpjqnxh93aw3yeeppp",
+            "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
+            "confirmed": true,
+            "epoch": 2024099,
+            "hash": "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac",
+            "reveal": "6016465",
+            "reverted": false,
+            "success": true,
+            "timestamp": 1693750500
+        }
     }
 }
