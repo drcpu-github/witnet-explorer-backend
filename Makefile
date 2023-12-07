@@ -1,4 +1,4 @@
-directories = api blockchain mockups schemas tests
+directories = api blockchain mockups schemas scripts tests
 
 test:
 	PYTHONPATH=. pytest

@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import argparse
 import time
 
@@ -14,7 +12,7 @@ def get_consensus_constants(config):
 
     response = witnet_node.get_consensus_constants()
     while type(response) is dict and "error" in response:
-        time.sleep(error_retry)
+        time.sleep(10)
         response = witnet_node.get_consensus_constants()
     witnet_node.close_connection()
 
@@ -25,7 +23,7 @@ def insert_consensus_constants(config, consensus_constants):
     db_mngr = DatabaseManager(config["database"])
 
     for key, value in consensus_constants.items():
-        if type(value) == int or type(value) == float:
+        if isinstance(value, int) or isinstance(value, float):
             sql = """
                 INSERT INTO consensus_constants (
                     key,
@@ -35,9 +33,9 @@ def insert_consensus_constants(config, consensus_constants):
                     consensus_constants_pkey
                 DO NOTHING
             """
-            if type(value) == float:
+            if isinstance(value, float):
                 value = int(value * 100)
-        elif type(value) == str or type(value) == list:
+        elif isinstance(value, str) or isinstance(value, list):
             sql = """
                 INSERT INTO consensus_constants (
                     key,
@@ -47,7 +45,7 @@ def insert_consensus_constants(config, consensus_constants):
                     consensus_constants_pkey
                 DO NOTHING
             """
-            if type(value) == str:
+            if isinstance(value, str):
                 value = [value]
 
         db_mngr.sql_insert_one(sql, (key, value))

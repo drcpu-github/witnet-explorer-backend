@@ -1,4 +1,4 @@
-files: api/|blockchain/|mockups/|schemas/|tests/
+files: api/|blockchain/|mockups/|schemas/|scripts/|tests/
 repos:
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
