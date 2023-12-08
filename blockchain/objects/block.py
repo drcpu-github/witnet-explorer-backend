@@ -86,6 +86,10 @@ class Block(object):
         root.setLevel(logging.DEBUG)
 
     def get_block(self):
+        # Connect to node pool
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
+
         # No block hash specified, check if we can fetch it based on a block epoch
         if self.block_hash == "":
             # Log and return warnings if necessary
@@ -112,13 +116,14 @@ class Block(object):
             if block_hash:
                 self.block_hash = block_hash[0].hex()
             else:
-                return self.return_block_error(
-                    f"Could not find block for epoch {self.block_epoch}"
+                blockchain = self.witnet_node.get_blockchain(
+                    epoch=self.block_epoch, num_blocks=1
                 )
-
-        # Connect to node pool
-        if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
+                if "error" in blockchain:
+                    return self.return_block_error(
+                        f"Could not find block for epoch {blockchain}"
+                    )
+                self.block_hash = blockchain["result"][0][1]
 
         block = self.witnet_node.get_block(self.block_hash)
         if "error" in block:
