@@ -64,10 +64,6 @@ class Block(object):
         if witnet_node:
             self.witnet_node = witnet_node
 
-        self.witnet_node = None
-        if witnet_node:
-            self.witnet_node = witnet_node
-
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
 
         if block is None:
