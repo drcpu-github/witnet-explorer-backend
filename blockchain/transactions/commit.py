@@ -89,6 +89,7 @@ class Commit(Transaction):
             return []
 
         commits = []
+        confirmed_epoch = 0
         found_confirmed, found_mined = False, False
         for commit in results:
             (
@@ -103,6 +104,7 @@ class Commit(Transaction):
             timestamp = self.start_time + (epoch + 1) * self.epoch_period
 
             if block_confirmed:
+                confirmed_epoch = epoch
                 found_confirmed = True
             elif not block_reverted:
                 found_mined = True
@@ -110,6 +112,12 @@ class Commit(Transaction):
             # Do not append reverted reveals when there are newer mined or confirmed reveals
             # Note that this requires commit transaction to be sorted by epoch in descending order
             if (found_confirmed or found_mined) and block_reverted:
+                continue
+
+            # If a block was neither confirmed nor reverted, but there are newer confirmed commits, ignore this one
+            # Note that this is more than likely some bug in the explorer where a rollback is not properly processed
+            # Also note that this only works because all commits need to be included in a block at the same epoch
+            if epoch < confirmed_epoch:
                 continue
 
             # No block found for this commit, most likely it was reverted and deleted
