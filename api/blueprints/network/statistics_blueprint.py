@@ -389,8 +389,11 @@ def translate_address_ids(database, id_values, logger):
             id
         FROM
             addresses
+        WHERE
+            id = ANY(%s)
     """
-    addresses = database.sql_return_all(sql)
+    ids = [int(address_id) for address_id, value in id_values]
+    addresses = database.sql_return_all(sql, parameters=[ids])
 
     # Transform list of data to dictionary
     ids_to_addresses = {}
