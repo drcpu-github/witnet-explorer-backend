@@ -412,7 +412,7 @@ class NetworkStats(Client):
         # Read data from database (unless reset was set)
         epoch, self.lie_rates_period = 0, {}
         if not reset:
-            epoch, lie_rates_period = read_from_database("data_requests", self.aggregation_epochs, self.database_client)
+            epoch, lie_rates_period = read_from_database("lie_rate", self.aggregation_epochs, self.database_client)
             self.lie_rates_period = {(lrp[0], lrp[1]): lrp[2] for lrp in lie_rates_period}
 
         self.logger.info(f"Calculating lie rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -427,6 +427,31 @@ class NetworkStats(Client):
                     0,  # Amount of lies (out-of-consensus values)
                 ]
 
+        # Fetch commit counts per data request
+        sql = """
+            SELECT
+                commit_txns.data_request,
+                COUNT(commit_txns.data_request) as reveal_count
+            FROM
+                commit_txns
+            LEFT JOIN
+                blocks
+            ON
+                blocks.epoch = commit_txns.epoch
+            WHERE
+                blocks.epoch BETWEEN %s AND %s
+            AND
+                blocks.confirmed=true
+            GROUP BY
+                commit_txns.data_request
+        """ % (epoch, self.last_confirmed_epoch)
+        self.database.reset_cursor()
+        commit_data = self.database.sql_return_all(re_sql(sql))
+
+        number_of_commits = {}
+        for txn_hash, commits in commit_data:
+            number_of_commits[txn_hash.hex()] = commits
+
         # Fetch reveal counts per data request
         sql = """
             SELECT
@@ -440,8 +465,10 @@ class NetworkStats(Client):
                 blocks.epoch = reveal_txns.epoch
             WHERE
                 blocks.epoch BETWEEN %s AND %s
+            AND
+                blocks.confirmed=true
             GROUP BY
-                reveal_txns.data_request
+            reveal_txns.data_request
         """ % (epoch, self.last_confirmed_epoch)
         self.database.reset_cursor()
         reveal_data = self.database.sql_return_all(re_sql(sql))
@@ -459,13 +486,13 @@ class NetworkStats(Client):
                 tally_txns.error_addresses,
                 tally_txns.liar_addresses
             FROM
-                data_request_txns
-            LEFT JOIN
+                tally_txns
+            INNER JOIN
                 blocks
             ON
-                blocks.epoch = data_request_txns.epoch
-            LEFT JOIN
-                tally_txns
+                blocks.epoch = tally_txns.epoch
+            INNER JOIN
+                data_request_txns
             ON
                 data_request_txns.txn_hash = tally_txns.data_request
             WHERE
@@ -488,33 +515,37 @@ class NetworkStats(Client):
         for epoch, txn_hash, witnesses, error_addresses, liar_addresses in lie_rate_data:
             txn_hash = txn_hash.hex()
 
-            if txn_hash not in number_of_reveals:
-                reveals = 0
-                self.logger.warning(f"Could not find data request reveals for {txn_hash} at epoch {epoch}")
-            else:
-                reveals = number_of_reveals[txn_hash]
-
             # Check if the next aggregation period was reached
             if epoch >= next_aggregation_period:
                 next_aggregation_period = int(epoch / self.aggregation_epochs + 1) * self.aggregation_epochs
                 per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
+            # No commits found because the data request is still being processed or it had an insufficient amount of commits
+            # Don't count this data request into the statistics
+            commits = number_of_commits.get(txn_hash, 0)
+            if commits == 0:
+                continue
+
             # Create data structure
             self.lie_rates_period[per_period_key][0] += witnesses
-            if error_addresses:
-                self.lie_rates_period[per_period_key][1] += len(error_addresses)
-            if liar_addresses and len(liar_addresses) > 0:
-                self.lie_rates_period[per_period_key][2] += witnesses - reveals
-                num_liar_addresses = len(liar_addresses)
-            else:
-                num_liar_addresses = 0
-            self.lie_rates_period[per_period_key][3] += max(0, num_liar_addresses - (witnesses - reveals))
+            self.lie_rates_period[per_period_key][1] += len(error_addresses)
+
+            reveals = number_of_reveals.get(txn_hash, 0)
+            if commits - reveals < 0:
+                self.logger.error(f"Amount of commits is smaller than the amount of reveals at: ({epoch}, {txn_hash}, {commits}, {reveals}, {len(liar_addresses)}, {commits - reveals})")
+                continue
+            self.lie_rates_period[per_period_key][2] += commits - reveals
+
+            if len(liar_addresses) - (commits - reveals) < 0:
+                self.logger.error(f"Amount of liar addresses is smaller than the amount of no-reveal-liars at: ({epoch}, {txn_hash}, {commits}, {reveals}, {len(liar_addresses)}, {commits - reveals})")
+                continue
+            self.lie_rates_period[per_period_key][3] += len(liar_addresses) - (commits - reveals)
 
     def get_burn_rate_per_period(self, reset):
         # Read data from database (unless reset was set)
         epoch, self.burn_rate_period = 0, {}
         if not reset:
-            epoch, burn_rate_period = read_from_database("data_requests", self.aggregation_epochs, self.database_client)
+            epoch, burn_rate_period = read_from_database("burn_rate", self.aggregation_epochs, self.database_client)
             self.burn_rate_period = {(brp[0], brp[1]): brp[2] for brp in burn_rate_period}
 
         self.logger.info(f"Calculating burn rate statistics from epoch {epoch} to {self.last_confirmed_epoch}")
@@ -585,11 +616,11 @@ class NetworkStats(Client):
                 per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
             # Add liar burn rate
+            num_liar_addresses = 0
             if liar_addresses and len(liar_addresses) > 0:
                 num_liar_addresses = len(liar_addresses)
-            else:
+            if collateral is None:
                 collateral = 0
-                num_liar_addresses = 0
             self.burn_rate_period[per_period_key][1] += num_liar_addresses * collateral
 
     def get_value_transfers_per_period(self, reset):
