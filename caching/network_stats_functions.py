@@ -52,6 +52,11 @@ def read_from_database(
             AND
                 from_epoch >= %s
         """ % last_epoch_floored
+    sql += """
+        ORDER BY
+            from_epoch
+        ASC
+    """
     stats_data = database.sql_return_all(re_sql(sql))
 
     return last_epoch, stats_data
