@@ -177,11 +177,11 @@ class HomeStats(Client):
                     tally_txns.liar_addresses
                 FROM
                     data_request_txns
-                LEFT JOIN
+                INNER JOIN
                     blocks
                 ON
                     blocks.epoch = data_request_txns.epoch
-                LEFT JOIN
+                INNER JOIN
                     tally_txns
                 ON
                     data_request_txns.txn_hash = tally_txns.data_request
