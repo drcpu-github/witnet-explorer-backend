@@ -45,5 +45,5 @@ def is_valid_output_pointer(pointer):
     except ValueError:
         raise ValidationError("Cannot convert output index to an integer.")
 
-    if int(output_index) < 0 or int(output_index) > 125:
-        raise ValidationError("Output index must be between 0 and 125.")
+    if int(output_index) < 0:
+        raise ValidationError("Output index must be larger than 0.")

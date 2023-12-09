@@ -29,7 +29,7 @@ class InputUtxoList(Schema):
         fields.Tuple(
             (
                 fields.Str(validate=is_valid_hash),
-                fields.Int(validate=validate.Range(min=0, max=125)),
+                fields.Int(validate=validate.Range(min=0)),
             ),
         ),
         required=True,
