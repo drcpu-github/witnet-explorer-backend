@@ -46,6 +46,7 @@ from util.logger import configure_logger
 def create_app(mock=False):
     # Create app
     app = Flask(__name__)
+    app.config["JSON_SORT_KEYS"] = False
 
     # Configure app
     app.config["API_TITLE"] = "Witnet explorer REST API"
