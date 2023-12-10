@@ -217,6 +217,13 @@ class Transaction(object):
                     self.logger.warning("No synced nodes found")
                 time.sleep(60)
                 transaction = self.witnet_node.get_transaction(txn_hash)
+            elif transaction["reason"].startswith("Timed out after"):
+                if self.logger:
+                    self.logger.warning(
+                        "Fetching input transaction timed out, retrying in one second"
+                    )
+                time.sleep(1)
+                transaction = self.witnet_node.get_transaction(txn_hash)
             # Another error, do not retry
             else:
                 if self.logger:
