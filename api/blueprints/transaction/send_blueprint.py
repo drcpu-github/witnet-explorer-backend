@@ -102,7 +102,7 @@ class TransactionSend(MethodView):
         logger.info(f"{prefix} transaction: {args['transaction']}")
 
         try:
-            PostTransaction().load(args["transaction"])
+            transaction = PostTransaction().load(args["transaction"])
         except ValidationError as err_info:
             logger.error(f"Failed to validate value transfer: {err_info}")
             abort(404, message="Failed to validate value transfer.")
@@ -114,7 +114,7 @@ class TransactionSend(MethodView):
                 {"X-Version": "v1.0.0"},
             )
         else:
-            response = witnet_node.send_vtt({"transaction": args["transaction"]})
+            response = witnet_node.send_vtt({"transaction": transaction})
             if "reason" in response:
                 logger.error(
                     f"Could not send value transfer: {response['reason']['message']}"
