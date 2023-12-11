@@ -68,12 +68,12 @@ class SocketManager(object):
                 if len(response) == 0 or response[-1] == "\n":
                     break
             except socket.timeout:
-                return {"error": {"code": 1, "message": f"Timed out after {self.timeout} seconds"}, "id": request_id}
+                return {"error": f"Timed out after {self.timeout} seconds", "id": request_id}
             except socket.error as e:
                 if e.errno == errno.ECONNRESET:
-                    return {"error": {"code": 2, "message": f"Connection reset: {os.strerror(e.errno)} ({e.errno})"}, "id": request_id}
+                    return {"error": f"Connection reset: {os.strerror(e.errno)} ({e.errno})", "id": request_id}
                 else:
-                    return {"error": {"code": 3, "message": f"Unhandled error: {os.strerror(e.errno)} ({e.errno})"}, "id": request_id}
+                    return {"error": f"Unhandled error: {os.strerror(e.errno)} ({e.errno})", "id": request_id}
         # Reset time-out and set to blocking mode
         self.socket.settimeout(None)
 
