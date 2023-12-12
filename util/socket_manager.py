@@ -112,6 +112,8 @@ class SocketManager(object):
             reason = response["error"]
             if "reason" in response:
                 reason = response["reason"]
+            if "message" in reason:
+                reason = reason["message"]
             if "params" in request:
                 return {"error": f"could not execute {request['method']} with parameters {request['params']}", "reason": reason, "id": response["id"]}
             else:
