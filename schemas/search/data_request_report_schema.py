@@ -14,4 +14,4 @@ class DataRequestReport(Schema):
     data_request = fields.Nested(DataRequestTransactionForApi, required=True)
     commits = fields.List(fields.Nested(CommitTransactionForDataRequest))
     reveals = fields.List(fields.Nested(RevealTransactionForDataRequest))
-    tally = fields.Nested(TallyTransactionForDataRequest)
+    tally = fields.Nested(TallyTransactionForDataRequest, allow_none=True)
