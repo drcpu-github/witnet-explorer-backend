@@ -77,8 +77,7 @@ class Address(object):
         if type(balance) is dict and "error" in balance:
             balance = "Could not retrieve balance"
         else:
-            balance = balance["result"]
-            balance = balance[self.address]["total"]
+            balance = balance["result"]["total"]
 
         # Get reputation
         reputation = self.witnet_node.get_reputation(self.address)

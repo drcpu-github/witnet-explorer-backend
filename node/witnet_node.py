@@ -70,13 +70,13 @@ class WitnetNode(object):
     def get_balance(self, node_address, simple=True):
         if self.logger:
             self.logger.info(f"get_balance({node_address}, {simple})")
-        request = {"jsonrpc": "2.0", "method": "getBalance", "params": {"pkh": node_address, "simple": simple}, "id": str(WitnetNode.request_id)}
+        request = {"jsonrpc": "2.0", "method": "getBalance", "params": [node_address, simple], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_balance_all(self):
         if self.logger:
             self.logger.info("get_balance_all()")
-        request = {"jsonrpc": "2.0", "method": "getBalanceAll", "id": str(WitnetNode.request_id)}
+        request = {"jsonrpc": "2.0", "method": "getBalance", "params": ["all", True], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_reputation(self, node_address):
