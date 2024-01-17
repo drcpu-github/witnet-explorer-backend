@@ -1,10 +1,8 @@
 {
     "rpc": {
         "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm": {
-            "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm": {
-                "confirmed": 546229542864,
-                "total": 546229542864
-            }
+            "confirmed": 546229542864,
+            "total": 546229542864
         }
     },
     "balance-list_0-1000": {
