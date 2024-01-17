@@ -44,6 +44,43 @@ def configure_logger(log_tag, log_filename, log_level):
 
     return logger
 
+def configure_rotating_logger(log_tag, log_filename, log_level):
+    logger = logging.getLogger(log_tag)
+    logger.setLevel(logging.DEBUG)
+
+    # Get log file parts
+    dirname = os.path.dirname(log_filename)
+    filename, extension = os.path.splitext(os.path.basename(log_filename))
+    # Move the existing log
+    if os.path.exists(log_filename):
+        today = datetime.date.today()
+        shutil.move(log_filename, os.path.join(dirname, f"{filename}.{today.strftime('%Y%m%d')}{extension}"))
+
+    log_level = select_logging_level(log_level)
+
+    # Add header formatting of the log message
+    logging.Formatter.converter = time.gmtime
+    formatter = logging.Formatter("[%(levelname)-8s] [%(asctime)s] [%(name)-8s] %(message)s", datefmt="%Y/%m/%d %H:%M:%S")
+
+    # Add file handler
+    file_handler = logging.handlers.TimedRotatingFileHandler(log_filename, when="D", utc=True)
+    # Date suffix should not contain dashes
+    file_handler.suffix = "%Y%m%d"
+    file_handler.extMatch = re.compile(r"^\d{8}$")
+    # Put the date timestamp between the filename and the extension
+    file_handler.namer = lambda name: os.path.join(os.path.dirname(name), os.path.basename(name).replace(extension, "") + extension)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(log_level)
+    logger.addHandler(file_handler)
+
+    # Add console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(log_level)
+    logger.addHandler(console_handler)
+
+    return logger
+
 def configure_logging_listener(config):
     root = logging.getLogger()
 

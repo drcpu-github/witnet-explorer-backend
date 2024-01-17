@@ -40,7 +40,7 @@ from api.connect import (
 )
 from api.gunicorn_config import toml_config
 from mockups.config import mock_config
-from util.logger import configure_logger
+from util.logger import configure_rotating_logger
 
 
 def create_app(mock=False):
@@ -74,7 +74,7 @@ def create_app(mock=False):
 
     # Setup logger
     log_file = explorer_config["api"]["log"]["log_file"]
-    app.extensions["logger"] = configure_logger("api", log_file, "info")
+    app.extensions["logger"] = configure_rotating_logger("api", log_file, "info")
 
     # Create connections to external resources
     address_caching_server = create_address_caching_server(explorer_config, mock=mock)
