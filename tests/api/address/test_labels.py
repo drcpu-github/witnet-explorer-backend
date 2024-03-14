@@ -4,6 +4,7 @@ import json
 def test_info_existing_addresses(client):
     response = client.get("/api/address/labels")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == [
         {
             "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",

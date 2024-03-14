@@ -5,6 +5,7 @@ def test_status_cached(client, status):
     assert client.application.extensions["cache"].get("status") is not None
     response = client.get("/api/status")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == status
 
 
@@ -13,6 +14,7 @@ def test_status_not_cached(client, status):
     assert client.application.extensions["cache"].get("status") is None
     response = client.get("/api/status")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     json_data = json.loads(response.data)
     assert json_data["database_confirmed"] == status["database_confirmed"]
     assert json_data["database_unconfirmed"] == status["database_unconfirmed"]

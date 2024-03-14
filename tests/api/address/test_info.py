@@ -6,6 +6,7 @@ def test_info_existing_addresses(client):
     address_2 = "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6"
     response = client.get(f"/api/address/info?addresses={address_1},{address_2}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == [
         {
             "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
@@ -39,4 +40,5 @@ def test_info_non_existing_addresses(client):
     address_2 = "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca7"
     response = client.get(f"/api/address/info?addresses={address_1},{address_2}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == []

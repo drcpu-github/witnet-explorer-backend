@@ -6,6 +6,7 @@ def test_mints_cached_page_1(client, address_data):
     assert client.application.extensions["cache"].get(f"{address}_mints") is not None
     response = client.get(f"/api/address/mints?address={address}&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 7,
         "total_pages": 2,
@@ -22,6 +23,7 @@ def test_mints_cached_page_2(client, address_data):
     assert client.application.extensions["cache"].get(f"{address}_mints") is not None
     response = client.get(f"/api/address/mints?address={address}&page=2&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 7,
         "total_pages": 2,
@@ -39,6 +41,7 @@ def test_mints_not_cached_page_1(client, address_data):
     assert client.application.extensions["cache"].get(f"{address}_mints") is None
     response = client.get(f"/api/address/mints?address={address}&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 7,
         "total_pages": 2,
@@ -56,6 +59,7 @@ def test_mints_not_cached_page_2(client, address_data):
     assert client.application.extensions["cache"].get(f"{address}_mints") is None
     response = client.get(f"/api/address/mints?address={address}&page=2&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 7,
         "total_pages": 2,
