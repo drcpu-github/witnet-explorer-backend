@@ -96,4 +96,4 @@ class Reputation(MethodView):
         else:
             logger.info("Found reputation in our memcached instance.")
 
-        return reputation, 200, {"X-Version": "v1.0.0"}
+        return reputation, 200, {"X-Version": "1.0.0"}

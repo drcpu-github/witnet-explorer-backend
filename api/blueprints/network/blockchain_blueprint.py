@@ -61,7 +61,7 @@ class NetworkBlockchain(MethodView):
         if blockchain:
             logger.info(f"Found {cache_key} in memcached cache")
             pagination_parameters.item_count = blockchain["total_epochs"]
-            return blockchain, 200, {"X-Version": "v1.0.0"}
+            return blockchain, 200, {"X-Version": "1.0.0"}
 
         logger.info(f"Could not find {cache_key} in memcached cache")
 
@@ -113,7 +113,7 @@ class NetworkBlockchain(MethodView):
             )
             abort(404, message="Incorrect message format for blockchain response.")
 
-        return blockchain, 200, {"X-Version": "v1.0.0"}
+        return blockchain, 200, {"X-Version": "1.0.0"}
 
 
 def get_blockchain_details(database, last_epoch, start, stop, consensus_constants):

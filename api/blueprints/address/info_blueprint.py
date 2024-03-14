@@ -87,7 +87,7 @@ class AddressInfo(MethodView):
                         ]
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -98,4 +98,4 @@ class AddressInfo(MethodView):
                     message=f"Incorrect message format for address info for {addresses}.",
                 )
         else:
-            return [], 200, {"X-Version": "v1.0.0"}
+            return [], 200, {"X-Version": "1.0.0"}

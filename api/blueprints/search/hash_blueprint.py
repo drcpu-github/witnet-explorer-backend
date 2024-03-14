@@ -97,7 +97,7 @@ class SearchHash(MethodView):
             ):
                 found = True
             else:
-                return hashed_item, 200, {"X-Version": "v1.0.0"}
+                return hashed_item, 200, {"X-Version": "1.0.0"}
 
         sql = """
             SELECT
@@ -132,7 +132,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             elif hash_value in transactions_pool["value_transfer"]:
                 return (
@@ -143,7 +143,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             else:
                 logger.warning(f"Could not find transaction hash {hash_value}")
@@ -228,7 +228,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(f"Incorrect message format for block: {err_info}")
@@ -283,7 +283,7 @@ class SearchHash(MethodView):
                         {"response_type": "mint", "mint": mint_txn}
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -349,7 +349,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -393,7 +393,7 @@ class SearchHash(MethodView):
                                 }
                             ),
                             200,
-                            {"X-Version": "v1.0.0"},
+                            {"X-Version": "1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -431,7 +431,7 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "commit", "commit": transaction},
                             200,
-                            {"X-Version": "v1.0.0"},
+                            {"X-Version": "1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -469,7 +469,7 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "reveal", "reveal": transaction},
                             200,
-                            {"X-Version": "v1.0.0"},
+                            {"X-Version": "1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -507,7 +507,7 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "tally", "tally": transaction},
                             200,
-                            {"X-Version": "v1.0.0"},
+                            {"X-Version": "1.0.0"},
                         )
                     except ValidationError:
                         abort(
@@ -540,7 +540,7 @@ class SearchHash(MethodView):
                     logger.info(
                         f"Found a data request report {data_request_hash} for a {hash_type.replace('_', ' ')} in our memcached instance"
                     )
-                    return cached_data_request_report, 200, {"X-Version": "v1.0.0"}
+                    return cached_data_request_report, 200, {"X-Version": "1.0.0"}
 
                 try:
                     data_request_report_json = data_request_report.get_report()
@@ -602,7 +602,7 @@ class SearchHash(MethodView):
                             }
                         ),
                         200,
-                        {"X-Version": "v1.0.0"},
+                        {"X-Version": "1.0.0"},
                     )
                 except ValidationError as err_info:
                     logger.error(
@@ -640,7 +640,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "v1.0.0"},
+                    {"X-Version": "1.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(

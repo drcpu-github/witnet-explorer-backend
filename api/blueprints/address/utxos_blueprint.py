@@ -98,4 +98,4 @@ class Reputation(MethodView):
             )
             abort(404, message=f"Incorrect message format for UTXO data for {address}.")
 
-        return address_utxos, 200, {"X-Version": "v1.0.0"}
+        return address_utxos, 200, {"X-Version": "1.0.0"}

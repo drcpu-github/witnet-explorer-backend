@@ -125,4 +125,4 @@ class NetworkTapi(MethodView):
             f"Returning TAPI's {', '.join(str(tapi['tapi_id']) for tapi in all_tapis)}"
         )
 
-        return all_tapis, 200, {"X-Version": "v1.0.0"}
+        return all_tapis, 200, {"X-Version": "1.0.0"}

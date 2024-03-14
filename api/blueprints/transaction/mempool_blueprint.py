@@ -57,7 +57,7 @@ class TransactionMempool(MethodView):
             return (
                 build_return_value(args["type"], mempool),
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
 
         mempool = witnet_node.get_mempool()
@@ -85,7 +85,7 @@ class TransactionMempool(MethodView):
             return (
                 build_return_value(args["type"], mempool),
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
         else:
             logger.error(f"Could not fetch the live mempool: {mempool['error']}")

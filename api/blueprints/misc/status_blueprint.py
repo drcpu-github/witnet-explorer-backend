@@ -144,4 +144,4 @@ class Status(MethodView):
         else:
             logger.info("Found status in memcached cache")
 
-        return status, 200, {"X-Version": "v1.0.0"}
+        return status, 200, {"X-Version": "1.0.0"}

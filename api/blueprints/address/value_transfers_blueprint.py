@@ -67,7 +67,7 @@ class AddressValueTransfers(MethodView):
                 f"Found {len(cached_value_transfers)} value transfers for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_value_transfers)
-            return cached_value_transfers[start:stop], 200, {"X-Version": "v1.0.0"}
+            return cached_value_transfers[start:stop], 200, {"X-Version": "1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -92,4 +92,4 @@ class AddressValueTransfers(MethodView):
                     message=f"Incorrect message format for value transfer data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(value_transfers)
-            return value_transfers[start:stop], 200, {"X-Version": "v1.0.0"}
+            return value_transfers[start:stop], 200, {"X-Version": "1.0.0"}

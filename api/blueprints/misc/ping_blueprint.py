@@ -44,7 +44,7 @@ class Ping(MethodView):
             return (
                 PingResponse().load({"response": "pong"}),
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for ping response: {err_info}")

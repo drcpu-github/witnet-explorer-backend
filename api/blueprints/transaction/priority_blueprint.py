@@ -78,11 +78,11 @@ class TransactionPriority(MethodView):
             logger.info("Found 'priority' in memcached cache")
 
         if priority_key == "all":
-            return priority, 200, {"X-Version": "v1.0.0"}
+            return priority, 200, {"X-Version": "1.0.0"}
         else:
             filtered_priority = {
                 key: priority[key]
                 for key in priority.keys()
                 if key.startswith(priority_key)
             }
-            return filtered_priority, 200, {"X-Version": "v1.0.0"}
+            return filtered_priority, 200, {"X-Version": "1.0.0"}

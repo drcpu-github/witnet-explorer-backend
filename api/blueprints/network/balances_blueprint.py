@@ -87,5 +87,5 @@ class BalanceList(MethodView):
                 }
             ),
             200,
-            {"X-Version": "v1.0.0"},
+            {"X-Version": "1.0.0"},
         )
