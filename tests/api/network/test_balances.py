@@ -65,6 +65,7 @@ def test_balances_not_cached(client):
     assert client.application.extensions["cache"].get("balance-list_0-1000") is None
     response = client.get("/api/network/balances?page=1")
     assert response.status_code == 404
+    assert response.headers["x-version"] == "1.0.0"
     assert (
         json.loads(response.data)["message"]
         == "Could not find required list of balances in memcached cache."

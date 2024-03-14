@@ -58,6 +58,7 @@ def test_home_not_cached(client):
     assert client.application.extensions["cache"].get("home") is None
     response = client.get("/api/home")
     assert response.status_code == 404
+    assert response.headers["x-version"] == "1.0.0"
     assert (
         json.loads(response.data)["message"]
         == "Could not find homepage data in the cache."
