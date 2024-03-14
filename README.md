@@ -28,11 +28,11 @@ sudo make install
 
 ## Python3 dependencies - virtual environment
 
-It is advised to start the explorer from within a virtual environment. You can install all dependencies using the `requirements.txt` file:
+It is advised to start the explorer from within a virtual environment. You can install all dependencies using the `requirements/all.txt` file:
 ```
 virtualenv env
 source env/bin/activate
-pip install -r requirements.txt
+pip install -r requirements/all.txt
 ```
 
 ## Install and configure memcached
