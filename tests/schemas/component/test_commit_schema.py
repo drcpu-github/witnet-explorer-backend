@@ -70,9 +70,9 @@ def test_commit_transaction_for_block_success(commit_transaction_for_block):
 
 
 def test_commit_transaction_for_block_failure_hash(commit_transaction_for_block):
-    commit_transaction_for_block[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    commit_transaction_for_block["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         CommitTransactionForBlock().load(commit_transaction_for_block)
     assert (

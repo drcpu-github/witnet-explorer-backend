@@ -41,9 +41,9 @@ def test_data_request_history_entry_success_minimal(data_request_history_entry):
 
 
 def test_data_request_history_entry_failure_hash(data_request_history_entry):
-    data_request_history_entry[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    data_request_history_entry["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         DataRequestHistoryEntry().load(data_request_history_entry)
     assert (
@@ -164,12 +164,12 @@ def test_data_request_history_failure_type(data_request_history):
 
 
 def test_data_request_history_failure_hash(data_request_history):
-    data_request_history[
-        "hash"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
-    data_request_history[
-        "RAD_bytes_hash"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    data_request_history["hash"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
+    data_request_history["RAD_bytes_hash"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         DataRequestHistory().load(data_request_history)
     assert len(err_info.value.messages) == 2

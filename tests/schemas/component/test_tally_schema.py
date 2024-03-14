@@ -215,9 +215,9 @@ def test_tally_transaction_for_block_success(tally_transaction_for_block):
 
 
 def test_tally_transaction_for_block_failure_hash(tally_transaction_for_block):
-    tally_transaction_for_block[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    tally_transaction_for_block["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         TallyTransactionForBlock().load(tally_transaction_for_block)
     assert (
@@ -324,9 +324,9 @@ def test_tally_transaction_for_explorer_success(tally_transaction_for_explorer):
 
 
 def test_tally_transaction_for_explorer_failure_hash(tally_transaction_for_explorer):
-    tally_transaction_for_explorer[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    tally_transaction_for_explorer["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         TallyTransactionForExplorer().load(tally_transaction_for_explorer)
     assert (

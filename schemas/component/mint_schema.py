@@ -17,9 +17,9 @@ class MintTransaction(Schema):
         if len(args["output_addresses"]) < 1:
             errors["output_addresses"] = "Need at least one output address."
         if len(args["output_addresses"]) != len(args["output_values"]):
-            errors[
-                "output_values"
-            ] = "Number of output addresses and values is different."
+            errors["output_values"] = (
+                "Number of output addresses and values is different."
+            )
         if len(errors):
             raise ValidationError(errors)
 

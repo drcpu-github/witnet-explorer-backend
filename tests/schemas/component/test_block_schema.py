@@ -29,9 +29,9 @@ def test_block_details_success(block_details):
 
 
 def test_block_details_failure_hash(block_details):
-    block_details[
-        "hash"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    block_details["hash"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         BlockDetails().load(block_details)
     assert err_info.value.messages["hash"][0] == "Hash is not a hexadecimal value."
