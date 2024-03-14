@@ -54,7 +54,11 @@ class TransactionMempool(MethodView):
         mempool = cache.get("transaction_mempool")
         if mempool:
             logger.info("Found the live mempool in our memcached instance")
-            return build_return_value(args["type"], mempool)
+            return (
+                build_return_value(args["type"], mempool),
+                200,
+                {"X-Version": "v1.0.0"},
+            )
 
         mempool = witnet_node.get_mempool()
         if "result" in mempool:
