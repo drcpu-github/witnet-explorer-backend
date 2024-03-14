@@ -88,7 +88,11 @@ class Reputation(MethodView):
                 )
             else:
                 logger.error(f"Could not fetch UTXOs for {address}: {utxos}")
-                abort(404, message=f"Could not fetch utxos for {address}.")
+                abort(
+                    404,
+                    message=f"Could not fetch utxos for {address}.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
         try:
             AddressUtxosResponse(many=True).load(address_utxos)
@@ -96,6 +100,10 @@ class Reputation(MethodView):
             logger.error(
                 f"Incorrect message format for UTXO data for {address}: {err_info}"
             )
-            abort(404, message=f"Incorrect message format for UTXO data for {address}.")
+            abort(
+                404,
+                message=f"Incorrect message format for UTXO data for {address}.",
+                headers={"X-Version": "1.0.0"},
+            )
 
         return address_utxos, 200, {"X-Version": "1.0.0"}

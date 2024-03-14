@@ -140,7 +140,11 @@ class Status(MethodView):
                 )
             except ValidationError as err_info:
                 logger.error(f"Incorrect message format for status: {err_info}")
-                abort(404, message="Incorrect message format for status.")
+                abort(
+                    404,
+                    message="Incorrect message format for status.",
+                    headers={"X-Version": "1.0.0"},
+                )
         else:
             logger.info("Found status in memcached cache")
 

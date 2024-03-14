@@ -111,7 +111,11 @@ class NetworkBlockchain(MethodView):
             logger.error(
                 f"Incorrect message format for blockchain response: {err_info}"
             )
-            abort(404, message="Incorrect message format for blockchain response.")
+            abort(
+                404,
+                message="Incorrect message format for blockchain response.",
+                headers={"X-Version": "1.0.0"},
+            )
 
         return blockchain, 200, {"X-Version": "1.0.0"}
 

@@ -47,7 +47,11 @@ class Home(MethodView):
         home = cache.get("home")
         if not home:
             logger.error("Could not find home in memcached cache")
-            abort(404, message="Could not find homepage data in the cache.")
+            abort(
+                404,
+                message="Could not find homepage data in the cache.",
+                headers={"X-Version": "1.0.0"},
+            )
         else:
             logger.info("Found home in memcached cache")
 

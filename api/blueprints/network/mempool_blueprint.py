@@ -94,7 +94,11 @@ class NetworkMempool(MethodView):
                 NetworkMempoolResponse(many=True).load(mempool)
             except ValidationError as err_info:
                 logger.error(f"Incorrect format for mempool statistics: {err_info}")
-                abort(404, message="Incorrect format for mempool statistics.")
+                abort(
+                    404,
+                    message="Incorrect format for mempool statistics.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
             try:
                 # no timeout required since this data never becomes stale

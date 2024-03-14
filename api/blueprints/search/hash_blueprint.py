@@ -120,7 +120,11 @@ class SearchHash(MethodView):
                 logger.error(
                     f"Could not fetch the pending transactions: {transactions_pool['error']}"
                 )
-                abort(404, message="Could not fetch the pending transactions.")
+                abort(
+                    404,
+                    message="Could not fetch the pending transactions.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
             transactions_pool = transactions_pool["result"]
             if hash_value in transactions_pool["data_request"]:
@@ -147,7 +151,11 @@ class SearchHash(MethodView):
                 )
             else:
                 logger.warning(f"Could not find transaction hash {hash_value}")
-                abort(404, message=f"Could not find transaction hash {hash_value}.")
+                abort(
+                    404,
+                    message=f"Could not find transaction hash {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
         if found:
             logger.info(
@@ -181,7 +189,11 @@ class SearchHash(MethodView):
                 logger.error(
                     f"Incorrect message format for block {hash_value}: {err_info}"
                 )
-                abort(404, message=f"Incorrect message format for block {hash_value}.")
+                abort(
+                    404,
+                    message=f"Incorrect message format for block {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
+                )
             if block_json["details"]["confirmed"]:
                 try:
                     # First cache the block with its hash as a key
@@ -210,6 +222,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for block {hash_value}.",
+                        headers={"X-Version": "1.0.0"},
                     )
                 except pylibmc.TooBig:
                     logger.warning(
@@ -235,6 +248,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for block {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )
 
         # Create mint transaction and get the details from the database
@@ -249,6 +263,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for mint transaction {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             if mint_txn["confirmed"]:
                 logger.info(
@@ -272,6 +287,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for mint transaction {hash_value}.",
+                        headers={"X-Version": "1.0.0"},
                     )
             else:
                 logger.info(
@@ -292,6 +308,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for mint transaction {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )
 
         # Create value transfer transaction and get the details from the database
@@ -312,6 +329,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for value transfer transaction {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             if value_transfer_txn["confirmed"]:
                 logger.info(
@@ -335,6 +353,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for value transfer transaction {hash_value}.",
+                        headers={"X-Version": "1.0.0"},
                     )
             else:
                 logger.info(
@@ -358,6 +377,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for value transfer transaction {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )
 
         if hash_type in ("data_request_txn", "commit_txn", "reveal_txn", "tally_txn"):
@@ -381,6 +401,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for data request {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                     try:
                         # Do not cache a the result of a query for a single data request transaction
@@ -399,6 +420,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for data request {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                 elif hash_type == "commit_txn":
                     commit = Commit(
@@ -416,6 +438,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for commit transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                     try:
                         cache.set(
@@ -437,6 +460,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for commit transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                 elif hash_type == "reveal_txn":
                     reveal = Reveal(
@@ -454,6 +478,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for reveal transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                     try:
                         cache.set(
@@ -475,6 +500,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for reveal transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                 elif hash_type == "tally_txn":
                     tally = Tally(
@@ -492,6 +518,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for tally transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                     try:
                         cache.set(
@@ -513,6 +540,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for tally transaction {hash_value}.",
+                            headers={"X-Version": "1.0.0"},
                         )
             # Create data request report for this hash
             else:
@@ -551,6 +579,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for data request report {data_request_hash}.",
+                        headers={"X-Version": "1.0.0"},
                     )
 
                 # From the API: only cache data request reports with a confirmed tally transaction
@@ -582,6 +611,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for data request report {data_request_hash}.",
+                            headers={"X-Version": "1.0.0"},
                         )
                 else:
                     if "tally" not in data_request_report_json:
@@ -611,6 +641,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for data request report {data_request_hash}.",
+                        headers={"X-Version": "1.0.0"},
                     )
 
         if hash_type in ("DRO_bytes_hash", "RAD_bytes_hash"):
@@ -649,4 +680,5 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for data request history: {hash_value}.",
+                    headers={"X-Version": "1.0.0"},
                 )

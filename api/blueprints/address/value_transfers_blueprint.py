@@ -90,6 +90,7 @@ class AddressValueTransfers(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for value transfer data for {arg_address}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             pagination_parameters.item_count = len(value_transfers)
             return value_transfers[start:stop], 200, {"X-Version": "1.0.0"}

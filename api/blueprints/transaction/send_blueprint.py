@@ -97,7 +97,11 @@ class TransactionSend(MethodView):
 
         if "transaction" not in args:
             logger.error(f"Missing transaction argument: {args}")
-            abort(404, message="Missing transaction argument.")
+            abort(
+                404,
+                message="Missing transaction argument.",
+                headers={"X-Version": "1.0.0"},
+            )
         prefix = "Testing" if args["test"] else "Sending"
         logger.info(f"{prefix} transaction: {args['transaction']}")
 
@@ -105,7 +109,11 @@ class TransactionSend(MethodView):
             transaction = PostTransaction().load(args["transaction"])
         except ValidationError as err_info:
             logger.error(f"Failed to validate value transfer: {err_info}")
-            abort(404, message="Failed to validate value transfer.")
+            abort(
+                404,
+                message="Failed to validate value transfer.",
+                headers={"X-Version": "1.0.0"},
+            )
 
         if args["test"]:
             return (
@@ -122,6 +130,7 @@ class TransactionSend(MethodView):
                 abort(
                     404,
                     message=f"Could not send value transfer: {response['reason']['message']}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             else:
                 if "result" in response and response["result"]:

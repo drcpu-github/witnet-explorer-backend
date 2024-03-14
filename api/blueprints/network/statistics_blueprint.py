@@ -104,7 +104,11 @@ class NetworkStatistics(MethodView):
                         stop_epoch,
                     )
                     if not period:
-                        abort(404, message="No network statistics data found.")
+                        abort(
+                            404,
+                            message="No network statistics data found.",
+                            headers={"X-Version": "1.0.0"},
+                        )
             # Start and stop epochs were requested, round them
             else:
                 period = calculate_network_start_stop_epoch(
@@ -114,7 +118,11 @@ class NetworkStatistics(MethodView):
                     stop_epoch,
                 )
                 if not period:
-                    abort(404, message="No network statistics data found.")
+                    abort(
+                        404,
+                        message="No network statistics data found.",
+                        headers={"X-Version": "1.0.0"},
+                    )
 
         cache_key = f"{args['key']}_{period[0]}_{period[1]}"
         response = cache.get(cache_key)
@@ -323,7 +331,11 @@ class NetworkStatistics(MethodView):
             NetworkStatisticsResponse().load(response)
         except ValidationError as err_info:
             logger.error(f"Incorrect format for network statistics: {err_info}")
-            abort(404, message="Incorrect format for network statistics.")
+            abort(
+                404,
+                message="Incorrect format for network statistics.",
+                headers={"X-Version": "1.0.0"},
+            )
 
         # Try to save the response in the cache
         try:

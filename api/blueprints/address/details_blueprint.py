@@ -71,5 +71,6 @@ class AddressDetails(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for details data for {arg_address}.",
+                headers={"X-Version": "1.0.0"},
             )
         return details, 200, {"X-Version": "1.0.0"}

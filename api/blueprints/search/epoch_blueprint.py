@@ -85,6 +85,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
+                headers={"X-Version": "1.0.0"},
             )
 
         if "error" in block_json:
@@ -92,6 +93,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Block for epoch {epoch} not found.",
+                headers={"X-Version": "1.0.0"},
             )
 
         # Attempt to cache the block
@@ -119,6 +121,7 @@ class SearchEpoch(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for block {epoch}.",
+                        headers={"X-Version": "1.0.0"},
                     )
                 # Second, cache the block hash with the block epoch as key
                 cache.set(
@@ -154,4 +157,5 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
+                headers={"X-Version": "1.0.0"},
             )

@@ -48,4 +48,8 @@ class Ping(MethodView):
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for ping response: {err_info}")
-            abort(404, message="Incorrect message format for ping response.")
+            abort(
+                404,
+                message="Incorrect message format for ping response.",
+                headers={"X-Version": "1.0.0"},
+            )

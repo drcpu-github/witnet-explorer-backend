@@ -77,6 +77,7 @@ class AddressLabels(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for address labels for {addresses}.",
+                    headers={"X-Version": "1.0.0"},
                 )
         else:
             return [], 200, {"X-Version": "1.0.0"}

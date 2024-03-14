@@ -46,7 +46,11 @@ class SupplyInfo(MethodView):
         home = cache.get("home")
         if not home:
             logger.error("Could not find supply_info in memcached cache")
-            abort(404, message="Could not find supply info data in the cache.")
+            abort(
+                404,
+                message="Could not find supply info data in the cache.",
+                headers={"X-Version": "1.0.0"},
+            )
         else:
             logger.info("Found supply_info in memcached cache")
 

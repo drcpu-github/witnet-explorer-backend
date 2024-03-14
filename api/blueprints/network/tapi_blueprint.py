@@ -87,7 +87,11 @@ class NetworkTapi(MethodView):
                     (tapi,) = database.sql_return_one(sql, parameters=[counter])
                     if tapi is None:
                         logger.error(f"Could not fetch tapi-{counter}")
-                        abort(404, message="Could not fetch tapi data.")
+                        abort(
+                            404,
+                            message="Could not fetch tapi data.",
+                            headers={"X-Version": "1.0.0"},
+                        )
                         continue
 
                 # Skip unactivated TAPIs unless requested otherwise
@@ -119,7 +123,11 @@ class NetworkTapi(MethodView):
             NetworkTapiResponse(many=True).load(all_tapis)
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for TAPI data: {err_info}")
-            abort(404, message="Incorrect message format for TAPI data.")
+            abort(
+                404,
+                message="Incorrect message format for TAPI data.",
+                headers={"X-Version": "1.0.0"},
+            )
 
         logger.info(
             f"Returning TAPI's {', '.join(str(tapi['tapi_id']) for tapi in all_tapis)}"

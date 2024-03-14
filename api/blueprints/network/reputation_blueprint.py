@@ -55,7 +55,11 @@ class Reputation(MethodView):
             result = witnet_node.get_reputation_all()
             if "result" not in result:
                 logger.error(f"Could not retrieve reputation data: {result['error']}")
-                abort(404, message="Could not retrieve reputation data.")
+                abort(
+                    404,
+                    message="Could not retrieve reputation data.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
             # Parse reputation statistics
             stats = result["result"]["stats"]
@@ -84,7 +88,11 @@ class Reputation(MethodView):
                 )
             except ValidationError as err_info:
                 logger.error(f"Incorrect message format for reputation: {err_info}")
-                abort(404, message="Incorrect message format for reputation.")
+                abort(
+                    404,
+                    message="Incorrect message format for reputation.",
+                    headers={"X-Version": "1.0.0"},
+                )
 
             # Try to save the data in our memcached instance
             try:

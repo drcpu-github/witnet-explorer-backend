@@ -68,12 +68,20 @@ class TransactionPriority(MethodView):
                     )
                 except ValidationError as err_info:
                     logger.error(f"Incorrect message format for priority: {err_info}")
-                    abort(404, message="Incorrect message format for priority.")
+                    abort(
+                        404,
+                        message="Incorrect message format for priority.",
+                        headers={"X-Version": "1.0.0"},
+                    )
             else:
                 logger.error(
                     f"Could not fetch transaction priority fees: {priority['error']}"
                 )
-                abort(404, message="Could not fetch transaction priority fees.")
+                abort(
+                    404,
+                    message="Could not fetch transaction priority fees.",
+                    headers={"X-Version": "1.0.0"},
+                )
         else:
             logger.info("Found 'priority' in memcached cache")
 

@@ -62,6 +62,7 @@ class BalanceList(MethodView):
             abort(
                 404,
                 message="Could not find required list of balances in memcached cache.",
+                headers={"X-Version": "1.0.0"},
             )
         else:
             logger.info(

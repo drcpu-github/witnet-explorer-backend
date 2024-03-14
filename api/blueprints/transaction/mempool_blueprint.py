@@ -76,6 +76,7 @@ class TransactionMempool(MethodView):
                 abort(
                     404,
                     message="Incorrect message format for mempool data.",
+                    headers={"X-Version": "1.0.0"},
                 )
             except pylibmc.TooBig:
                 logger.warning(
@@ -92,6 +93,7 @@ class TransactionMempool(MethodView):
             abort(
                 404,
                 message="Could not fetch the live mempool.",
+                headers={"X-Version": "1.0.0"},
             )
 
 

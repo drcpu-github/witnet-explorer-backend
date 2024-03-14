@@ -96,6 +96,7 @@ class AddressDataRequestsCreated(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for data requests created data for {arg_address}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             pagination_parameters.item_count = len(data_requests_created)
             return data_requests_created[start:stop], 200, {"X-Version": "1.0.0"}

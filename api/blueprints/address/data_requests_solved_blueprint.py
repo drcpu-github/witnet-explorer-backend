@@ -90,6 +90,7 @@ class AddressDataRequestsSolved(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for data requests solved data for {arg_address}.",
+                    headers={"X-Version": "1.0.0"},
                 )
             pagination_parameters.item_count = len(data_requests_solved)
             return data_requests_solved[start:stop], 200, {"X-Version": "1.0.0"}
