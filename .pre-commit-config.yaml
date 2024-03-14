@@ -1,17 +1,17 @@
 files: api/|blockchain/|mockups/|schemas/|scripts/|tests/
 repos:
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         args: ["-c"]
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 24.2.0
     hooks:
       - id: black
         args: ["--check"]
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+    rev: 7.0.0
     hooks:
       - id: flake8
         args: ["--extend-ignore=E203,E501"]
