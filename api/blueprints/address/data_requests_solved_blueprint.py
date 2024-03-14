@@ -67,7 +67,7 @@ class AddressDataRequestsSolved(MethodView):
                 f"Found {len(cached_data_requests_solved)} data requests solved for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_data_requests_solved)
-            return cached_data_requests_solved[start:stop], 200, {"X-Version": "v1.0.0"}
+            return cached_data_requests_solved[start:stop], 200, {"X-Version": "1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -92,4 +92,4 @@ class AddressDataRequestsSolved(MethodView):
                     message=f"Incorrect message format for data requests solved data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(data_requests_solved)
-            return data_requests_solved[start:stop], 200, {"X-Version": "v1.0.0"}
+            return data_requests_solved[start:stop], 200, {"X-Version": "1.0.0"}

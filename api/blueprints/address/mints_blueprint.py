@@ -67,7 +67,7 @@ class AddressMints(MethodView):
                 f"Found {len(cached_mints)} mint transactions for {arg_address} in cache"
             )
             pagination_parameters.item_count = len(cached_mints)
-            return cached_mints[start:stop], 200, {"X-Version": "v1.0.0"}
+            return cached_mints[start:stop], 200, {"X-Version": "1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -92,4 +92,4 @@ class AddressMints(MethodView):
                     message=f"Incorrect message format for mint data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(mints)
-            return mints[start:stop], 200, {"X-Version": "v1.0.0"}
+            return mints[start:stop], 200, {"X-Version": "1.0.0"}

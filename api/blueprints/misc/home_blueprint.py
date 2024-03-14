@@ -52,12 +52,12 @@ class Home(MethodView):
             logger.info("Found home in memcached cache")
 
         if key == "full":
-            return home, 200, {"X-Version": "v1.0.0"}
+            return home, 200, {"X-Version": "1.0.0"}
         elif key in ("network_stats", "supply_info"):
-            return {key: home[key]}, 200, {"X-Version": "v1.0.0"}
+            return {key: home[key]}, 200, {"X-Version": "1.0.0"}
         elif key in ("blocks", "data_requests", "value_transfers"):
             return (
                 {f"latest_{key}": home[f"latest_{key}"]},
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )

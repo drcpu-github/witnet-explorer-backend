@@ -57,10 +57,10 @@ class SupplyInfo(MethodView):
             "epoch",
             "in_flight_requests",
         ):
-            return str(int(home["supply_info"][key])), 200, {"X-Version": "v1.0.0"}
+            return str(int(home["supply_info"][key])), 200, {"X-Version": "1.0.0"}
         else:
             return (
                 str(int(home["supply_info"][key] / 1e9)),
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )

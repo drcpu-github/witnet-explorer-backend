@@ -111,7 +111,7 @@ class TransactionSend(MethodView):
             return (
                 ValueTransferResponse().load({"result": "Value transfer is valid."}),
                 201,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
         else:
             response = witnet_node.send_vtt({"transaction": transaction})
@@ -130,7 +130,7 @@ class TransactionSend(MethodView):
                             {"result": "Succesfully sent value transfer."}
                         ),
                         201,
-                        {"X-Version": "v1.0.0"},
+                        {"X-Version": "1.0.0"},
                     )
                 else:
                     logger.error(

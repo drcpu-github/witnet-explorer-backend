@@ -61,7 +61,7 @@ class SearchEpoch(MethodView):
                 logger.info(
                     f"Found block {epoch} with hash {cached_block_hash} in memcached cache"
                 )
-                return cached_block, 200, {"X-Version": "v1.0.0"}
+                return cached_block, 200, {"X-Version": "1.0.0"}
 
         # Create consensus constants
         consensus_constants = ConsensusConstants(
@@ -147,7 +147,7 @@ class SearchEpoch(MethodView):
                     }
                 ),
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for block {epoch}: {err_info}")

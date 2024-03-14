@@ -106,7 +106,7 @@ class NetworkMempool(MethodView):
         else:
             logger.info(f"Found {key} in memcached cache")
 
-        return mempool, 200, {"X-Version": "v1.0.0"}
+        return mempool, 200, {"X-Version": "1.0.0"}
 
 
 def get_historical_mempool(

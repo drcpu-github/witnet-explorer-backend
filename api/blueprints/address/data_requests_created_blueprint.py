@@ -70,7 +70,7 @@ class AddressDataRequestsCreated(MethodView):
             return (
                 cached_data_requests_created[start:stop],
                 200,
-                {"X-Version": "v1.0.0"},
+                {"X-Version": "1.0.0"},
             )
         # Query the database and build the requested view (slow)
         else:
@@ -98,4 +98,4 @@ class AddressDataRequestsCreated(MethodView):
                     message=f"Incorrect message format for data requests created data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(data_requests_created)
-            return data_requests_created[start:stop], 200, {"X-Version": "v1.0.0"}
+            return data_requests_created[start:stop], 200, {"X-Version": "1.0.0"}

@@ -120,7 +120,7 @@ class NetworkStatistics(MethodView):
         response = cache.get(cache_key)
         if response:
             logger.info(f"Found response for {cache_key} in cache")
-            return response, 200, {"X-Version": "v1.0.0"}
+            return response, 200, {"X-Version": "1.0.0"}
 
         # Rollbacks are saved as a list in the database, so even if epochs are specified, retrieve the complete list
         if args["key"] == "list-rollbacks":
@@ -337,7 +337,7 @@ class NetworkStatistics(MethodView):
                 f"Could not save {cache_key} in the memcached instance because its size exceeded 1MB"
             )
 
-        return response, 200, {"X-Version": "v1.0.0"}
+        return response, 200, {"X-Version": "1.0.0"}
 
 
 def calculate_network_start_stop_epoch(

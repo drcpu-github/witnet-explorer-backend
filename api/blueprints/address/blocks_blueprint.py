@@ -65,7 +65,7 @@ class AddressBlocks(MethodView):
         if cached_blocks:
             logger.info(f"Found {len(cached_blocks)} blocks for {arg_address} in cache")
             pagination_parameters.item_count = len(cached_blocks)
-            return cached_blocks[start:stop], 200, {"X-Version": "v1.0.0"}
+            return cached_blocks[start:stop], 200, {"X-Version": "1.0.0"}
         # Query the database and build the requested view (slow)
         else:
             logger.info(
@@ -90,4 +90,4 @@ class AddressBlocks(MethodView):
                     message=f"Incorrect message format for block data for {arg_address}.",
                 )
             pagination_parameters.item_count = len(blocks)
-            return blocks[start:stop], 200, {"X-Version": "v1.0.0"}
+            return blocks[start:stop], 200, {"X-Version": "1.0.0"}
