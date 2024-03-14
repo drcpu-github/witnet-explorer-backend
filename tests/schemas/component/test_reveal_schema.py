@@ -61,9 +61,9 @@ def test_reveal_transaction_for_block_success(reveal_transaction_for_block):
 
 
 def test_reveal_transaction_for_block_failure_hash(reveal_transaction_for_block):
-    reveal_transaction_for_block[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    reveal_transaction_for_block["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         RevealTransactionForBlock().load(reveal_transaction_for_block)
     assert (
@@ -152,9 +152,9 @@ def test_reveal_transaction_for_explorer_success(reveal_transaction_for_explorer
 
 
 def test_reveal_transaction_for_explorer_failure_hash(reveal_transaction_for_explorer):
-    reveal_transaction_for_explorer[
-        "data_request"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    reveal_transaction_for_explorer["data_request"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         RevealTransactionForExplorer().load(reveal_transaction_for_explorer)
     assert (

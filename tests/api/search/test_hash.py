@@ -355,9 +355,9 @@ def test_search_data_request_history_RAD_page_1(client, data_request_history_rad
         "page": 1,
         "next_page": 2,
     }
-    data_request_history_rad["data_request_history"][
-        "history"
-    ] = data_request_history_rad["data_request_history"]["history"][:5]
+    data_request_history_rad["data_request_history"]["history"] = (
+        data_request_history_rad["data_request_history"]["history"][:5]
+    )
     assert json.loads(response.data) == data_request_history_rad
 
 
@@ -374,7 +374,7 @@ def test_search_data_request_history_RAD_page_2(client, data_request_history_rad
         "page": 2,
         "previous_page": 1,
     }
-    data_request_history_rad["data_request_history"][
-        "history"
-    ] = data_request_history_rad["data_request_history"]["history"][5:]
+    data_request_history_rad["data_request_history"]["history"] = (
+        data_request_history_rad["data_request_history"]["history"][5:]
+    )
     assert json.loads(response.data) == data_request_history_rad

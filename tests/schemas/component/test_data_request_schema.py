@@ -47,12 +47,12 @@ def test_data_request_failure_address(data_request):
 
 
 def test_data_request_failure_hash(data_request):
-    data_request[
-        "RAD_bytes_hash"
-    ] = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef012345678"
-    data_request[
-        "DRO_bytes_hash"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    data_request["RAD_bytes_hash"] = (
+        "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef012345678"
+    )
+    data_request["DRO_bytes_hash"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+    )
     with pytest.raises(ValidationError) as err_info:
         DataRequest().load(data_request)
     assert len(err_info.value.messages) == 2
@@ -380,9 +380,9 @@ def test_data_request_transaction_for_explorer_success_none(
 def test_data_request_transaction_for_explorer_failure_address(
     data_request_transaction_for_explorer,
 ):
-    data_request_transaction_for_explorer[
-        "output_address"
-    ] = "wit100000000000000000000000000000000r0v4g"
+    data_request_transaction_for_explorer["output_address"] = (
+        "wit100000000000000000000000000000000r0v4g"
+    )
     with pytest.raises(ValidationError) as err_info:
         DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
     assert (

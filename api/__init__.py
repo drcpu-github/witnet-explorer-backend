@@ -56,9 +56,9 @@ def create_app(mock=False):
     app.config["OPENAPI_VERSION"] = "3.0.3"
     app.config["OPENAPI_URL_PREFIX"] = "/api"
     app.config["OPENAPI_RAPIDOC_PATH"] = "/documentation"
-    app.config[
-        "OPENAPI_RAPIDOC_URL"
-    ] = "https://cdn.jsdelivr.net/npm/rapidoc/dist/rapidoc-min.js"
+    app.config["OPENAPI_RAPIDOC_URL"] = (
+        "https://cdn.jsdelivr.net/npm/rapidoc/dist/rapidoc-min.js"
+    )
     app.config["OPENAPI_RAPIDOC_CONFIG"] = {
         "allow-authentication": "false",
         "allow-spec-file-download": "true",

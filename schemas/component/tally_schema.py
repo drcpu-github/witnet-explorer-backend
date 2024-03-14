@@ -17,9 +17,9 @@ class TallyOutput(Schema):
         if len(args["output_addresses"]) < 1:
             errors["output_addresses"] = "Need at least one output address."
         if len(args["output_addresses"]) != len(args["output_values"]):
-            errors[
-                "output_values"
-            ] = "Size of output addresses and output values does not match."
+            errors["output_values"] = (
+                "Size of output addresses and output values does not match."
+            )
         if len(errors):
             raise ValidationError(errors)
 

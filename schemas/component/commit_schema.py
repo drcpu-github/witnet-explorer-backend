@@ -34,8 +34,8 @@ class CommitTransactionForExplorer(CommitTransactionForBlock, InputUtxoList):
         if len(args["input_values"]) < 1:
             errors["input_values"] = "Need at least one input value."
         if len(args["input_utxos"]) != len(args["input_values"]):
-            errors[
-                "input_utxos"
-            ] = "Number of input UTXO's and input values is different."
+            errors["input_utxos"] = (
+                "Number of input UTXO's and input values is different."
+            )
         if len(errors) > 0:
             raise ValidationError(errors)

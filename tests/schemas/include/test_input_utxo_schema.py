@@ -56,9 +56,9 @@ def test_input_utxo_pointer_success(input_utxo_pointer):
 
 
 def test_input_utxo_pointer_failure_pointer(input_utxo_pointer):
-    input_utxo_pointer[
-        "input_utxo"
-    ] = "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789:0"
+    input_utxo_pointer["input_utxo"] = (
+        "zbcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789:0"
+    )
     with pytest.raises(ValidationError) as err_info:
         InputUtxoPointer().load(input_utxo_pointer)
     assert (
