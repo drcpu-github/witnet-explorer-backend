@@ -5,6 +5,7 @@ def test_search_hash_data_request_pending(client):
     hash_value = "1bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == {
         "response_type": "pending",
         "pending": "Data request is pending.",
@@ -15,6 +16,7 @@ def test_search_hash_value_transfer_pending(client):
     hash_value = "2bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == {
         "response_type": "pending",
         "pending": "Value transfer is pending.",
@@ -27,6 +29,7 @@ def test_search_block_cached(client, blocks):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == blocks[hash_value]["cache"]
 
 
@@ -37,6 +40,7 @@ def test_search_block_not_cached(client, blocks):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == blocks[hash_value]["cache"]
 
 
@@ -46,6 +50,7 @@ def test_search_mint_cached(client, mints):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == mints[hash_value]
 
 
@@ -56,6 +61,7 @@ def test_search_mint_not_cached(client, mints):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == mints[hash_value]
 
 
@@ -65,6 +71,7 @@ def test_search_value_transfer_cached(client, value_transfers):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == value_transfers[hash_value]
 
 
@@ -75,6 +82,7 @@ def test_search_value_transfer_not_cached(client, value_transfers):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == value_transfers[hash_value]
 
 
@@ -85,6 +93,7 @@ def test_search_data_request_simple_not_cached(client, data_requests):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == data_requests[hash_value]["api"]
 
 
@@ -94,6 +103,7 @@ def test_search_commit_simple_cached(client, commits):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == commits[hash_value]
 
 
@@ -104,6 +114,7 @@ def test_search_commit_simple_not_cached(client, commits):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == commits[hash_value]
     assert cache.get(hash_value) is not None
 
@@ -114,6 +125,7 @@ def test_search_reveal_simple_cached(client, reveals):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == reveals[hash_value]
 
 
@@ -124,6 +136,7 @@ def test_search_reveal_simple_not_cached(client, reveals):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == reveals[hash_value]
     assert cache.get(hash_value) is not None
 
@@ -134,6 +147,7 @@ def test_search_tally_simple_cached(client, tallies):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == tallies[hash_value]
 
 
@@ -144,6 +158,7 @@ def test_search_tally_simple_not_cached(client, tallies):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}&simple=true")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == tallies[hash_value]
     assert cache.get(hash_value) is not None
 
@@ -154,6 +169,7 @@ def test_search_data_request_report_cached(client, data_request_reports):
     assert cache.get(hash_value) is not None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == data_request_reports[hash_value]
 
 
@@ -164,6 +180,7 @@ def test_search_data_request_report_not_cached(client, data_request_reports):
     assert cache.get(hash_value) is None
     response = client.get(f"/api/search/hash?value={hash_value}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == data_request_reports[hash_value]
     assert cache.get(hash_value) is not None
 
@@ -175,6 +192,7 @@ def test_search_data_request_report_from_commit_cached(client, data_request_repo
     commit_hash = "563eba0199a23283c0764bd8690522666ba56a5024eef7cc6f253be53efacb6a"
     response = client.get(f"/api/search/hash?value={commit_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "commit"
@@ -191,6 +209,7 @@ def test_search_data_request_report_from_commit_not_cached(
     commit_hash = "563eba0199a23283c0764bd8690522666ba56a5024eef7cc6f253be53efacb6a"
     response = client.get(f"/api/search/hash?value={commit_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "commit"
@@ -207,6 +226,7 @@ def test_search_data_request_report_from_cached_commit_cached(
     assert cache.get(commit_hash) is not None
     response = client.get(f"/api/search/hash?value={commit_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "commit"
@@ -220,6 +240,7 @@ def test_search_data_request_report_from_reveal_cached(client, data_request_repo
     reveal_hash = "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac"
     response = client.get(f"/api/search/hash?value={reveal_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "reveal"
@@ -236,6 +257,7 @@ def test_search_data_request_report_from_reveal_not_cached(
     reveal_hash = "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac"
     response = client.get(f"/api/search/hash?value={reveal_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "reveal"
@@ -252,6 +274,7 @@ def test_search_data_request_report_from_cached_reveal_cached(
     assert cache.get(reveal_hash) is not None
     response = client.get(f"/api/search/hash?value={reveal_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "reveal"
@@ -265,6 +288,7 @@ def test_search_data_request_report_from_tally_cached(client, data_request_repor
     tally_hash = "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11"
     response = client.get(f"/api/search/hash?value={tally_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "tally"
@@ -279,6 +303,7 @@ def test_search_data_request_report_from_tally_not_cached(client, data_request_r
     tally_hash = "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11"
     response = client.get(f"/api/search/hash?value={tally_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "tally"
@@ -295,6 +320,7 @@ def test_search_data_request_report_from_cached_tally_cached(
     assert cache.get(tally_hash) is not None
     response = client.get(f"/api/search/hash?value={tally_hash}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     # Need to replace the transaction type when building the data request report from the database
     response_data = data_request_reports[dr_hash]
     response_data["data_request_report"]["transaction_type"] = "tally"
@@ -305,6 +331,7 @@ def test_search_data_request_history_DRO_page_1(client, data_request_history_dro
     hash_value = "0332cb684de3bb0e9b2b0d8b43524eed7fc51b00fefa038ee3bf6f6ac9c7cc82"
     response = client.get(f"/api/search/hash?value={hash_value}&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 4,
         "total_pages": 1,
@@ -319,6 +346,7 @@ def test_search_data_request_history_RAD_page_1(client, data_request_history_rad
     hash_value = "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a"
     response = client.get(f"/api/search/hash?value={hash_value}&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 8,
         "total_pages": 2,
@@ -337,6 +365,7 @@ def test_search_data_request_history_RAD_page_2(client, data_request_history_rad
     hash_value = "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a"
     response = client.get(f"/api/search/hash?value={hash_value}&page_size=5&page=2")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 8,
         "total_pages": 2,

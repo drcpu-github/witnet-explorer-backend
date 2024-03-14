@@ -8,6 +8,7 @@ def test_utxos_cached(client, address_data):
     assert client.application.extensions["cache"].get(f"{address_2}_utxos") is not None
     response = client.get(f"/api/address/utxos?addresses={address_1},{address_2}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data)[0] == {
         "address": address_1,
         "utxos": address_data[address_1]["utxos"],
@@ -27,6 +28,7 @@ def test_utxos_not_cached(client, address_data):
     assert client.application.extensions["cache"].get(f"{address_2}_utxos") is None
     response = client.get(f"/api/address/utxos?addresses={address_1},{address_2}")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data)[0] == {
         "address": address_1,
         "utxos": address_data[address_1]["utxos"],

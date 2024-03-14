@@ -4,6 +4,7 @@ import json
 def test_balances_page_1(client, balances):
     response = client.get("/api/network/balances?page=1&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 16,
         "total_pages": 4,
@@ -23,6 +24,7 @@ def test_balances_page_1(client, balances):
 def test_balances_page_2(client, balances):
     response = client.get("/api/network/balances?page=2&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 16,
         "total_pages": 4,
@@ -43,6 +45,7 @@ def test_balances_page_2(client, balances):
 def test_balances_page_201(client, balances):
     response = client.get("/api/network/balances?page=201&page_size=5")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 16,
         "total_pages": 4,

@@ -14,6 +14,7 @@ def test_mempool_data_requests_cached(client, network_mempool):
         "/api/network/mempool?transaction_type=data_requests&start_epoch=2074446&stop_epoch=2074466"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == network_mempool[cache_key]
 
 
@@ -26,6 +27,7 @@ def test_mempool_data_requests_not_cached(client, network_mempool):
         "/api/network/mempool?transaction_type=data_requests&start_epoch=2074446&stop_epoch=2074466"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == network_mempool[cache_key]
     assert cache.get(cache_key) is not None
 
@@ -38,6 +40,7 @@ def test_mempool_value_transfers_cached(client, network_mempool):
         "/api/network/mempool?transaction_type=value_transfers&start_epoch=2074446&stop_epoch=2074466"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == network_mempool[cache_key]
 
 
@@ -50,6 +53,7 @@ def test_mempool_value_transfers_not_cached(client, network_mempool):
         "/api/network/mempool?transaction_type=value_transfers&start_epoch=2074446&stop_epoch=2074466"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.data) == network_mempool[cache_key]
     assert cache.get(cache_key) is not None
 

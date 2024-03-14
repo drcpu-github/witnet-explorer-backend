@@ -7,6 +7,7 @@ def test_value_transfers_cached_page_1(client, address_data):
     assert cache.get(f"{address}_value-transfers") is not None
     response = client.get(f"/api/address/value-transfers?address={address}&page_size=3")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 5,
         "total_pages": 2,
@@ -26,6 +27,7 @@ def test_value_transfers_cached_page_2(client, address_data):
         f"/api/address/value-transfers?address={address}&page=2&page_size=3"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 5,
         "total_pages": 2,
@@ -44,6 +46,7 @@ def test_value_transfers_not_cached_page_1(client, address_data):
     assert cache.get(f"{address}_value-transfers") is None
     response = client.get(f"/api/address/value-transfers?address={address}&page_size=3")
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 5,
         "total_pages": 2,
@@ -64,6 +67,7 @@ def test_value_transfers_not_cached_page_2(client, address_data):
         f"/api/address/value-transfers?address={address}&page=2&page_size=3"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 5,
         "total_pages": 2,

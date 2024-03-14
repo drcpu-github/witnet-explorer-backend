@@ -9,6 +9,7 @@ def test_data_requests_solved_cached_page_1(client, address_data):
         f"/api/address/data-requests-solved?address={address}&page_size=5"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 6,
         "total_pages": 2,
@@ -30,6 +31,7 @@ def test_data_requests_solved_cached_page_2(client, address_data):
         f"/api/address/data-requests-solved?address={address}&page=2&page_size=5"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 6,
         "total_pages": 2,
@@ -52,6 +54,7 @@ def test_data_requests_solved_not_cached_page_1(client, address_data):
         f"/api/address/data-requests-solved?address={address}&page_size=5"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 6,
         "total_pages": 2,
@@ -74,6 +77,7 @@ def test_data_requests_solved_not_cached_page_2(client, address_data):
         f"/api/address/data-requests-solved?address={address}&page=2&page_size=5"
     )
     assert response.status_code == 200
+    assert response.headers["x-version"] == "1.0.0"
     assert json.loads(response.headers["X-Pagination"]) == {
         "total": 6,
         "total_pages": 2,
