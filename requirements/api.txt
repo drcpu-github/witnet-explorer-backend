@@ -1,10 +1,10 @@
 cbor==1.0.0
 Flask==2.3.2
 flask_smorest==0.42.0
-gevent==23.7.0
+gevent==24.2.1
 gunicorn==21.2.0
 marshmallow==3.20.1
-Pillow==10.0.0
+Pillow==10.2.0
 psycopg==3.1.12
 psycopg-pool==3.1.8
 pylibmc==1.6.1
