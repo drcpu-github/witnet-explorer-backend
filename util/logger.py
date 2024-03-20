@@ -48,6 +48,8 @@ def configure_rotating_logger(log_tag, log_filename, log_level):
     logger = logging.getLogger(log_tag)
     logger.setLevel(logging.DEBUG)
 
+    logger.handlers.clear()
+
     # Get log file parts
     dirname = os.path.dirname(log_filename)
     filename, extension = os.path.splitext(os.path.basename(log_filename))
