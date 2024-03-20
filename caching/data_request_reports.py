@@ -30,7 +30,7 @@ class DataRequestReports(Client):
 
         self.cache_time_warning = config["api"]["caching"]["scripts"]["data_request_reports"]["cache_time_warning"]
 
-    def process_data_requests(self):
+    def process_data_requests(self, force_update):
         start = time.perf_counter()
 
         last = self.database.sql_return_one(sql_last_block)
@@ -80,7 +80,7 @@ class DataRequestReports(Client):
             data_request_report = self.memcached_client.get(txn_hash)
 
             # Was the data request report already present in the cache?
-            if not data_request_report:
+            if not data_request_report or force_update:
                 data_request_report = self.cache_data_request_report(txn_hash, epoch, inner_start)
                 if data_request_report == None:
                     continue
@@ -175,6 +175,7 @@ class DataRequestReports(Client):
 def main():
     parser = optparse.OptionParser()
     parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file", help="Specify a configuration file")
+    parser.add_option("--force-update", action="store_true", dest="force_update", help="Use this flag to force an update of all data request reports which should be cached")
     options, args = parser.parse_args()
 
     if options.config_file == None:
@@ -186,7 +187,7 @@ def main():
 
     # Create data request report cache
     report_cache = DataRequestReports(config)
-    report_cache.process_data_requests()
+    report_cache.process_data_requests(options.force_update)
 
 if __name__ == "__main__":
     main()
