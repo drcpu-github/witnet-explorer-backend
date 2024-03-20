@@ -93,6 +93,11 @@ class Blocks(Client):
                     new_blocks += 1
 
                     confirmed = json_block["details"]["confirmed"]
+                    # track the last epoch for which we successfully added a confirmed block to the cache
+                    # on the next execution of this script, it will start processing blocks from that epoch
+                    if confirmed:
+                        blocks_epoch = epoch
+
                     self.logger.info(f"Built {'confirmed' if confirmed else 'unconfirmed'} block {block_hash} for epoch {epoch} and added it to the memcached cache in {time.perf_counter() - inner_start:.2f}s")
                 except pylibmc.TooBig as e:
                     self.logger.warning(f"Built block {block_hash} for epoch {epoch} in {time.perf_counter() - inner_start:.2f}s, but could not save it in the memcached instance because its size exceeded 1MB")
