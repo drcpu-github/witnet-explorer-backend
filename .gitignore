@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 logs
 *.log
+env
 venv
 .idea
 .env
