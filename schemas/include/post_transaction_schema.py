@@ -56,7 +56,7 @@ class TransactionSecp256k1(Schema):
 
 class TransactionSignatures(Schema):
     public_key = fields.Nested(TransactionPublicKey, required=True)
-    signature = fields.Mapping(
+    signature = fields.Dict(
         keys=fields.Str(required=True, validate=validate.Equal("Secp256k1")),
         values=fields.Nested(TransactionSecp256k1, required=True),
         required=True,
