@@ -1,6 +1,6 @@
 import json
 
-import cbor
+import cbor2
 
 from blockchain.transactions.transaction import Transaction
 from schemas.component.tally_schema import (
@@ -221,18 +221,18 @@ class Tally(Transaction):
 def translate_tally(txn_hash, tally):
     success = True
 
-    translation = cbor.loads(bytearray(tally))
+    translation = cbor2.loads(bytearray(tally))
     if isinstance(translation, bytes):
         translation = translation.hex()
     else:
         translation = str(translation)
 
-    # If the translation starts with 'Tag(39, ' there was a RADON error
-    if translation.startswith("Tag(39, "):
+    # If the translation starts with 'CBORTag(39, ' there was a RADON error
+    if translation.startswith("CBORTag(39, "):
         success = False
         try:
             # Extract the array containing the error code and potentially some extra metadata
-            translation_error_data = translation[8:-1]
+            translation_error_data = translation[12:-1]
 
             # Replace the quotes in the potentially included metadata
             translation_error_data = translation_error_data.replace('"', "")

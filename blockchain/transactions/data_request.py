@@ -1,6 +1,6 @@
 import re
 
-import cbor
+import cbor2
 
 from blockchain.transactions.transaction import Transaction
 from schemas.component.data_request_schema import (
@@ -403,7 +403,7 @@ def translate_script(script):
     translator = RadonTranslator()
 
     translation = ""
-    for op in list(cbor.loads(bytearray(script))):
+    for op in list(cbor2.loads(bytearray(script))):
         if type(op) is int:
             translation += translator.hex2str(op, "opcode") + "()."
         else:
@@ -418,7 +418,7 @@ def translate_filters(filters):
     for filt, arg in filters:
         translation += "filter(" + translator.hex2str(filt, "filter")
         if len(arg) > 0:
-            translation += ", " + str(cbor.loads(bytearray(arg))) + ")."
+            translation += ", " + str(cbor2.loads(bytearray(arg))) + ")."
         else:
             translation += ")."
     return translation[:-1]

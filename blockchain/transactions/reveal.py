@@ -1,6 +1,6 @@
 import json
 
-import cbor
+import cbor2
 
 from blockchain.transactions.transaction import Transaction
 from schemas.component.reveal_schema import (
@@ -191,7 +191,7 @@ class Reveal(Transaction):
 
 def translate_reveal(txn_hash, reveal):
     success = True
-    translation = cbor.loads(bytearray(reveal))
+    translation = cbor2.loads(bytearray(reveal))
 
     if isinstance(translation, bytes):
         translation = translation.hex()
