@@ -2,8 +2,8 @@
 include_trailing_comma = "true"
 known_third_party = [
     "PIL",
-    "cbor",
-    "flask",
+    "cbor2",
+    "Flask",
     "marshmallow",
     "matplotlib",
     "numpy",

@@ -8,7 +8,9 @@ You will have to install following dependencies to run the explorer locally:
 sudo apt-get install git python3 python3-pip python3-virtualenv nginx gunicorn postgresql postgresql-contrib libpq-dev screen memcached libmemcached-dev libmemcached-tools sasl2-bin libpcre3-dev libxml2-dev libxslt1-dev libgd-dev
 ```
 
-The minimum required version for PostgreSQL is 15.
+Minimum required versions:
+- Python 3.10
+- PostgreSQL 15
 
 ## Install the most recent Nginx version (optional)
 
