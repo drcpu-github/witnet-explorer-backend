@@ -71,6 +71,7 @@ class SearchEpoch(MethodView):
 
         # Fetch block from a node
         block = Block(
+            config,
             consensus_constants,
             block_epoch=epoch,
             logger=logger,

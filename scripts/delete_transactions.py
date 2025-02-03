@@ -36,7 +36,7 @@ def main():
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)
-    db_mngr = DatabaseManager(config["database"])
+    db_mngr = DatabaseManager(config)
 
     if options.hashes is not None:
         hashes = options.hashes.split(",")

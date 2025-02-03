@@ -6,11 +6,11 @@ from psycopg.types.composite import CompositeInfo, register_composite
 
 class DatabasePool(object):
     def __init__(self, config, logger=None):
-        self.user = config["user"]
-        self.database = config["name"]
-        self.password = config["password"]
-        self.fetch_rows = config["fetch_rows"]
-        self.min_connections = config["min_connections"]
+        self.user = config["database"]["user"]
+        self.database = f"{config['database']['name']}_{config['environment']['network']}"
+        self.password = config["database"]["password"]
+        self.fetch_rows = config["database"]["fetch_rows"]
+        self.min_connections = config["database"]["min_connections"]
 
         self.logger = logger
 

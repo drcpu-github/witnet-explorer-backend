@@ -34,6 +34,7 @@ def add_block(
 
     if block_epoch:
         block = Block(
+            config,
             consensus_constants,
             block_epoch=block_epoch,
             database=db_mngr,
@@ -42,6 +43,7 @@ def add_block(
         )
     else:
         block = Block(
+            config,
             consensus_constants,
             block_hash=block_hash,
             database=db_mngr,
@@ -55,7 +57,7 @@ def add_block(
     epoch = block_json["details"]["epoch"]
     print(f"Adding block {block_json['details']['hash']} for epoch {epoch}")
 
-    witnet_database = WitnetDatabase(config["database"])
+    witnet_database = WitnetDatabase(config)
     witnet_database.insert_block(block_json)
     witnet_database.insert_mint_txn(block_json["transactions"]["mint"], epoch)
     for txn_details in block_json["transactions"]["value_transfer"]:
@@ -88,7 +90,7 @@ def main():
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)
-    db_mngr = DatabaseManager(config["database"])
+    db_mngr = DatabaseManager(config)
     witnet_node = WitnetNode(config["node-pool"], timeout=300)
     consensus_constants = ConsensusConstants(database=db_mngr, witnet_node=witnet_node)
 

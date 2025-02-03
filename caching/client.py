@@ -26,7 +26,7 @@ class Client(object):
         # Connect to database
         try:
             self.database = DatabaseManager(
-                config["database"],
+                config,
                 named_cursor=named_cursor,
                 logger=self.logger,
                 custom_types=["utxo", "filter"],

@@ -14,21 +14,21 @@ from util.database_manager import DatabaseManager
 class DataRequestReport(object):
     def __init__(
         self,
-        transaction_type,
-        transaction_hash,
+        config,
         consensus_constants,
+        transaction_hash,
+        transaction_type,
         logger=None,
         log_queue=None,
         database=None,
-        database_config=None,
     ):
-        self.transaction_type = transaction_type
-        self.transaction_hash = transaction_hash
-
         self.consensus_constants = consensus_constants
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
         self.collateral_minimum = consensus_constants.collateral_minimum
+
+        self.transaction_hash = transaction_hash
+        self.transaction_type = transaction_type
 
         # Set up logger
         if logger:
@@ -42,12 +42,10 @@ class DataRequestReport(object):
 
         if database:
             self.database = database
-        elif database_config:
-            self.database = DatabaseManager(
-                database_config, logger=self.logger, custom_types=["utxo", "filter"]
-            )
         else:
-            self.database = None
+            self.database = DatabaseManager(
+                config, logger=self.logger, custom_types=["utxo", "filter"]
+            )
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)

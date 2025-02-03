@@ -1,10 +1,12 @@
 import json
 
 import pytest
+import toml
 
-from tests.schemas.include.test_post_transaction_schema import (  # noqa: F401
-    value_transfer,
-)
+
+@pytest.fixture
+def config():
+    return toml.load(open("explorer.testnet.toml"))
 
 
 @pytest.fixture

@@ -10,24 +10,31 @@ from util.database_manager import DatabaseManager
 class WIP(object):
     def __init__(
         self,
+        config=None,
         database=None,
-        database_config=None,
         witnet_node=None,
-        node_config=None,
         mockup=False,
     ):
         if database:
             self.db_mngr = database
             self.fetch_wips()
-        elif database_config:
-            self.db_mngr = DatabaseManager(database_config)
+        elif config is not None:
+            self.db_mngr = DatabaseManager(config)
             self.fetch_wips()
+        else:
+            AssertionError(
+                "Need to pass a database object or configuration settings to create one"
+            )
 
         self.witnet_node = None
         if witnet_node is not None:
             self.witnet_node = witnet_node
-
-        self.node_config = node_config
+        elif config is not None:
+            self.witnet_node = WitnetNode(config["node-pool"])
+        else:
+            AssertionError(
+                "Need to pass a witnet node object or configuration settings to create one"
+            )
 
         self.mockup = mockup
         if self.mockup:
@@ -234,9 +241,6 @@ class WIP(object):
             sys.stderr.write("Cannot process TAPI signals on a mockup\n")
             return
 
-        if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.node_config)
-
         for wip in self.wips:
             (
                 wip_id,
@@ -409,7 +413,7 @@ def main():
     config = toml.load(options.config_file)
 
     # Run some tests
-    wip = WIP(database_config=config["database"], node_config=config["node-pool"])
+    wip = WIP(config=config)
 
     assert wip.is_wip0008_active(191999) is False
     assert wip.is_wip0008_active(192000) is True

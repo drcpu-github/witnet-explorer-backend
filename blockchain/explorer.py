@@ -39,24 +39,24 @@ class BlockExplorer(object):
         # Set up logging queue for logging from different processes
         self.log_queue = log_queue
 
-        # Get configuration to connect to the node pool
-        self.node_config = config["node-pool"]
+        # Save the configuration
+        self.config = config
 
         # Create nodes to connect to the node pool
         self.insert_blocks_node = WitnetNode(
-            self.node_config,
+            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-insert",
         )
         self.confirm_blocks_node = WitnetNode(
-            self.node_config,
+            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-confirm",
         )
         self.insert_pending_node = WitnetNode(
-            self.node_config,
+            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-pending",
@@ -64,21 +64,18 @@ class BlockExplorer(object):
 
         # Get consensus constants
         self.consensus_constants = ConsensusConstants(
-            config=config, error_retry=error_retry
+            config=self.config, error_retry=error_retry
         )
-
-        # Get configuration to connect to the database
-        self.database_config = config["database"]
 
         # Create database objects
         self.insert_blocks_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-insert"
+            self.config, log_queue=self.log_queue, log_label="db-insert"
         )
         self.confirm_blocks_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-confirm"
+            self.config, log_queue=self.log_queue, log_label="db-confirm"
         )
         self.mempool_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-pending"
+            self.config, log_queue=self.log_queue, log_label="db-pending"
         )
 
         # Get configuration to connect to the address caching server
@@ -99,13 +96,14 @@ class BlockExplorer(object):
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
         # Create block object and parse it to a JSON object
         block = Block(
+            self.config,
             self.consensus_constants,
+            block=block,
             block_hash=block_hash_hex_str,
             log_queue=self.log_queue,
-            database_config=self.database_config,
-            block=block,
+            database=self.insert_blocks_database,
             tapi_periods=tapi_periods,
-            node_config=self.node_config,
+            witnet_node=self.insert_blocks_node,
         )
         block_json = block.process_block("explorer")
 
@@ -570,10 +568,10 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             data_request = DataRequest(
+                self.config,
                 self.consensus_constants,
+                database=self.mempool_database,
                 logger=logger,
-                database_config=self.database_config,
-                node_config=self.node_config,
             )
             for transaction in transactions_pool["data_request"]:
                 if transaction in mapped_data_requests:
@@ -613,10 +611,10 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             value_transfer = ValueTransfer(
+                self.config,
                 self.consensus_constants,
+                database=self.mempool_database,
                 logger=logger,
-                database_config=self.database_config,
-                node_config=self.node_config,
             )
             for transaction in transactions_pool["value_transfer"]:
                 if transaction in mapped_value_transfers:

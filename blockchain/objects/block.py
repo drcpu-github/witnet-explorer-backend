@@ -16,18 +16,20 @@ from util.database_manager import DatabaseManager
 class Block(object):
     def __init__(
         self,
+        config,
         consensus_constants,
+        block=None,
         block_hash="",
         block_epoch=-1,
         logger=None,
         log_queue=None,
         database=None,
-        database_config=None,
-        block=None,
         tapi_periods=None,
         witnet_node=None,
-        node_config=None,
     ):
+        self.config = config
+
+        self.block = block
         self.block_hash = block_hash
         self.block_epoch = block_epoch
 
@@ -49,27 +51,20 @@ class Block(object):
 
         if database:
             self.database = database
-        elif database_config:
-            self.database = DatabaseManager(database_config, logger=self.logger)
         else:
-            self.database = None
+            self.database = DatabaseManager(config, logger=self.logger)
 
-        if database_config:
-            self.database_config = database_config
-
-        if node_config:
-            self.node_config = node_config
-
-        self.witnet_node = None
+        # Connect to node pool
         if witnet_node:
             self.witnet_node = witnet_node
+        else:
+            self.witnet_node = WitnetNode(config["node-pool"], logger=self.logger)
 
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
 
+        # Attempt to create the block
         if block is None:
             self.block = self.get_block()
-        else:
-            self.block = block
         self.block_json = None
 
         self.tapi_periods = tapi_periods
@@ -82,21 +77,14 @@ class Block(object):
         root.setLevel(logging.DEBUG)
 
     def get_block(self):
-        # Connect to node pool
-        if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
-
         # No block hash specified, check if we can fetch it based on a block epoch
         if self.block_hash == "":
             # Log and return warnings if necessary
             if self.block_epoch == -1:
                 return self.return_block_error("No block hash or block epoch specified")
-            if not self.database:
-                return self.return_block_error("No database found to fetch block hash")
 
             # Fetch block hash from the database
-            sql = (
-                """
+            sql = """
                 SELECT
                     block_hash,
                     epoch
@@ -105,9 +93,9 @@ class Block(object):
                 WHERE
                     epoch=%s
             """
-                % self.block_epoch
+            block_hash = self.database.sql_return_one(
+                sql, parameters=[self.block_epoch]
             )
-            block_hash = self.database.sql_return_one(sql)
 
             if block_hash:
                 self.block_hash = block_hash[0].hex()
@@ -220,27 +208,26 @@ class Block(object):
         txn_hash = self.block["txns_hashes"]["mint"]
         json_txn = self.block["txns"]["mint"]
         block_signature = self.block["block_sig"]["public_key"]
-        mint = Mint(self.consensus_constants, logger=self.logger)
+        mint = Mint(
+            self.config,
+            self.consensus_constants,
+            database=self.database,
+            logger=self.logger,
+            witnet_node=self.witnet_node,
+        )
         mint.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
         return mint.process_transaction(block_signature)
 
     def process_value_transfer_txns(self, call_from):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
-            if self.witnet_node:
-                value_transfer = ValueTransfer(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    witnet_node=self.witnet_node,
-                )
-            else:
-                value_transfer = ValueTransfer(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    node_config=self.node_config,
-                )
+            value_transfer = ValueTransfer(
+                self.config,
+                self.consensus_constants,
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
             for i, (txn_hash, txn_weight) in enumerate(
                 zip(
                     self.block["txns_hashes"]["value_transfer"],
@@ -259,20 +246,13 @@ class Block(object):
     def process_data_request_txns(self, call_from):
         data_request_transactions = []
         if len(self.block["txns_hashes"]["data_request"]) > 0:
-            if self.witnet_node:
-                data_request = DataRequest(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    witnet_node=self.witnet_node,
-                )
-            else:
-                data_request = DataRequest(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    node_config=self.node_config,
-                )
+            data_request = DataRequest(
+                self.config,
+                self.consensus_constants,
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
             for i, (txn_hash, txn_weight) in enumerate(
                 zip(
                     self.block["txns_hashes"]["data_request"],
@@ -291,20 +271,13 @@ class Block(object):
     def process_commit_txns(self, call_from):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
-            if self.witnet_node:
-                commit = Commit(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    witnet_node=self.witnet_node,
-                )
-            else:
-                commit = Commit(
-                    self.consensus_constants,
-                    logger=self.logger,
-                    database=self.database,
-                    node_config=self.node_config,
-                )
+            commit = Commit(
+                self.config,
+                self.consensus_constants,
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
             for i, txn_hash in enumerate(self.block["txns_hashes"]["commit"]):
                 json_txn = self.block["txns"]["commit_txns"][i]
                 commit.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
@@ -314,7 +287,13 @@ class Block(object):
     def process_reveal_txns(self, call_from):
         reveal_transactions = []
         if len(self.block["txns_hashes"]["reveal"]) > 0:
-            reveal = Reveal(self.consensus_constants, logger=self.logger)
+            reveal = Reveal(
+                self.config,
+                self.consensus_constants,
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
             for i, txn_hash in enumerate(self.block["txns_hashes"]["reveal"]):
                 json_txn = self.block["txns"]["reveal_txns"][i]
                 reveal.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
@@ -324,7 +303,13 @@ class Block(object):
     def process_tally_txns(self, call_from):
         tally_transactions = []
         if len(self.block["txns_hashes"]["tally"]) > 0:
-            tally = Tally(self.consensus_constants, logger=self.logger)
+            tally = Tally(
+                self.config,
+                self.consensus_constants,
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
             for i, txn_hash in enumerate(self.block["txns_hashes"]["tally"]):
                 json_txn = self.block["txns"]["tally_txns"][i]
                 tally.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)

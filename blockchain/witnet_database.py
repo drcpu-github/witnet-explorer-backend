@@ -7,7 +7,7 @@ from util.database_manager import DatabaseManager
 class WitnetDatabase(object):
     def __init__(
         self,
-        db_config,
+        config,
         named_cursor=False,
         logger=None,
         log_queue=None,
@@ -23,7 +23,7 @@ class WitnetDatabase(object):
             self.logger = None
 
         self.db_mngr = DatabaseManager(
-            db_config, named_cursor=named_cursor, logger=self.logger
+            config, named_cursor=named_cursor, logger=self.logger
         )
 
         # Register types created for this database
@@ -591,12 +591,12 @@ class WitnetDatabase(object):
         self.finalize()
         self.db_mngr.terminate()
 
-    def sql_return_one(self, sql):
-        result = self.db_mngr.sql_return_one(sql)
+    def sql_return_one(self, sql, parameters=None):
+        result = self.db_mngr.sql_return_one(sql, parameters=parameters)
         return result
 
-    def sql_return_all(self, sql):
-        result = self.db_mngr.sql_return_all(sql)
+    def sql_return_all(self, sql, parameters=None):
+        result = self.db_mngr.sql_return_all(sql, parameters=parameters)
         return result
 
     def sql_execute_many(self, sql, data):

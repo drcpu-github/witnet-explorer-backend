@@ -132,7 +132,7 @@ class DataRequestReports(Client):
 
     def cache_data_request_report(self, txn_hash, epoch, inner_start):
         # Build data request report
-        data_request = DataRequestReport("data_request", txn_hash, self.consensus_constants, logger=self.logger, database=self.database)
+        data_request = DataRequestReport(self.config, self.consensus_constants, txn_hash, "data_request", logger=self.logger, database=self.database)
         try:
             data_request_report = data_request.get_report()
             if "error" in data_request_report:

@@ -176,6 +176,7 @@ class SearchHash(MethodView):
         if hash_type == "block":
             # Fetch block from a node
             block = Block(
+                config,
                 consensus_constants,
                 block_hash=hash_value,
                 logger=logger,
@@ -545,9 +546,10 @@ class SearchHash(MethodView):
             # Create data request report for this hash
             else:
                 data_request_report = DataRequestReport(
-                    hash_type[:-4],
-                    hash_value,
+                    config,
                     consensus_constants,
+                    hash_value,
+                    hash_type[:-4],
                     logger=logger,
                     database=database,
                 )

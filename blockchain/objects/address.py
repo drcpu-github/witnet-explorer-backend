@@ -1,10 +1,13 @@
 import time
 
+from psycopg.sql import SQL, Literal
+
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
 from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.common_functions import calculate_block_reward
+from util.data_transformer import re_sql
 from util.database_manager import DatabaseManager
 
 
@@ -49,7 +52,7 @@ class Address(object):
         # Connect to the database if necessary
         if self.db_mngr is None:
             self.db_mngr = DatabaseManager(
-                self.config["database"], named_cursor=False, logger=self.logger
+                self.config, named_cursor=False, logger=self.logger
             )
 
         # Connect to node pool
@@ -140,14 +143,14 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                output_addresses @> ARRAY[%s]::CHAR(42)[] AND
+                output_addresses @> ARRAY[%s]::CHAR({length})[] AND
                 NOT (%s = ANY(input_addresses))
             ORDER BY
                 blocks.epoch
             DESC
         """
         result = self.db_mngr.sql_return_all(
-            sql,
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
             parameters=[self.address, self.address],
         )
 
@@ -228,12 +231,15 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                input_addresses @> ARRAY[%s]::CHAR(42)[]
+                input_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
                 blocks.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         value_transfers_out = []
         if result:
@@ -383,12 +389,15 @@ class Address(object):
             LEFT JOIN blocks ON
                 mint_txns.epoch=blocks.epoch
             WHERE
-                mint_txns.output_addresses @> ARRAY[%s]::CHAR(42)[]
+                mint_txns.output_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
                 mint_txns.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         mints = []
         if result:
@@ -543,12 +552,15 @@ class Address(object):
             ON
                 tally_txns.epoch=blocks.epoch
             WHERE
-                data_request_txns.input_addresses @> ARRAY[%s]::CHAR(42)[]
+                data_request_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
                 data_request_txns.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         data_requests_created = []
         if result:

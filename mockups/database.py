@@ -30,12 +30,22 @@ class MockDatabase(object):
         # commit is a reserved keyword, replace it with 'commit'
         if "commit," in sql:
             sql = sql.replace("commit,", '"commit",')
-        # replace 'in-array' where-clause: @> ARRAY[?]::CHAR(42)[]
+        # replace 'in-array' where-clause: @> ARRAY[?]::CHAR(42)[] for mainnet
         if "@> ARRAY[?]::CHAR(42)[]" in sql:
             sql = sql.replace("@> ARRAY[?]::CHAR(42)[]", "LIKE ?")
             new_parameters = []
             for parameter in parameters:
                 if parameter.startswith("wit1"):
+                    new_parameters.append("%" + parameter + "%")
+                else:
+                    new_parameters.append(parameter)
+            parameters = new_parameters
+        # replace 'in-array' where-clause: @> ARRAY[?]::CHAR(43)[] for testnet
+        if "@> ARRAY[?]::CHAR(43)[]" in sql:
+            sql = sql.replace("@> ARRAY[?]::CHAR(43)[]", "LIKE ?")
+            new_parameters = []
+            for parameter in parameters:
+                if parameter.startswith("twit1"):
                     new_parameters.append("%" + parameter + "%")
                 else:
                     new_parameters.append(parameter)
@@ -47,9 +57,7 @@ class MockDatabase(object):
             for i, line in enumerate(sql_lines):
                 if pattern in line:
                     column = line.replace(pattern, "")
-                    column = column.replace(")", "")
-                    column = column.strip()
-                    sql_lines[i] = f"{column} NOT LIKE ?"
+                    sql_lines[i] = column.replace("))", " NOT LIKE ?")
                     break
             sql = " ".join(sql_lines)
         # replace the ANY operator
@@ -177,6 +185,8 @@ class MockDatabase(object):
         if isinstance(composable, psycopg.sql.Composed):
             return "".join([self.composable_as_string(x, encoding) for x in composable])
         elif isinstance(composable, psycopg.sql.SQL):
+            return composable.as_string(None)
+        elif isinstance(composable, psycopg.sql.Literal):
             return composable.as_string(None)
         else:
             return " ,".join(composable._obj)

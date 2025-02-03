@@ -1,3 +1,7 @@
+# network: set the environment on which the explorer operates (mainnet or testnet)
+[environment]
+network = "mainnet"
+
 # user: postgresql database user
 # name: postgresql database name
 # password: postgresql database password

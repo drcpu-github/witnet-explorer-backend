@@ -3,11 +3,11 @@ from psycopg.types.composite import CompositeInfo, register_composite
 import sys
 
 class DatabaseManager(object):
-    def __init__(self, db_config, named_cursor=False, logger=None, custom_types=[]):
-        self.db_user = db_config["user"]
-        self.db_name = db_config["name"]
-        self.db_pass = db_config["password"]
-        self.fetch_rows = db_config["fetch_rows"]
+    def __init__(self, config, named_cursor=False, logger=None, custom_types=[]):
+        self.db_user = config["database"]["user"]
+        self.db_name = f"{config['database']['name']}_{config['environment']['network']}"
+        self.db_pass = config["database"]["password"]
+        self.fetch_rows = config["database"]["fetch_rows"]
 
         self.named_cursor = named_cursor
 

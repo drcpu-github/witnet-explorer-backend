@@ -20,15 +20,10 @@ class ConsensusConstants(object):
             # First try to fetch the consensus constants from the database
             database_created = False
             if database is None:
-                database = DatabaseManager(config["database"])
+                database = DatabaseManager(config)
                 database_created = True
 
-            sql = """
-                SELECT
-                    *
-                FROM
-                    consensus_constants
-            """
+            sql = "SELECT * FROM consensus_constants"
             if hasattr(database, "named_cursor") and database.named_cursor:
                 database.reset_cursor()
             fetched_consensus_constants = database.sql_return_all(sql)

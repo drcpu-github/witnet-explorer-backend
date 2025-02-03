@@ -20,7 +20,7 @@ def get_consensus_constants(config):
 
 
 def insert_consensus_constants(config, consensus_constants):
-    db_mngr = DatabaseManager(config["database"])
+    db_mngr = DatabaseManager(config)
 
     for key, value in consensus_constants.items():
         if isinstance(value, int) or isinstance(value, float):

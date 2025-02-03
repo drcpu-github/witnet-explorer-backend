@@ -15,12 +15,11 @@ from util.protobuf_encoder import ProtobufEncoder
 class Transaction(object):
     def __init__(
         self,
+        config,
         consensus_constants,
-        logger=None,
         database=None,
-        database_config=None,
+        logger=None,
         witnet_node=None,
-        node_config=None,
     ):
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
@@ -29,19 +28,10 @@ class Transaction(object):
         # Connect to the database
         if database is not None:
             self.database = database
-        elif database_config is not None:
-            self.database = DatabaseManager(
-                database_config, logger=logger, custom_types=["utxo", "filter"]
-            )
         else:
-            self.database = None
-
-        # Save node pool config
-        self.node_config = node_config
-
-        self.witnet_node = None
-        if witnet_node is not None:
-            self.witnet_node = witnet_node
+            self.database = DatabaseManager(
+                config, logger=logger, custom_types=["utxo", "filter"]
+            )
 
         # Set up logger
         if logger:
@@ -49,17 +39,23 @@ class Transaction(object):
         else:
             self.logger = None
 
+        # Connect to the witnet node pool
+        if witnet_node is not None:
+            self.witnet_node = witnet_node
+        else:
+            self.witnet_node = WitnetNode(config["node-pool"], logger=self.logger)
+
         # Create address generator
-        self.address_generator = AddressGenerator("wit")
+        address_prefix = None
+        if config["environment"]["network"] == "mainnet":
+            address_prefix = "wit"
+        elif config["environment"]["network"] == "testnet":
+            address_prefix = "twit"
+        assert address_prefix, "Need to properly set the network type"
+        self.address_generator = AddressGenerator(address_prefix)
 
         # Create Protobuf encoder
-        self.protobuf_encoder = None
-        if database is not None:
-            self.protobuf_encoder = ProtobufEncoder(WIP(database=database))
-        elif database_config is not None:
-            self.protobuf_encoder = ProtobufEncoder(
-                WIP(database_config=database_config)
-            )
+        self.protobuf_encoder = ProtobufEncoder(WIP(database=self.database))
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -99,8 +95,6 @@ class Transaction(object):
         return addresses
 
     def get_inputs(self, txn_inputs):
-        assert self.database is not None
-
         input_utxos, input_values = [], []
         for txn_input in txn_inputs:
             # Get the transaction and output index from the output pointer
@@ -199,10 +193,6 @@ class Transaction(object):
         return output_addresses, output_values, timelocks
 
     def get_transaction_from_node(self, txn_hash):
-        # Create connection to the node pool
-        if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.node_config, logger=self.logger)
-
         transaction = self.witnet_node.get_transaction(txn_hash)
         while "error" in transaction:
             # All our nodes in the pool were busy, retry as soon as possible
