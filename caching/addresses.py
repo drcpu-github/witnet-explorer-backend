@@ -202,7 +202,7 @@ class Addresses(object):
                     # Create cache client
                     cache_config = self.config["api"]["caching"]
                     servers = cache_config["server"].split(",")
-                    memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
+                    memcached_client = pylibmc.Client(servers, binary=True, behaviors={"tcp_nodelay": True, "ketama": True})
 
                     # Check if we recently received a request for this address
                     if memcached_client.get(f"{address}"):
@@ -414,7 +414,7 @@ class Addresses(object):
         # Create memcached client
         cache_config = self.config["api"]["caching"]
         servers = cache_config["server"].split(",")
-        memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
+        memcached_client = pylibmc.Client(servers, binary=True, behaviors={"tcp_nodelay": True, "ketama": True})
 
         # Attempt to cache the address data
         try:

@@ -48,8 +48,6 @@ class Client(object):
         self.memcached_client = pylibmc.Client(
             servers,
             binary=True,
-            username=cache_config["user"],
-            password=cache_config["password"],
             behaviors={"tcp_nodelay": True, "ketama": True},
         )
 

@@ -28,8 +28,6 @@ def create_cache(config, mock=False):
         caching_config = config["api"]["caching"]
         cache = MemcachedPool(
             caching_config["server"].split(","),
-            caching_config["user"],
-            caching_config["password"],
             caching_config["threads"],
             caching_config["blocking"],
         )
