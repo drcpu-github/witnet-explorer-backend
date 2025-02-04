@@ -3,11 +3,12 @@ import json
 import pytest
 
 from api import create_app
+from mockups.config import mock_config
 
 
 @pytest.fixture
 def client():
-    app = create_app(mock=True)
+    app = create_app(mock_config, mockup=True)
     return app.test_client()
 
 

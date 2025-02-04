@@ -43,7 +43,6 @@ class AddressDetails(MethodView):
     )
     def get(self, args):
         address_caching_server = current_app.extensions["address_caching_server"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]

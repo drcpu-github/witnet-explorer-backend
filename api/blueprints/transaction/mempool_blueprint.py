@@ -4,6 +4,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.transaction.mempool_schema import (
@@ -45,9 +46,10 @@ class TransactionMempool(MethodView):
     )
     def get(self, args):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         logger.info(f"network_mempool({args['type']})")
 

@@ -1,4 +1,3 @@
-import toml
 from flask import Flask
 from flask_smorest import Api, Blueprint
 
@@ -38,12 +37,13 @@ from api.connect import (
     create_database,
     create_witnet_node,
 )
-from api.gunicorn_config import toml_config
-from mockups.config import mock_config
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
+from blockchain.objects.wip import WIP
 from util.logger import configure_rotating_logger
 
 
-def create_app(mock=False):
+def create_app(config, mockup=False):
     # Create app
     app = Flask(__name__)
     app.config["JSON_SORT_KEYS"] = False
@@ -66,27 +66,26 @@ def create_app(mock=False):
         "show-header": "false",
     }
 
-    if not mock:
-        explorer_config = toml.load(toml_config)
-    else:
-        explorer_config = mock_config
-    app.config["explorer"] = explorer_config
+    # Create blockchain configuration object
+    BlockchainConfig.config = config
+    BlockchainConfig.wip = WIP(mockup=mockup)
+    BlockchainConfig.consensus_constants = ConsensusConstants(mockup=mockup)
 
     # Setup logger
-    log_file = explorer_config["api"]["log"]["log_file"]
+    log_file = BlockchainConfig.config["api"]["log"]["log_file"]
     app.extensions["logger"] = configure_rotating_logger("api", log_file, "info")
 
     # Create connections to external resources
-    address_caching_server = create_address_caching_server(explorer_config, mock=mock)
+    address_caching_server = create_address_caching_server(mockup=mockup)
     address_caching_server.init_app(app, "address_caching_server")
 
-    cache = create_cache(explorer_config, mock=mock)
+    cache = create_cache(mockup=mockup)
     cache.init_app(app)
 
-    database = create_database(explorer_config, mock=mock)
+    database = create_database(mockup=mockup)
     database.init_app(app)
 
-    witnet_node = create_witnet_node(explorer_config, mock=mock)
+    witnet_node = create_witnet_node(mockup=mockup)
     witnet_node.init_app(app)
 
     # Create top-level blueprints

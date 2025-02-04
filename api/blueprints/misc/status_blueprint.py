@@ -3,6 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.status_schema import StatusResponse
 from schemas.misc.version_schema import VersionSchema
@@ -41,10 +42,11 @@ class Status(MethodView):
     )
     def get(self):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         logger.info("status()")
 

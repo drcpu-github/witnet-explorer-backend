@@ -7,6 +7,7 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 from psycopg.sql import SQL, Identifier
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.mempool_schema import NetworkMempoolArgs, NetworkMempoolResponse
@@ -53,7 +54,7 @@ class NetworkMempool(MethodView):
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
 
-        config = current_app.config["explorer"]
+        config = BlockchainConfig.config
 
         # Use the last 24h
         if "start_epoch" not in args or "stop_epoch" not in args:

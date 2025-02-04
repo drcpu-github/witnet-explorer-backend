@@ -1,4 +1,7 @@
 mock_config = {
+    "environment": {
+        "network": "pytest",
+    },
     "api": {
         "caching": {
             "views": {

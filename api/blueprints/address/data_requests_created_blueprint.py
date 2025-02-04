@@ -45,7 +45,6 @@ class AddressDataRequestsCreated(MethodView):
     def get(self, args, pagination_parameters):
         address_caching_server = current_app.extensions["address_caching_server"]
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
@@ -79,7 +78,6 @@ class AddressDataRequestsCreated(MethodView):
             )
             address = Address(
                 arg_address,
-                config,
                 database=database,
                 witnet_node=witnet_node,
                 logger=logger,

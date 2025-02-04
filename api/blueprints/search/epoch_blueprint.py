@@ -4,8 +4,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from blockchain.objects.block import Block
-from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.search.epoch_schema import SearchEpochArgs, SearchEpochResponse
@@ -44,10 +44,11 @@ class SearchEpoch(MethodView):
     )
     def get(self, args):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         epoch = args["value"]
         logger.info(f"search_epoch({epoch})")

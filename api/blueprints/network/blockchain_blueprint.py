@@ -3,7 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
-from node.consensus_constants import ConsensusConstants
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.blockchain_schema import NetworkBlockchainResponse
@@ -47,10 +47,11 @@ class NetworkBlockchain(MethodView):
     @network_blockchain_blueprint.paginate(page_size=50, max_page_size=1000)
     def get(self, pagination_parameters):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         logger.info(
             f"network_blockchain({pagination_parameters.page}, {pagination_parameters.page_size})"
@@ -66,10 +67,6 @@ class NetworkBlockchain(MethodView):
         logger.info(f"Could not find {cache_key} in memcached cache")
 
         # Get the expected epoch
-        consensus_constants = ConsensusConstants(
-            database=database,
-            witnet_node=witnet_node,
-        )
         expected_epoch = calculate_current_epoch(
             consensus_constants.checkpoint_zero_timestamp,
             consensus_constants.checkpoints_period,

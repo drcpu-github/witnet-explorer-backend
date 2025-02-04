@@ -1,7 +1,5 @@
 # Reference https://docs.gunicorn.org/en/latest/settings.html
 
-toml_config = "explorer.toml"
-
 # Server Socket
 bind = ["0.0.0.0:5000"]
 backlog = 2048

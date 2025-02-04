@@ -4,6 +4,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from blockchain.objects.block import Block
 from blockchain.objects.data_request_history import DataRequestHistory
 from blockchain.objects.data_request_report import DataRequestReport
@@ -62,10 +63,11 @@ class SearchHash(MethodView):
     @search_hash_blueprint.paginate(page_size=50, max_page_size=1000)
     def get(self, args, pagination_parameters):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         hash_value = args["value"]
         simple = args["simple"]
