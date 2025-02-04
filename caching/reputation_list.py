@@ -4,21 +4,21 @@ import sys
 import time
 import toml
 
+from blockchain.config import BlockchainConfig
 from caching.client import Client
 from schemas.network.reputation_schema import NetworkReputationResponse
 from util.logger import configure_logger
 
 class ReputationList(Client):
-    def __init__(self, config):
+    def __init__(self):
         # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["reputation_list"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["reputation_list"]["level_file"]
-        self.logger = configure_logger("reputation", log_filename, log_level)
+        rl_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["reputation_list"]
+        self.logger = configure_logger("reputation", rl_cfg["log_file"], rl_cfg["level_file"])
 
         # Read some Witnet node parameters
-        self.node_retries = config["api"]["caching"]["node_retries"]
+        self.node_retries = BlockchainConfig.config["api"]["caching"]["node_retries"]
 
-        super().__init__(config)
+        super().__init__(BlockchainConfig.config)
 
     def get_reputation(self):
         start = time.perf_counter()
@@ -85,10 +85,10 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
 
     # Create reputation cache
-    reputation_cache = ReputationList(config)
+    reputation_cache = ReputationList()
     # Only save reputation to the memcached instance on fetch and process success
     if reputation_cache.get_reputation():
         reputation_cache.save_reputation()

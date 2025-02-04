@@ -22,7 +22,10 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Manager
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.address import Address
+from blockchain.objects.wip import WIP
 
 from schemas.address.block_view_schema import BlockView
 from schemas.address.data_request_view_schema import DataRequestCreatedView, DataRequestSolvedView
@@ -304,7 +307,7 @@ class Addresses(object):
 
                 for function, m_address in zip(functions, monitor_addresses):
                     # Create address object
-                    address = Address(m_address, config, logger=logger, connect=False)
+                    address = Address(m_address, logger=logger, connect=False)
 
                     # Complete the request
                     # This block of code is surrounded with a try-except to catch a known Python bug with the Manager multi-processing Pool
@@ -432,6 +435,10 @@ def main():
 
     # Load config file
     config = toml.load(options.config_file)
+
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.wip = WIP()
+    BlockchainConfig.consensus_constants = ConsensusConstants()
 
     # Start logging process
     logging_queue = Manager().Queue()

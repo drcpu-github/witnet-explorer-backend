@@ -7,13 +7,17 @@ import os
 import socket
 import sys
 
+from blockchain.config import BlockchainConfig
 from util.data_transformer import hex2bytes
 from util.socket_manager import SocketManager
 
 class WitnetNode(object):
     request_id = 1
 
-    def __init__(self, node_config, timeout=0, logger=None, log_queue=None, log_label=""):
+    def __init__(self, timeout=0, logger=None, log_queue=None, log_label=""):
+        # Get the node pool configuration
+        node_config = BlockchainConfig.config["node-pool"]
+
         # If a timeout is specified, save it here so it can be propagated into the request
         self.request_timeout = timeout if timeout != node_config["default_timeout"] else 0
 

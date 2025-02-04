@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 
+from blockchain.config import BlockchainConfig
 from blockchain.transactions.commit import Commit
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.reveal import Reveal
@@ -14,18 +15,16 @@ from util.database_manager import DatabaseManager
 class DataRequestReport(object):
     def __init__(
         self,
-        config,
-        consensus_constants,
         transaction_hash,
         transaction_type,
         logger=None,
         log_queue=None,
         database=None,
     ):
-        self.consensus_constants = consensus_constants
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
-        self.collateral_minimum = consensus_constants.collateral_minimum
+        self.consensus_constants = BlockchainConfig.consensus_constants
+        self.start_time = self.consensus_constants.checkpoint_zero_timestamp
+        self.epoch_period = self.consensus_constants.checkpoints_period
+        self.collateral_minimum = self.consensus_constants.collateral_minimum
 
         self.transaction_hash = transaction_hash
         self.transaction_type = transaction_type
@@ -44,7 +43,7 @@ class DataRequestReport(object):
             self.database = database
         else:
             self.database = DatabaseManager(
-                config, logger=self.logger, custom_types=["utxo", "filter"]
+                logger=self.logger, custom_types=["utxo", "filter"]
             )
 
     def configure_logging_process(self, queue, label):
@@ -61,23 +60,17 @@ class DataRequestReport(object):
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "commit":
             self.logger.info(f"commit, get_report({self.transaction_hash})")
-            self.commit = Commit(
-                self.consensus_constants, logger=self.logger, database=self.database
-            )
+            self.commit = Commit(logger=self.logger, database=self.database)
             data_request_hash = self.commit.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "reveal":
             self.logger.info(f"reveal, get_report({self.transaction_hash})")
-            self.reveal = Reveal(
-                self.consensus_constants, logger=self.logger, database=self.database
-            )
+            self.reveal = Reveal(logger=self.logger, database=self.database)
             data_request_hash = self.reveal.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         elif self.transaction_type == "tally":
             self.logger.info(f"tally, get_report({self.transaction_hash})")
-            self.tally = Tally(
-                self.consensus_constants, logger=self.logger, database=self.database
-            )
+            self.tally = Tally(logger=self.logger, database=self.database)
             data_request_hash = self.tally.get_data_request_hash(self.transaction_hash)
             self.logger.info(f"data_request, get_report({data_request_hash})")
         return data_request_hash
@@ -120,32 +113,24 @@ class DataRequestReport(object):
 
     def get_data_request_details(self):
         self.logger.info(f"get_data_request_details({self.data_request_hash})")
-        data_request = DataRequest(
-            self.consensus_constants, logger=self.logger, database=self.database
-        )
+        data_request = DataRequest(logger=self.logger, database=self.database)
         self.data_request = data_request.get_transaction_from_database(
             self.data_request_hash
         )
 
     def get_commit_details(self):
         self.logger.info(f"get_commit_details({self.data_request_hash})")
-        commit = Commit(
-            self.consensus_constants, logger=self.logger, database=self.database
-        )
+        commit = Commit(logger=self.logger, database=self.database)
         self.commits = commit.get_commits_for_data_request(self.data_request_hash)
 
     def get_reveal_details(self):
         self.logger.info(f"get_reveal_details({self.data_request_hash})")
-        reveal = Reveal(
-            self.consensus_constants, logger=self.logger, database=self.database
-        )
+        reveal = Reveal(logger=self.logger, database=self.database)
         self.reveals = reveal.get_reveals_for_data_request(self.data_request_hash)
 
     def get_tally_details(self):
         self.logger.info(f"get_tally_details({self.data_request_hash})")
-        tally = Tally(
-            self.consensus_constants, logger=self.logger, database=self.database
-        )
+        tally = Tally(logger=self.logger, database=self.database)
         self.tally = tally.get_tally_for_data_request(self.data_request_hash)
 
     def add_missing_reveals(self):

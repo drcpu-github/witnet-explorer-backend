@@ -63,16 +63,8 @@ class SearchEpoch(MethodView):
                 )
                 return cached_block, 200, {"X-Version": "1.0.0"}
 
-        # Create consensus constants
-        consensus_constants = ConsensusConstants(
-            database=database,
-            witnet_node=witnet_node,
-        )
-
         # Fetch block from a node
         block = Block(
-            config,
-            consensus_constants,
             block_epoch=epoch,
             logger=logger,
             database=database,

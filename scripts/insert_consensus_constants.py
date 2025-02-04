@@ -3,12 +3,13 @@ import time
 
 import toml
 
+from blockchain.config import BlockchainConfig
 from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
 
 
-def get_consensus_constants(config):
-    witnet_node = WitnetNode(config["node-pool"])
+def get_consensus_constants():
+    witnet_node = WitnetNode()
 
     response = witnet_node.get_consensus_constants()
     while type(response) is dict and "error" in response:
@@ -19,8 +20,8 @@ def get_consensus_constants(config):
     return response["result"]
 
 
-def insert_consensus_constants(config, consensus_constants):
-    db_mngr = DatabaseManager(config)
+def insert_consensus_constants(consensus_constants):
+    db_mngr = DatabaseManager()
 
     for key, value in consensus_constants.items():
         if isinstance(value, int) or isinstance(value, float):
@@ -64,11 +65,11 @@ def main():
     )
     args = parser.parse_args()
 
-    config = toml.load(args.config_file)
+    BlockchainConfig.config = toml.load(args.config_file)
 
-    consensus_constants = get_consensus_constants(config)
+    consensus_constants = get_consensus_constants()
 
-    insert_consensus_constants(config, consensus_constants)
+    insert_consensus_constants(consensus_constants)
 
 
 if __name__ == "__main__":

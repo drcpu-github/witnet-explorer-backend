@@ -7,7 +7,6 @@ from util.database_manager import DatabaseManager
 class ConsensusConstants(object):
     def __init__(
         self,
-        config=None,
         database=None,
         witnet_node=None,
         error_retry=0,
@@ -15,12 +14,10 @@ class ConsensusConstants(object):
         mock_parameters={},
     ):
         if not mock:
-            assert config or database, "Need to pass a configuration dictionary or a database connection"
-
             # First try to fetch the consensus constants from the database
             database_created = False
             if database is None:
-                database = DatabaseManager(config)
+                database = DatabaseManager()
                 database_created = True
 
             sql = "SELECT * FROM consensus_constants"
@@ -32,11 +29,9 @@ class ConsensusConstants(object):
 
             # If that did not work, fetch them from a node
             if not fetched_consensus_constants:
-                assert config or witnet_node, "Need to pass a configuration dictionary or a witnet node connection"
-
                 witnet_node_created = False
                 if not witnet_node:
-                    witnet_node = WitnetNode(config["node-pool"])
+                    witnet_node = WitnetNode()
                     witnet_node_created = True
 
                 consensus_constants = witnet_node.get_consensus_constants()

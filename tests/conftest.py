@@ -1,12 +1,17 @@
 import json
 
 import pytest
-import toml
+
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
+from blockchain.objects.wip import WIP
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def config():
-    return toml.load(open("explorer.testnet.toml"))
+    BlockchainConfig.config = {"environment": {"network": "pytest"}}
+    BlockchainConfig.wip = WIP(mockup=True)
+    BlockchainConfig.consensus_constants = ConsensusConstants(mockup=True)
 
 
 @pytest.fixture

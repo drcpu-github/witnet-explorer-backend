@@ -7,7 +7,6 @@ from util.database_manager import DatabaseManager
 class WitnetDatabase(object):
     def __init__(
         self,
-        config,
         named_cursor=False,
         logger=None,
         log_queue=None,
@@ -23,7 +22,8 @@ class WitnetDatabase(object):
             self.logger = None
 
         self.db_mngr = DatabaseManager(
-            config, named_cursor=named_cursor, logger=self.logger
+            named_cursor=named_cursor,
+            logger=self.logger,
         )
 
         # Register types created for this database

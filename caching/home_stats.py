@@ -5,28 +5,29 @@ import sys
 import time
 import toml
 
-from caching.client import Client
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.wip import WIP
+from caching.client import Client
 from schemas.misc.home_schema import HomeBlock, HomeNetworkStats, HomeTransaction, HomeResponse
 from schemas.network.supply_schema import NetworkSupply
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 
 class HomeStats(Client):
-    def __init__(self, config):
-        # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["home_stats"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["home_stats"]["level_file"]
-        self.logger = configure_logger("home", log_filename, log_level)
+    def __init__(self):
+        h_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["home_stats"]
 
-        super().__init__(config)
+        # Setup logger
+        self.logger = configure_logger("home", h_cfg["log_file"], h_cfg["level_file"])
+
+        super().__init__(BlockchainConfig.config)
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = self.consensus_constants.checkpoints_period
 
-        wips = WIP(database_config=config["database"], node_config=config["node-pool"])
-        self.wip0027_activation_epoch = wips.get_activation_epoch("WIP0027")
+        self.wip0027_activation_epoch = BlockchainConfig.wip.get_activation_epoch("WIP0027")
 
         # Initialize previous variables
         self.current_epoch = int((time.time() - self.start_time) / self.epoch_period)
@@ -328,10 +329,12 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.consensus_constants = ConsensusConstants()
+    BlockchainConfig.wip = WIP()
 
     # Create home cache
-    home_cache = HomeStats(config)
+    home_cache = HomeStats()
     home_cache.collect_home_stats()
     home_cache.save_home_stats()
 

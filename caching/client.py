@@ -15,7 +15,6 @@ class Client(object):
         # Connect to node pool
         try:
             self.witnet_node = WitnetNode(
-                config["node-pool"],
                 timeout=node_timeout,
                 logger=self.logger,
             )
@@ -26,18 +25,10 @@ class Client(object):
         # Connect to database
         try:
             self.database = DatabaseManager(
-                config,
                 named_cursor=named_cursor,
                 logger=self.logger,
                 custom_types=["utxo", "filter"],
             )
-            if named_cursor:
-                self.database_client = DatabaseManager(
-                    config["database"],
-                    named_cursor=False,
-                    logger=self.logger,
-                    custom_types=["utxo", "filter"],
-                )
         except psycopg.OperationalError:
             self.logger.error("Could not connect to the database!")
             sys.exit(1)

@@ -2,6 +2,7 @@ import time
 
 from psycopg.sql import SQL, Literal
 
+from blockchain.config import BlockchainConfig
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
 from node.consensus_constants import ConsensusConstants
@@ -15,7 +16,6 @@ class Address(object):
     def __init__(
         self,
         address,
-        config,
         database=None,
         witnet_node=None,
         logger=None,
@@ -23,9 +23,6 @@ class Address(object):
     ):
         # Set address
         self.address = address.strip()
-
-        # Save config
-        self.config = config
 
         # Initialize database manager if provided
         self.db_mngr = None
@@ -51,19 +48,17 @@ class Address(object):
     def initialize_connections(self):
         # Connect to the database if necessary
         if self.db_mngr is None:
-            self.db_mngr = DatabaseManager(
-                self.config, named_cursor=False, logger=self.logger
-            )
+            self.db_mngr = DatabaseManager(named_cursor=False, logger=self.logger)
 
         # Connect to node pool
         if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.config["node-pool"], logger=self.logger)
+            self.witnet_node = WitnetNode(logger=self.logger)
 
         # Save consensus constants
         consensus_constants = ConsensusConstants(
             database=self.db_mngr,
             witnet_node=self.witnet_node,
-            error_retry=self.config["api"]["error_retry"],
+            error_retry=BlockchainConfig.config["api"]["error_retry"],
         )
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period

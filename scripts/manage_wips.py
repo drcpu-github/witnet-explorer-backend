@@ -1,7 +1,9 @@
 import optparse
 
 import toml
-from objects.wip import WIP
+
+from blockchain.config import BlockchainConfig
+from blockchain.objects.wip import WIP
 
 
 def main():
@@ -40,9 +42,9 @@ def main():
 
     options, args = parser.parse_args()
 
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
 
-    wip = WIP(config["database"], config["node-pool"])
+    wip = WIP()
 
     if options.print:
         wip.print_wips()

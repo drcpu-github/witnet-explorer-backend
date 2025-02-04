@@ -4,6 +4,7 @@ import time
 
 from psycopg.sql import SQL, Identifier
 
+from blockchain.config import BlockchainConfig
 from blockchain.objects.wip import WIP
 from node.witnet_node import WitnetNode
 from util.address_generator import AddressGenerator
@@ -15,22 +16,21 @@ from util.protobuf_encoder import ProtobufEncoder
 class Transaction(object):
     def __init__(
         self,
-        config,
-        consensus_constants,
         database=None,
         logger=None,
         witnet_node=None,
     ):
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
-        self.collateral_minimum = consensus_constants.collateral_minimum
+        self.consensus_constants = BlockchainConfig.consensus_constants
+        self.start_time = self.consensus_constants.checkpoint_zero_timestamp
+        self.epoch_period = self.consensus_constants.checkpoints_period
+        self.collateral_minimum = self.consensus_constants.collateral_minimum
 
         # Connect to the database
         if database is not None:
             self.database = database
         else:
             self.database = DatabaseManager(
-                config, logger=logger, custom_types=["utxo", "filter"]
+                logger=logger, custom_types=["utxo", "filter"]
             )
 
         # Set up logger
@@ -43,19 +43,26 @@ class Transaction(object):
         if witnet_node is not None:
             self.witnet_node = witnet_node
         else:
-            self.witnet_node = WitnetNode(config["node-pool"], logger=self.logger)
+            self.witnet_node = WitnetNode(logger=self.logger)
+
+        # Get the network type
+        network_type = BlockchainConfig.config["environment"]["network"]
 
         # Create address generator
         address_prefix = None
-        if config["environment"]["network"] == "mainnet":
+        if network_type == "mainnet":
             address_prefix = "wit"
-        elif config["environment"]["network"] == "testnet":
+        elif network_type in ("pytest", "testnet"):
             address_prefix = "twit"
         assert address_prefix, "Need to properly set the network type"
         self.address_generator = AddressGenerator(address_prefix)
 
         # Create Protobuf encoder
-        self.protobuf_encoder = ProtobufEncoder(WIP(database=self.database))
+        if network_type in ("mainnet", "testnet"):
+            self.protobuf_encoder = ProtobufEncoder(WIP(database=self.database))
+        elif network_type == "pytest":
+            self.protobuf_encoder = ProtobufEncoder(WIP(mockup=True))
+        assert self.protobuf_encoder, "Need to properly set the network type"
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)

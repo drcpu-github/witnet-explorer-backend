@@ -2,8 +2,12 @@ import psycopg
 from psycopg.types.composite import CompositeInfo, register_composite
 import sys
 
+from blockchain.config import BlockchainConfig
+
 class DatabaseManager(object):
-    def __init__(self, config, named_cursor=False, logger=None, custom_types=[]):
+    def __init__(self, named_cursor=False, logger=None, custom_types=[]):
+        config = BlockchainConfig.config
+
         self.db_user = config["database"]["user"]
         self.db_name = f"{config['database']['name']}_{config['environment']['network']}"
         self.db_pass = config["database"]["password"]

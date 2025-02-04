@@ -7,7 +7,10 @@ import toml
 
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.data_request_report import DataRequestReport
+from blockchain.objects.wip import WIP
 from caching.client import Client
 from util.data_transformer import re_sql
 from util.logger import configure_logger
@@ -15,20 +18,20 @@ from util.memcached import calculate_timeout
 from util.common_sql import sql_last_block
 
 class DataRequestReports(Client):
-    def __init__(self, config):
-        # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["data_request_reports"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["data_request_reports"]["level_file"]
-        self.logger = configure_logger("report", log_filename, log_level)
+    def __init__(self):
+        drr_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["data_request_reports"]
 
-        super().__init__(config)
+        # Setup logger
+        self.logger = configure_logger("report", drr_cfg["log_file"], drr_cfg["level_file"])
+
+        super().__init__(BlockchainConfig.config)
 
         # Fetch configured timeout for data request report cache expiry
-        self.memcached_timeout = config["api"]["caching"]["scripts"]["data_request_reports"]["timeout"]
+        self.memcached_timeout = drr_cfg["timeout"]
         # Calculate how many epochs in the past this script has to cache data request reports
-        self.lookback_epochs = int(config["api"]["caching"]["scripts"]["data_request_reports"]["timeout"] / self.consensus_constants.checkpoints_period)
+        self.lookback_epochs = int(drr_cfg["timeout"] / self.consensus_constants.checkpoints_period)
 
-        self.cache_time_warning = config["api"]["caching"]["scripts"]["data_request_reports"]["cache_time_warning"]
+        self.cache_time_warning = drr_cfg["cache_time_warning"]
 
     def process_data_requests(self, force_update):
         start = time.perf_counter()
@@ -132,7 +135,7 @@ class DataRequestReports(Client):
 
     def cache_data_request_report(self, txn_hash, epoch, inner_start):
         # Build data request report
-        data_request = DataRequestReport(self.config, self.consensus_constants, txn_hash, "data_request", logger=self.logger, database=self.database)
+        data_request = DataRequestReport(txn_hash, "data_request", logger=self.logger, database=self.database)
         try:
             data_request_report = data_request.get_report()
             if "error" in data_request_report:
@@ -183,10 +186,12 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.consensus_constants = ConsensusConstants()
+    BlockchainConfig.wip = WIP()
 
     # Create data request report cache
-    report_cache = DataRequestReports(config)
+    report_cache = DataRequestReports()
     report_cache.process_data_requests(options.force_update)
 
 if __name__ == "__main__":

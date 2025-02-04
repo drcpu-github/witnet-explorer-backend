@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import time
 
+from blockchain.config import BlockchainConfig
 from blockchain.transactions.commit import Commit
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.mint import Mint
@@ -16,8 +17,6 @@ from util.database_manager import DatabaseManager
 class Block(object):
     def __init__(
         self,
-        config,
-        consensus_constants,
         block=None,
         block_hash="",
         block_epoch=-1,
@@ -27,17 +26,15 @@ class Block(object):
         tapi_periods=None,
         witnet_node=None,
     ):
-        self.config = config
-
         self.block = block
         self.block_hash = block_hash
         self.block_epoch = block_epoch
 
-        self.consensus_constants = consensus_constants
-        self.collateral_minimum = consensus_constants.collateral_minimum
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
-        self.superblock_period = consensus_constants.superblock_period
+        self.consensus_constants = BlockchainConfig.consensus_constants
+        self.collateral_minimum = self.consensus_constants.collateral_minimum
+        self.start_time = self.consensus_constants.checkpoint_zero_timestamp
+        self.epoch_period = self.consensus_constants.checkpoints_period
+        self.superblock_period = self.consensus_constants.superblock_period
 
         # Set up logger
         if logger:
@@ -52,13 +49,13 @@ class Block(object):
         if database:
             self.database = database
         else:
-            self.database = DatabaseManager(config, logger=self.logger)
+            self.database = DatabaseManager(logger=self.logger)
 
         # Connect to node pool
         if witnet_node:
             self.witnet_node = witnet_node
         else:
-            self.witnet_node = WitnetNode(config["node-pool"], logger=self.logger)
+            self.witnet_node = WitnetNode(logger=self.logger)
 
         self.current_epoch = (int(time.time()) - self.start_time) // self.epoch_period
 
@@ -209,8 +206,6 @@ class Block(object):
         json_txn = self.block["txns"]["mint"]
         block_signature = self.block["block_sig"]["public_key"]
         mint = Mint(
-            self.config,
-            self.consensus_constants,
             database=self.database,
             logger=self.logger,
             witnet_node=self.witnet_node,
@@ -222,8 +217,6 @@ class Block(object):
         value_transfer_txns = []
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
             value_transfer = ValueTransfer(
-                self.config,
-                self.consensus_constants,
                 database=self.database,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
@@ -247,8 +240,6 @@ class Block(object):
         data_request_transactions = []
         if len(self.block["txns_hashes"]["data_request"]) > 0:
             data_request = DataRequest(
-                self.config,
-                self.consensus_constants,
                 database=self.database,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
@@ -272,8 +263,6 @@ class Block(object):
         commit_transactions = []
         if len(self.block["txns_hashes"]["commit"]) > 0:
             commit = Commit(
-                self.config,
-                self.consensus_constants,
                 database=self.database,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
@@ -288,8 +277,6 @@ class Block(object):
         reveal_transactions = []
         if len(self.block["txns_hashes"]["reveal"]) > 0:
             reveal = Reveal(
-                self.config,
-                self.consensus_constants,
                 database=self.database,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
@@ -304,8 +291,6 @@ class Block(object):
         tally_transactions = []
         if len(self.block["txns_hashes"]["tally"]) > 0:
             tally = Tally(
-                self.config,
-                self.consensus_constants,
                 database=self.database,
                 logger=self.logger,
                 witnet_node=self.witnet_node,

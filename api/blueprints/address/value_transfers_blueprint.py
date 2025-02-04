@@ -75,7 +75,6 @@ class AddressValueTransfers(MethodView):
             )
             address = Address(
                 arg_address,
-                config,
                 database=database,
                 witnet_node=witnet_node,
                 logger=logger,

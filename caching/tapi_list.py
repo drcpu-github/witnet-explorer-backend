@@ -8,6 +8,8 @@ import toml
 
 import matplotlib.pyplot as plt
 import matplotlib.colors
+
+from blockchain.config import BlockchainConfig
 from caching.client import Client
 from schemas.network.tapi_schema import NetworkTapiResponse
 from util.data_transformer import re_sql
@@ -15,17 +17,17 @@ from util.logger import configure_logger
 from util.common_sql import sql_last_block
 
 class TapiList(Client):
-    def __init__(self, config):
-        self.plot_dir = config["api"]["caching"]["plot_directory"]
+    def __init__(self):
+        tl_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["tapi_list"]
+
+        self.plot_dir = BlockchainConfig.config["api"]["caching"]["plot_directory"]
         if not os.path.exists(self.plot_dir):
             os.makedirs(self.plot_dir)
 
         # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["tapi_list"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["tapi_list"]["level_file"]
-        self.logger = configure_logger("tapi", log_filename, log_level)
+        self.logger = configure_logger("tapi", tl_cfg["log_file"], tl_cfg["level_file"])
 
-        super().__init__(config)
+        super().__init__()
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
@@ -296,10 +298,10 @@ def main():
     options, args = parser.parse_args()
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
 
     # create TAPI cache
-    tapi_cache = TapiList(config)
+    tapi_cache = TapiList()
     tapi_cache.collect_tapi_data()
     tapi_cache.save_tapi()
 

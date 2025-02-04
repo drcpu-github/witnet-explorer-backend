@@ -1,5 +1,6 @@
 from psycopg.sql import SQL, Identifier
 
+from blockchain.config import BlockchainConfig
 from blockchain.transactions.data_request import (
     build_retrieval,
     translate_filters,
@@ -13,8 +14,9 @@ from util.data_transformer import re_sql
 
 
 class DataRequestHistory(object):
-    def __init__(self, consensus_constants, logger, database):
+    def __init__(self, logger, database):
         # Copy relevant consensus constants
+        consensus_constants = BlockchainConfig.consensus_constants
         self.start_time = consensus_constants.checkpoint_zero_timestamp
         self.epoch_period = consensus_constants.checkpoints_period
 

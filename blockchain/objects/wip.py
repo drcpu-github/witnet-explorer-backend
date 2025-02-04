@@ -10,31 +10,21 @@ from util.database_manager import DatabaseManager
 class WIP(object):
     def __init__(
         self,
-        config=None,
         database=None,
         witnet_node=None,
         mockup=False,
     ):
         if database:
             self.db_mngr = database
-            self.fetch_wips()
-        elif config is not None:
-            self.db_mngr = DatabaseManager(config)
-            self.fetch_wips()
         else:
-            AssertionError(
-                "Need to pass a database object or configuration settings to create one"
-            )
+            self.db_mngr = DatabaseManager()
+        self.fetch_wips()
 
         self.witnet_node = None
         if witnet_node is not None:
             self.witnet_node = witnet_node
-        elif config is not None:
-            self.witnet_node = WitnetNode(config["node-pool"])
         else:
-            AssertionError(
-                "Need to pass a witnet node object or configuration settings to create one"
-            )
+            self.witnet_node = WitnetNode()
 
         self.mockup = mockup
         if self.mockup:

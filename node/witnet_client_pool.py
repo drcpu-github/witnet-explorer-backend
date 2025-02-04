@@ -1,14 +1,15 @@
 from contextlib import contextmanager
 from queue import Queue
 
+from blockchain.config import BlockchainConfig
 from node.witnet_node import WitnetNode
 
 class WitnetClientPool(Queue):
-    def __init__(self, config):
-        clients = config["nodes"]["number"]
+    def __init__(self):
+        clients = BlockchainConfig.config["node-pool"]["nodes"]["number"]
         Queue.__init__(self, clients)
         for i in range(clients):
-            self.put(WitnetNode(config))
+            self.put(WitnetNode())
 
     def init_app(self, app):
         app.extensions = getattr(app, "extensions", {})

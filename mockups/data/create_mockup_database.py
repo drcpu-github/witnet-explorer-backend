@@ -4,7 +4,14 @@ import sqlite3
 
 import toml
 
-from util.database_manager import DatabaseManager
+from blockchain.config import BlockchainConfig
+from blockchain.objects.wip import WIP
+from blockchain.transactions.reveal import translate_reveal
+from blockchain.transactions.tally import translate_tally
+from node.witnet_node import WitnetNode
+from util.address_generator import AddressGenerator
+from util.data_transformer import bytes2hex
+from util.protobuf_encoder import ProtobufEncoder
 
 
 def create_tables(database):
@@ -1769,7 +1776,7 @@ def insert_wips(database):
 
 
 def get_epoch_data(config, epochs):
-    database = DatabaseManager(config["database"], custom_types=["utxo", "filter"])
+    database = DatabaseManager(custom_types=["utxo", "filter"])
 
     epoch_data = {}
     hashes_seen = set()
@@ -2177,6 +2184,7 @@ def main():
     # fmt: on
 
     config = toml.load(args.config_file)
+    BlockchainConfig.config = config
 
     create_tables(args.database)
 

@@ -168,16 +168,9 @@ class SearchHash(MethodView):
 
         cache_config = config["api"]["caching"]
 
-        consensus_constants = ConsensusConstants(
-            database=database,
-            witnet_node=witnet_node,
-        )
-
         if hash_type == "block":
             # Fetch block from a node
             block = Block(
-                config,
-                consensus_constants,
                 block_hash=hash_value,
                 logger=logger,
                 database=database,
@@ -254,7 +247,11 @@ class SearchHash(MethodView):
 
         # Create mint transaction and get the details from the database
         if hash_type == "mint_txn":
-            mint = Mint(consensus_constants, logger=logger, database=database)
+            mint = Mint(
+                logger=logger,
+                database=database,
+                witnet_node=witnet_node,
+            )
             try:
                 mint_txn = mint.get_transaction_from_database(hash_value)
             except ValidationError as err_info:
@@ -315,9 +312,9 @@ class SearchHash(MethodView):
         # Create value transfer transaction and get the details from the database
         if hash_type == "value_transfer_txn":
             value_transfer = ValueTransfer(
-                consensus_constants,
                 logger=logger,
                 database=database,
+                witnet_node=witnet_node,
             )
             try:
                 value_transfer_txn = value_transfer.get_transaction_from_database(
@@ -386,7 +383,6 @@ class SearchHash(MethodView):
             if simple:
                 if hash_type == "data_request_txn":
                     data_request = DataRequest(
-                        consensus_constants,
                         logger=logger,
                         database=database,
                         witnet_node=witnet_node,
@@ -425,7 +421,6 @@ class SearchHash(MethodView):
                         )
                 elif hash_type == "commit_txn":
                     commit = Commit(
-                        consensus_constants,
                         logger=logger,
                         database=database,
                         witnet_node=witnet_node,
@@ -465,7 +460,6 @@ class SearchHash(MethodView):
                         )
                 elif hash_type == "reveal_txn":
                     reveal = Reveal(
-                        consensus_constants,
                         logger=logger,
                         database=database,
                         witnet_node=witnet_node,
@@ -505,7 +499,6 @@ class SearchHash(MethodView):
                         )
                 elif hash_type == "tally_txn":
                     tally = Tally(
-                        consensus_constants,
                         logger=logger,
                         database=database,
                         witnet_node=witnet_node,
@@ -546,8 +539,6 @@ class SearchHash(MethodView):
             # Create data request report for this hash
             else:
                 data_request_report = DataRequestReport(
-                    config,
-                    consensus_constants,
                     hash_value,
                     hash_type[:-4],
                     logger=logger,
@@ -649,7 +640,6 @@ class SearchHash(MethodView):
         if hash_type in ("DRO_bytes_hash", "RAD_bytes_hash"):
             # Create data request history
             data_request_history = DataRequestHistory(
-                consensus_constants,
                 logger,
                 database,
             )

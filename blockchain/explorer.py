@@ -15,7 +15,9 @@ from queue import Empty
 
 import toml
 
+from blockchain.config import BlockchainConfig
 from blockchain.objects.block import Block
+from blockchain.objects.wip import WIP
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.value_transfer import ValueTransfer
 from blockchain.witnet_database import WitnetDatabase
@@ -27,10 +29,12 @@ from util.socket_manager import SocketManager
 
 
 class BlockExplorer(object):
-    def __init__(self, config, log_queue):
-        error_retry = config["explorer"]["error_retry"]
-
-        self.mempool_interval = config["explorer"]["mempool_interval"]
+    def __init__(self, log_queue):
+        # Get some configuration parameters
+        self.config = BlockchainConfig.config
+        self.poll_interval = self.config["explorer"]["poll_interval"]
+        self.addresses_config = self.config["api"]["caching"]["scripts"]["addresses"]
+        self.mempool_interval = self.config["explorer"]["mempool_interval"]
 
         # Set up logger
         self.configure_logging_process(log_queue, "explorer")
@@ -39,47 +43,36 @@ class BlockExplorer(object):
         # Set up logging queue for logging from different processes
         self.log_queue = log_queue
 
-        # Save the configuration
-        self.config = config
-
         # Create nodes to connect to the node pool
         self.insert_blocks_node = WitnetNode(
-            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-insert",
         )
         self.confirm_blocks_node = WitnetNode(
-            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-confirm",
         )
         self.insert_pending_node = WitnetNode(
-            config["node-pool"],
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-pending",
         )
 
-        # Get consensus constants
-        self.consensus_constants = ConsensusConstants(
-            config=self.config, error_retry=error_retry
-        )
-
         # Create database objects
         self.insert_blocks_database = WitnetDatabase(
-            self.config, log_queue=self.log_queue, log_label="db-insert"
+            log_queue=self.log_queue,
+            log_label="db-insert",
         )
         self.confirm_blocks_database = WitnetDatabase(
-            self.config, log_queue=self.log_queue, log_label="db-confirm"
+            log_queue=self.log_queue,
+            log_label="db-confirm",
         )
         self.mempool_database = WitnetDatabase(
-            self.config, log_queue=self.log_queue, log_label="db-pending"
+            log_queue=self.log_queue,
+            log_label="db-pending",
         )
-
-        # Get configuration to connect to the address caching server
-        self.addresses_config = config["api"]["caching"]["scripts"]["addresses"]
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -96,8 +89,6 @@ class BlockExplorer(object):
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
         # Create block object and parse it to a JSON object
         block = Block(
-            self.config,
-            self.consensus_constants,
             block=block,
             block_hash=block_hash_hex_str,
             log_queue=self.log_queue,
@@ -264,7 +255,7 @@ class BlockExplorer(object):
             )
         # If we are adding the first block, initialize last_block_hash with the bootstrap_hash
         if last_block_hash == "":
-            last_block_hash = self.consensus_constants.bootstrap_hash
+            last_block_hash = BlockchainConfig.consensus_constants.bootstrap_hash
 
         # sleep until the next poll interval
         next_poll_interval = (
@@ -335,8 +326,8 @@ class BlockExplorer(object):
         logger = logging.getLogger("explorer-confirm")
 
         # Calculate superepoch period from consensus constants
-        superblock_period = self.consensus_constants.superblock_period
-        checkpoints_period = self.consensus_constants.checkpoints_period
+        superblock_period = BlockchainConfig.consensus_constants.superblock_period
+        checkpoints_period = BlockchainConfig.consensus_constants.checkpoints_period
 
         # Connect to the addresses caching server
         caching_server = SocketManager(
@@ -533,10 +524,7 @@ class BlockExplorer(object):
 
             current_epoch = self.insert_pending_node.get_current_epoch()
             if current_epoch == 0:
-                current_epoch = calculate_current_epoch(
-                    self.consensus_constants.checkpoint_zero_timestamp,
-                    self.consensus_constants.checkpoints_period,
-                )
+                current_epoch = calculate_current_epoch()
 
             transactions_pool = self.insert_pending_node.get_mempool()
             # If all nodes are busy retry in short bursts to get the request through
@@ -568,8 +556,6 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             data_request = DataRequest(
-                self.config,
-                self.consensus_constants,
                 database=self.mempool_database,
                 logger=logger,
             )
@@ -611,8 +597,6 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             value_transfer = ValueTransfer(
-                self.config,
-                self.consensus_constants,
                 database=self.mempool_database,
                 logger=logger,
             )
@@ -731,7 +715,8 @@ def select_logging_level(level):
         return logging.CRITICAL
 
 
-def configure_logging_listener(config):
+def configure_logging_listener():
+    config = BlockchainConfig.config
     root = logging.getLogger()
 
     logging.Formatter.converter = time.gmtime
@@ -780,8 +765,8 @@ def configure_logging_listener(config):
     root.addHandler(console_handler)
 
 
-def logging_listener(config, queue):
-    configure_logging_listener(config)
+def logging_listener(queue):
+    configure_logging_listener()
 
     while True:
         try:
@@ -803,16 +788,19 @@ def main():
     )
     options, args = parser.parse_args()
 
-    # Load config file
-    config = toml.load(options.config_file)
+    # Create blockchain configuration object
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.wip = WIP()
+    error_retry = BlockchainConfig.config["explorer"]["error_retry"]
+    BlockchainConfig.consensus_constants = ConsensusConstants(error_retry=error_retry)
 
     # Start logging process
     log_queue = Queue()
-    listener_process = Process(target=logging_listener, args=(config, log_queue))
+    listener_process = Process(target=logging_listener, args=(log_queue,))
     listener_process.start()
 
     # Create explorer
-    explorer = BlockExplorer(config, log_queue)
+    explorer = BlockExplorer(log_queue)
 
     # Create queue to pass data about unconfirmed blocks
     unconfirmed_blocks_queue = Queue()
