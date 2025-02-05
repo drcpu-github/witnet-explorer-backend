@@ -14,7 +14,8 @@ class MintTransaction(Schema):
     @validates_schema
     def validate_inputs(self, args, **kwargs):
         errors = {}
-        if len(args["output_addresses"]) < 1:
+        # Epoch is not defined here yet, but will be in the inheriting classes
+        if args["epoch"] > 0 and len(args["output_addresses"]) < 1:
             errors["output_addresses"] = "Need at least one output address."
         if len(args["output_addresses"]) != len(args["output_values"]):
             errors["output_values"] = (
