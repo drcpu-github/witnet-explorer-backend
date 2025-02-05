@@ -3,6 +3,8 @@ import sys
 
 import toml
 
+from mockups.database import MockDatabase
+from mockups.witnet_node import MockWitnetNode
 from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
 
@@ -16,6 +18,8 @@ class WIP(object):
     ):
         if database:
             self.db_mngr = database
+        elif mockup:
+            self.db_mngr = MockDatabase()
         else:
             self.db_mngr = DatabaseManager()
         self.fetch_wips()
@@ -23,12 +27,10 @@ class WIP(object):
         self.witnet_node = None
         if witnet_node is not None:
             self.witnet_node = witnet_node
+        elif mockup:
+            self.witnet_node = MockWitnetNode()
         else:
             self.witnet_node = WitnetNode()
-
-        self.mockup = mockup
-        if self.mockup:
-            self.create_mockup()
 
     def fetch_wips(self):
         sql = """
@@ -48,30 +50,6 @@ class WIP(object):
             ASC
         """
         self.wips = self.db_mngr.sql_return_all(sql)
-
-    def create_mockup(self):
-        wips = [
-            {
-                "id": 1,
-                "title": "WIP0014-0016",
-                "activation_epoch": 549141,
-            },
-            {
-                "id": 2,
-                "title": "WIP0017-0018-0019",
-                "activation_epoch": 683541,
-            },
-            {
-                "id": 3,
-                "title": "WIP0020-0021",
-                "activation_epoch": 1059861,
-            },
-        ]
-        try:
-            self.set_mockup(wips)
-        except KeyError as e:
-            sys.stderr.write(f"Could not set mockup: {e}")
-            sys.exit(1)
 
     def set_mockup(self, wips):
         # Check the passed parameter has the correct type
@@ -93,40 +71,32 @@ class WIP(object):
 
     def print_wips(self):
         for wip in self.wips:
-            if self.mockup:
-                wip_id, title, activation_epoch = wip
-            else:
-                (
-                    wip_id,
-                    title,
-                    description,
-                    urls,
-                    activation_epoch,
-                    tapi_start_epoch,
-                    tapi_stop_epoch,
-                    tapi_bit,
-                ) = wip
+            (
+                wip_id,
+                title,
+                description,
+                urls,
+                activation_epoch,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit,
+            ) = wip
             print(f"Entry {wip_id}")
             print(f"\tTitle: {title}")
-            if not self.mockup:
-                print(f"\tDescription: {description}")
-                for counter, url in enumerate(urls):
-                    print(f"\tURL of WIP {counter + 1}: {url}")
+            print(f"\tDescription: {description}")
+            for counter, url in enumerate(urls):
+                print(f"\tURL of WIP {counter + 1}: {url}")
             print(
                 f"\tActivation epoch: {activation_epoch if activation_epoch else 'not activated'}"
             )
-            if not self.mockup:
-                if tapi_start_epoch:
-                    print(f"\tStarted at epoch: {tapi_start_epoch}")
-                if tapi_stop_epoch:
-                    print(f"\tStopped at epoch: {tapi_stop_epoch}")
-                if tapi_bit:
-                    print(f"\tUsing signaling bit: {tapi_bit}")
+            if tapi_start_epoch:
+                print(f"\tStarted at epoch: {tapi_start_epoch}")
+            if tapi_stop_epoch:
+                print(f"\tStopped at epoch: {tapi_stop_epoch}")
+            if tapi_bit:
+                print(f"\tUsing signaling bit: {tapi_bit}")
 
     def add_wip(self):
-        if self.mockup:
-            raise TypeError("Cannot add a WIP on a mockup")
-
         # Read the WIP title
         wip_title = input("Specify the title of the WIP? ")
 
@@ -227,10 +197,6 @@ class WIP(object):
         )
 
     def process_tapi(self):
-        if self.mockup:
-            sys.stderr.write("Cannot process TAPI signals on a mockup\n")
-            return
-
         for wip in self.wips:
             (
                 wip_id,
@@ -300,19 +266,16 @@ class WIP(object):
     def get_activation_epoch(self, wip_title):
         # Find TAPI of interest based on its title
         for wip in self.wips:
-            if self.mockup:
-                wip_id, title, activation_epoch = wip
-            else:
-                (
-                    wip_id,
-                    title,
-                    description,
-                    urls,
-                    activation_epoch,
-                    tapi_start_epoch,
-                    tapi_stop_epoch,
-                    tapi_bit,
-                ) = wip
+            (
+                wip_id,
+                title,
+                description,
+                urls,
+                activation_epoch,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit,
+            ) = wip
             if wip_title == title:
                 return activation_epoch
         return None
@@ -320,19 +283,16 @@ class WIP(object):
     def is_wip_active(self, epoch, wip_title):
         # Find TAPI of interest based on its title
         for wip in self.wips:
-            if self.mockup:
-                wip_id, title, activation_epoch = wip
-            else:
-                (
-                    wip_id,
-                    title,
-                    description,
-                    urls,
-                    activation_epoch,
-                    tapi_start_epoch,
-                    tapi_stop_epoch,
-                    tapi_bit,
-                ) = wip
+            (
+                wip_id,
+                title,
+                description,
+                urls,
+                activation_epoch,
+                tapi_start_epoch,
+                tapi_stop_epoch,
+                tapi_bit,
+            ) = wip
             if wip_title == title:
                 if activation_epoch and epoch >= activation_epoch:
                     return True
