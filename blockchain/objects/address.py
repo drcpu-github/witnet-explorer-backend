@@ -3,9 +3,9 @@ import time
 from psycopg.sql import SQL, Literal
 
 from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.common_functions import calculate_block_reward
 from util.data_transformer import re_sql

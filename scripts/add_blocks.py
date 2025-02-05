@@ -4,10 +4,10 @@ import sys
 import toml
 
 from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.block import Block
 from blockchain.objects.wip import WIP
 from blockchain.witnet_database import WitnetDatabase
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
 

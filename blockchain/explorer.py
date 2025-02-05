@@ -16,12 +16,12 @@ from queue import Empty
 import toml
 
 from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.block import Block
 from blockchain.objects.wip import WIP
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.value_transfer import ValueTransfer
 from blockchain.witnet_database import WitnetDatabase
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.common_functions import calculate_current_epoch
 from util.common_sql import sql_last_confirmed_block

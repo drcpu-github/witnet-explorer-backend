@@ -1,8 +1,8 @@
 import pytest
 
+from blockchain.consensus_constants import ConsensusConstants
 from mockups.database import MockDatabase
 from mockups.witnet_node import MockWitnetNode
-from node.consensus_constants import ConsensusConstants
 
 
 @pytest.fixture

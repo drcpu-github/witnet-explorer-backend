@@ -14,7 +14,6 @@ from blockchain.transactions.mint import Mint
 from blockchain.transactions.reveal import Reveal
 from blockchain.transactions.tally import Tally
 from blockchain.transactions.value_transfer import ValueTransfer
-from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.search.hash_schema import SearchHashArgs, SearchHashResponse

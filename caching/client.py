@@ -2,7 +2,7 @@ import psycopg
 import pylibmc
 import sys
 
-from node.consensus_constants import ConsensusConstants
+from blockchain.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.socket_manager import SocketManager
 from util.database_manager import DatabaseManager

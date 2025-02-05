@@ -11,7 +11,7 @@ class ConsensusConstants(object):
         witnet_node=None,
         error_retry=0,
         mock=False,
-        mock_parameters={},
+        mock_parameters=None,
     ):
         if not mock:
             # First try to fetch the consensus constants from the database
@@ -101,6 +101,10 @@ class ConsensusConstants(object):
                 "superblock_signing_committee_size"
             ]
         else:
+            assert (
+                isinstance(mock_parameters) is dict
+            ), "Expected a dictionary with mock parameters"
+
             if "activity_period" in mock_parameters:
                 self.activity_period = mock_parameters["activity_period"]
             if "bootstrap_hash" in mock_parameters:
