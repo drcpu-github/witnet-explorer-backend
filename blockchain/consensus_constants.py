@@ -46,11 +46,11 @@ class ConsensusConstants(object):
             else:
                 consensus_constants = {}
                 for key, int_val, str_val in fetched_consensus_constants:
-                    if int_val:
+                    if int_val is not None:
                         if key == "reputation_penalization_factor":
                             int_val = int_val / 100
                         consensus_constants[key] = int_val
-                    if str_val:
+                    if str_val is not None:
                         if key == "bootstrap_hash" or key == "genesis_hash":
                             str_val = str_val[0]
                         consensus_constants[key] = str_val
