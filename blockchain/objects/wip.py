@@ -352,6 +352,12 @@ class WIP(object):
     def is_wip0027_active(self, epoch):
         return self.is_wip_active(epoch, wip_title="WIP0027")
 
+    def is_wip0028_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="WIP0028")
+
+    def is_wit2_active(self, epoch):
+        return self.is_wip_active(epoch, wip_title="wit/2")
+
 
 def main():
     parser = optparse.OptionParser()
