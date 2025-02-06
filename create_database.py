@@ -118,6 +118,7 @@ def create_enums(connection, cursor):
                     CREATE TYPE retrieve_kind AS ENUM (
                         'Unknown',
                         'HTTP-GET',
+                        'HTTP-HEAD',
                         'HTTP-POST',
                         'RNG'
                     );
