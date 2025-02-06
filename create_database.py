@@ -52,6 +52,7 @@ def create_user(user, password):
 
 def create_database(name, user):
     connection, cursor = connect_to_database("postgres")
+    connection.autocommit = True
     cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname='{name}'")
     result = cursor.fetchone()
     if not result:
@@ -59,6 +60,8 @@ def create_database(name, user):
         print(f"Created database '{name}'")
     else:
         print(f"Database '{name}' already exists")
+    cursor.close()
+    connection.close()
 
 
 def connect_to_database(name, user="", password=""):
