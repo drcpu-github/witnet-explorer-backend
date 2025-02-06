@@ -106,7 +106,9 @@ def create_enums(connection, cursor):
                         'DRO_bytes_hash',
                         'commit_txn',
                         'reveal_txn',
-                        'tally_txn'
+                        'tally_txn',
+                        'stake_txn',
+                        'unstake_txn'
                     );
                 END IF;
             END
@@ -211,8 +213,12 @@ def create_tables(config, connection, cursor):
             commit SMALLINT NOT NULL,
             reveal SMALLINT NOT NULL,
             tally SMALLINT NOT NULL,
+            stake SMALLINT NOT NULL,
+            unstake SMALLINT NOT NULL,
             dr_weight INT NOT NULL,
             vt_weight INT NOT NULL,
+            st_weight INT NOT NULL,
+            ut_weight INT NOT NULL,
             block_weight INT NOT NULL,
             epoch INT NOT NULL,
             tapi_signals INT,
@@ -289,6 +295,29 @@ def create_tables(config, connection, cursor):
             liar_addresses CHAR({length}) ARRAY NOT NULL,
             result BYTEA NOT NULL,
             success BOOL NOT NULL,
+            epoch INT NOT NULL
+        );""",
+        """CREATE TABLE IF NOT EXISTS stake_txns (
+            txn_hash BYTEA PRIMARY KEY,
+            input_addresses CHAR(42) ARRAY NOT NULL,
+            input_values BIGINT ARRAY NOT NULL,
+            input_utxos utxo ARRAY NOT NULL,
+            output_address CHAR(42),
+            output_value BIGINT,
+            weight INT NOT NULL,
+            validator CHAR(42) NOT NULL,
+            withdrawer CHAR(42) NOT NULL,
+            stake_value BIGINT NOT NULL,
+            epoch INT NOT NULL
+        );""",
+        """CREATE TABLE IF NOT EXISTS unstake_txns (
+            txn_hash BYTEA PRIMARY KEY,
+            validator CHAR(42) NOT NULL,
+            withdrawer CHAR(42) NOT NULL,
+            output_value BIGINT NOT NULL,
+            fee BIGINT NOT NULL,
+            nonce BIGINT NOT NULL,
+            weight INT NOT NULL,
             epoch INT NOT NULL
         );""",
         """CREATE TABLE IF NOT EXISTS data_request_mempool (
@@ -369,6 +398,12 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_epoch ON reveal_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_tally_txn_epoch ON tally_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_txn_epoch ON value_transfer_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_epoch ON stake_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_validator ON stake_txns USING HASH (validator);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_withdrawer ON stake_txns USING HASH (withdrawer);",
+        "CREATE INDEX IF NOT EXISTS idx_unstake_txn_epoch ON unstake_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_validator ON unstake_txns USING HASH (validator);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_withdrawer ON unstake_txns USING HASH (withdrawer);",
     ]
 
     for index in indexes:
