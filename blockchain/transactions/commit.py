@@ -24,7 +24,18 @@ class Commit(Transaction):
         input_utxos, input_values = self.get_inputs(self.json_txn["body"]["collateral"])
         _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
 
-        self.txn_details["collateral"] = sum(input_values) - sum(output_values)
+        # Get the reward for the miner of this transaction
+        fee = DataRequest().get_commit_and_reveal_fee_for_data_request(
+            self.txn_details["data_request"]
+        )
+        if "fee" in fee:
+            self.txn_details["fee"] = fee["fee"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find fee for commit transaction {hash_value} for data request {data_request}"
+            )
 
         if call_from == "explorer":
             self.txn_details["input_utxos"] = input_utxos

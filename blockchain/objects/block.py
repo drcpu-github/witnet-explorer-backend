@@ -146,6 +146,8 @@ class Block(object):
             },
         }
 
+        self.block_json["details"]["txns_fees"] = self.calculate_txns_fees()
+
         if call_from == "explorer":
             self.block_json["tapi"] = self.process_tapi_signals()
             return BlockForExplorer().load(self.block_json)
@@ -300,6 +302,25 @@ class Block(object):
                 tally.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
                 tally_transactions.append(tally.process_transaction(call_from))
         return tally_transactions
+
+    def calculate_txns_fees(self):
+        txns_fees = 0
+
+        transactions = self.block_json["transactions"]
+        for value_transfer in transactions["value_transfer"]:
+            txns_fees += value_transfer["fee"]
+        for data_request in transactions["data_request"]:
+            txns_fees += data_request["miner_fee"]
+        for commit in transactions["commit"]:
+            txns_fees += commit["fee"]
+        for reveal in transactions["reveal"]:
+            txns_fees += reveal["fee"]
+        for stake in transactions["stake"]:
+            txns_fees += stake["fee"]
+        for unstake in transactions["unstake"]:
+            txns_fees += unstake["fee"]
+
+        return txns_fees
 
     def process_tapi_signals(self):
         is_tapi = False

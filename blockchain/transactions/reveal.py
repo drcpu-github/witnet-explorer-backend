@@ -2,6 +2,7 @@ import json
 
 import cbor2
 
+from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.transaction import Transaction
 from schemas.component.reveal_schema import (
     RevealTransactionForApi,
@@ -20,6 +21,19 @@ class Reveal(Transaction):
 
         # Data request transaction hash
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
+
+        # Get the reward for the miner of this transaction
+        fee = DataRequest().get_commit_and_reveal_fee_for_data_request(
+            self.txn_details["data_request"]
+        )
+        if "fee" in fee:
+            self.txn_details["fee"] = fee["fee"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find fee for reveal transaction {hash_value} for data request {data_request}"
+            )
 
         # Translate revealed value
         success, reveal_translation = translate_reveal(

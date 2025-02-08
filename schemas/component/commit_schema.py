@@ -14,6 +14,7 @@ class CommitTransactionForApi(BaseApiTransaction, AddressSchema):
 class CommitTransactionForBlock(BaseTransaction, AddressSchema):
     collateral = fields.Int(validate=validate.Range(min=1e9), required=True)
     data_request = fields.Str(validate=is_valid_hash, required=True)
+    fee = fields.Int(validate=validate.Range(min=0), required=True)
 
 
 class CommitTransactionForDataRequest(BaseApiTransaction, AddressSchema):

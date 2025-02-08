@@ -220,6 +220,7 @@ def create_tables(config, connection, cursor):
             st_weight INT NOT NULL,
             ut_weight INT NOT NULL,
             block_weight INT NOT NULL,
+            txns_fees BIGINT NOT NULL,
             epoch INT NOT NULL,
             tapi_signals INT,
             confirmed BOOLEAN NOT NULL,

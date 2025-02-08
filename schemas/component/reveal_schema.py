@@ -1,4 +1,4 @@
-from marshmallow import fields, pre_load
+from marshmallow import fields, pre_load, validate
 
 from schemas.include.address_schema import AddressSchema
 from schemas.include.base_transaction_schema import BaseApiTransaction, BaseTransaction
@@ -13,6 +13,7 @@ class RevealTransactionForApi(BaseApiTransaction, AddressSchema):
 
 class RevealTransactionForBlock(BaseTransaction, AddressSchema):
     data_request = fields.Str(validate=is_valid_hash, required=True)
+    fee = fields.Int(validate=validate.Range(min=0), required=True)
     reveal = fields.String(required=True)
     success = fields.Boolean(required=True)
 
@@ -45,5 +46,6 @@ class RevealTransactionForDataRequest(BaseApiTransaction, AddressSchema):
 
 class RevealTransactionForExplorer(BaseTransaction, AddressSchema):
     data_request = fields.Str(validate=is_valid_hash, required=True)
+    fee = fields.Int(validate=validate.Range(min=0), required=True)
     reveal = BytearrayField(required=True)
     success = fields.Boolean(required=True)

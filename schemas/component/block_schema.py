@@ -41,6 +41,7 @@ class BlockDetails(TimestampComponent):
         required=True,
     )
     weight = fields.Integer(validate=validate.Range(min=0), required=True)
+    txns_fees = fields.Integer(validate=validate.Range(min=0), required=True)
     confirmed = fields.Boolean(required=True)
     reverted = fields.Boolean(required=True)
 

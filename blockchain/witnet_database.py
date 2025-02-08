@@ -71,6 +71,7 @@ class WitnetDatabase(object):
                 block_json["details"]["data_request_weight"],
                 block_json["details"]["value_transfer_weight"],
                 block_json["details"]["weight"],
+                block_json["details"]["txns_fees"],
                 block_json["details"]["epoch"],
                 block_json["tapi"],
                 block_json["details"]["confirmed"],
@@ -324,10 +325,11 @@ class WitnetDatabase(object):
                     dr_weight,
                     vt_weight,
                     block_weight,
+                    txns_fees,
                     epoch,
                     tapi_signals,
                     confirmed
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     blocks_pkey
                 DO UPDATE SET

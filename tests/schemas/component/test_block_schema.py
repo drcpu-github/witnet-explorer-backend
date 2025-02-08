@@ -19,6 +19,7 @@ def block_details():
         "data_request_weight": 1000,
         "value_transfer_weight": 1000,
         "weight": 0,
+        "txns_fees": 10,
         "confirmed": True,
         "reverted": False,
     }
@@ -41,7 +42,7 @@ def test_block_details_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockDetails().load(data)
-    assert len(err_info.value.messages) == 8
+    assert len(err_info.value.messages) == 9
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["timestamp"][0] == "Missing data for required field."
@@ -54,6 +55,7 @@ def test_block_details_failure_missing():
         == "Missing data for required field."
     )
     assert err_info.value.messages["weight"][0] == "Missing data for required field."
+    assert err_info.value.messages["txns_fees"][0] == "Missing data for required field."
     assert err_info.value.messages["confirmed"][0] == "Missing data for required field."
     assert err_info.value.messages["reverted"][0] == "Missing data for required field."
 

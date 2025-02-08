@@ -359,6 +359,26 @@ class DataRequest(Transaction):
         else:
             return {"error": "transaction not found"}
 
+    def get_commit_and_reveal_fee_for_data_request(self, data_request_hash):
+        sql = """
+            SELECT
+                data_request_txns.commit_and_reveal_fee
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"fee": result[0]}
+        else:
+            return {"error": "transaction not found"}
+
     def calculate_fees(
         self,
         witnesses,
