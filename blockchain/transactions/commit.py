@@ -20,10 +20,6 @@ class Commit(Transaction):
         # Data request transaction hash
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
-        # Collect input / output details
-        input_utxos, input_values = self.get_inputs(self.json_txn["body"]["collateral"])
-        _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
-
         # Get the reward for the miner of this transaction
         fee = DataRequest().get_commit_and_reveal_fee_for_data_request(
             self.txn_details["data_request"]
@@ -38,6 +34,12 @@ class Commit(Transaction):
             )
 
         if call_from == "explorer":
+            # Collect input / output details
+            input_utxos, input_values = self.get_inputs(
+                self.json_txn["body"]["collateral"]
+            )
+            _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
+
             self.txn_details["input_utxos"] = input_utxos
             self.txn_details["input_values"] = input_values
 
