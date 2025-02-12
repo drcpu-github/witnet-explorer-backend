@@ -9,13 +9,12 @@ def is_hexadecimal(input_value):
 
 
 def is_valid_address(input_value):
-    errors = []
-    if len(input_value) != 42:
-        errors.append("Address does not contain 42 characters.")
-    if not input_value.startswith("wit1"):
-        errors.append("Address does not start with wit1 string.")
-    if len(errors) > 0:
-        raise ValidationError(errors)
+    if not (input_value.startswith("wit1") or input_value.startswith("twit1")):
+        raise ValidationError("Address does not start with wit1 / twit1 string.")
+    if input_value.startswith("wit1") and len(input_value) != 42:
+        raise ValidationError("Mainnet address does not contain 42 characters.")
+    elif input_value.startswith("twit1") and len(input_value) != 43:
+        raise ValidationError("Testnet address does not contain 43 characters.")
 
 
 def is_valid_hash(hash_value):

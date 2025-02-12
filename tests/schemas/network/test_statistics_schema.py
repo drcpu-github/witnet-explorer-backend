@@ -148,27 +148,15 @@ def test_top_100_failure_address():
     key = "top_100_miners"
     assert (
         err_info.value.messages[key][0]["address"][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages[key][0]["address"][1]
-        == "Address does not start with wit1 string."
+        == "Address does not start with wit1 / twit1 string."
     )
     assert (
         err_info.value.messages[key][1]["address"][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages[key][1]["address"][1]
-        == "Address does not start with wit1 string."
+        == "Address does not start with wit1 / twit1 string."
     )
     assert (
         err_info.value.messages[key][2]["address"][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages[key][2]["address"][1]
-        == "Address does not start with wit1 string."
+        == "Address does not start with wit1 / twit1 string."
     )
 
 

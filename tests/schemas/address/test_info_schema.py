@@ -12,7 +12,7 @@ def test_address_info_failure_malformed_address():
         AddressInfoArgs().load(data)
     assert (
         err_info.value.messages["addresses"][0]
-        == "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfs: Address does not contain 42 characters, xit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6: Address does not start with wit1 string."
+        == "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfs: Mainnet address does not contain 42 characters, xit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6: Address does not start with wit1 / twit1 string."
     )
 
 
