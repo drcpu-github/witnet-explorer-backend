@@ -239,7 +239,6 @@ def test_block_for_explorer_failure_tapi_bits(block_for_explorer):
     block_for_explorer["tapi"] = [0, 1, 2]
     with pytest.raises(ValidationError) as err_info:
         BlockForExplorer().load(block_for_explorer)
-    print(err_info.value.messages)
     assert (
         err_info.value.messages["tapi"][2][0]
         == "Must be greater than or equal to 0 and less than or equal to 1."

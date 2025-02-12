@@ -474,7 +474,6 @@ def test_value_transfer_transaction_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         ValueTransferTransactionForExplorer().load(data)
-    print(err_info.value.messages)
     assert len(err_info.value.messages) == 10
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
