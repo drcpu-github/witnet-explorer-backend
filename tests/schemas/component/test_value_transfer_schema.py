@@ -7,6 +7,7 @@ from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForBlock,
     ValueTransferTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -24,17 +25,10 @@ def test_address_output_success(address_output):
 
 
 def test_address_output_failure_address(address_output):
-    address_output["address"] = "xit100000000000000000000000000000000r0v4g"
-    with pytest.raises(ValidationError) as err_info:
-        AddressOutput().load(address_output)
-    assert len(err_info.value.messages["address"]) == 2
-    assert (
-        err_info.value.messages["address"][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["address"][1]
-        == "Address does not start with wit1 string."
+    generic_address_test(
+        address_output,
+        ("address",),
+        AddressOutput,
     )
 
 
@@ -126,36 +120,15 @@ def test_value_transfer_transaction_for_api_success(value_transfer_transaction_f
 def test_value_transfer_transaction_for_api_failure_address(
     value_transfer_transaction_for_api,
 ):
-    value_transfer_transaction_for_api["input_addresses"] = [
-        "wit100000000000000000000000000000000r0v4g",
-    ]
-    value_transfer_transaction_for_api["output_addresses"] = [
-        "xit100000000000000000000000000000000r0v4g2",
-    ]
-    value_transfer_transaction_for_api["true_output_addresses"] = [
-        "wit100000000000000000000000000000000r0v4g",
-    ]
-    value_transfer_transaction_for_api["change_output_addresses"] = [
-        "xit100000000000000000000000000000000r0v4g2",
-    ]
-    with pytest.raises(ValidationError) as err_info:
-        ValueTransferTransactionForApi().load(value_transfer_transaction_for_api)
-    assert len(err_info.value.messages) == 4
-    assert (
-        err_info.value.messages["input_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["output_addresses"][0][0]
-        == "Address does not start with wit1 string."
-    )
-    assert (
-        err_info.value.messages["true_output_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["change_output_addresses"][0][0]
-        == "Address does not start with wit1 string."
+    generic_address_test(
+        value_transfer_transaction_for_api,
+        (
+            ("input_addresses",),
+            ("output_addresses",),
+            ("true_output_addresses",),
+            ("change_output_addresses",),
+        ),
+        ValueTransferTransactionForApi,
     )
 
 
@@ -300,22 +273,13 @@ def test_value_transfer_transaction_for_block_success(
 def test_value_transfer_transaction_for_block_failure_address(
     value_transfer_transaction_for_block,
 ):
-    value_transfer_transaction_for_block["unique_input_addresses"] = [
-        "wit100000000000000000000000000000000r0v4g"
-    ]
-    value_transfer_transaction_for_block["true_output_addresses"] = [
-        "xit100000000000000000000000000000000r0v4g2"
-    ]
-    with pytest.raises(ValidationError) as err_info:
-        ValueTransferTransactionForBlock().load(value_transfer_transaction_for_block)
-    assert len(err_info.value.messages) == 2
-    assert (
-        err_info.value.messages["unique_input_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["true_output_addresses"][0][0]
-        == "Address does not start with wit1 string."
+    generic_address_test(
+        value_transfer_transaction_for_block,
+        (
+            ("unique_input_addresses",),
+            ("true_output_addresses",),
+        ),
+        ValueTransferTransactionForBlock,
     )
 
 
@@ -449,24 +413,10 @@ def test_value_transfer_transaction_for_explorer_failure_output_lengths(
 def test_value_transfer_transaction_for_explorer_failure_address(
     value_transfer_transaction_for_explorer,
 ):
-    value_transfer_transaction_for_explorer["input_addresses"] = [
-        "wit100000000000000000000000000000000r0v4g"
-    ]
-    value_transfer_transaction_for_explorer["output_addresses"] = [
-        "xit100000000000000000000000000000000r0v4g2"
-    ]
-    with pytest.raises(ValidationError) as err_info:
-        ValueTransferTransactionForExplorer().load(
-            value_transfer_transaction_for_explorer
-        )
-    assert len(err_info.value.messages) == 2
-    assert (
-        err_info.value.messages["input_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["output_addresses"][0][0]
-        == "Address does not start with wit1 string."
+    generic_address_test(
+        value_transfer_transaction_for_explorer,
+        (("input_addresses",), ("output_addresses",)),
+        ValueTransferTransactionForExplorer,
     )
 
 

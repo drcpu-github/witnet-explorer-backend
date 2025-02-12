@@ -10,6 +10,7 @@ from schemas.component.tally_schema import (
     TallyTransactionForDataRequest,
     TallyTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -75,17 +76,10 @@ def test_tally_addresses_success(tally_addresses):
 
 
 def test_tally_addresses_failure_address(tally_addresses):
-    tally_addresses["error_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    tally_addresses["liar_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    with pytest.raises(ValidationError) as err_info:
-        TallyAddresses().load(tally_addresses)
-    assert (
-        err_info.value.messages["error_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["liar_addresses"][0][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        tally_addresses,
+        (("error_addresses",), ("liar_addresses",)),
+        TallyAddresses,
     )
 
 

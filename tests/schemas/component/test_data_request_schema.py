@@ -8,6 +8,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -37,12 +38,10 @@ def test_data_request_success(data_request):
 
 
 def test_data_request_failure_address(data_request):
-    data_request["input_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    with pytest.raises(ValidationError) as err_info:
-        DataRequest().load(data_request)
-    assert (
-        err_info.value.messages["input_addresses"][0][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        data_request,
+        (("input_addresses",),),
+        DataRequest,
     )
 
 
@@ -380,14 +379,10 @@ def test_data_request_transaction_for_explorer_success_none(
 def test_data_request_transaction_for_explorer_failure_address(
     data_request_transaction_for_explorer,
 ):
-    data_request_transaction_for_explorer["output_address"] = (
-        "wit100000000000000000000000000000000r0v4g"
-    )
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
-    assert (
-        err_info.value.messages["output_address"][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        data_request_transaction_for_explorer,
+        ("output_address",),
+        DataRequestTransactionForExplorer,
     )
 
 

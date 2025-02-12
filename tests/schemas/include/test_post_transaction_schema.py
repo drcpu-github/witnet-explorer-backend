@@ -1,7 +1,12 @@
 import pytest
 from marshmallow import ValidationError
 
-from schemas.include.post_transaction_schema import PostTransaction, PostValueTransfer
+from schemas.include.post_transaction_schema import (
+    PostTransaction,
+    PostValueTransfer,
+    TransactionOutput,
+)
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -199,3 +204,34 @@ def test_transaction_failure_multiple_transactions():
         err_info.value.messages["_schema"][0]
         == "Transaction class requires exactly one of ValueTransfer, Stake or Unstake."
     )
+
+
+@pytest.fixture
+def transaction_output():
+    return {
+        "pkh": "wit1gjnecg8demjagg6jdg65hmgf5xa9g32zsk65j9",
+        "time_lock": 0,
+        "value": 12194899013917,
+    }
+
+
+def test_transaction_output_success(transaction_output):
+    TransactionOutput().load(transaction_output)
+
+
+def test_transaction_output_failure_address(transaction_output):
+    generic_address_test(
+        transaction_output,
+        ("pkh",),
+        TransactionOutput,
+    )
+
+
+def test_transaction_output_failure_missing():
+    data = {}
+    with pytest.raises(ValidationError) as err_info:
+        TransactionOutput().load(data)
+    assert len(err_info.value.messages) == 3
+    assert err_info.value.messages["pkh"][0] == "Missing data for required field."
+    assert err_info.value.messages["time_lock"][0] == "Missing data for required field."
+    assert err_info.value.messages["value"][0] == "Missing data for required field."

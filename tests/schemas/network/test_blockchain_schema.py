@@ -2,10 +2,12 @@ import pytest
 from marshmallow import ValidationError
 
 from schemas.network.blockchain_schema import BlockchainBlock, NetworkBlockchainResponse
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
-def test_blockchain_block_success():
-    data = {
+@pytest.fixture
+def block():
+    return {
         "hash": "24ef311401232da383ab4dc627cc8b9c1cdebd43f57a8022b383ab099b68e2b1",
         "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
         "value_transfers": 0,
@@ -18,10 +20,21 @@ def test_blockchain_block_success():
         "timestamp": 7,
         "confirmed": True,
     }
-    BlockchainBlock().load(data)
 
 
-def test_blockchain_block_missing():
+def test_blockchain_block_success(block):
+    BlockchainBlock().load(block)
+
+
+def test_blockchain_block_failure_address(block):
+    generic_address_test(
+        block,
+        ("miner",),
+        BlockchainBlock,
+    )
+
+
+def test_blockchain_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockchainBlock().load(data)
@@ -44,36 +57,9 @@ def test_blockchain_block_missing():
     assert err_info.value.messages["confirmed"][0] == "Missing data for required field."
 
 
-def test_blockchain_response_block_success():
+def test_blockchain_response_block_success(block):
     data = {
-        "blockchain": [
-            {
-                "hash": "24ef311401232da383ab4dc627cc8b9c1cdebd43f57a8022b383ab099b68e2b1",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 2,
-                "reveals": 3,
-                "tallies": 4,
-                "fees": 5,
-                "epoch": 6,
-                "timestamp": 7,
-                "confirmed": True,
-            },
-            {
-                "hash": "24ef311401232da383ab4dc627cc8b9c1cdebd43f57a8022b383ab099b68e2b2",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 2,
-                "reveals": 3,
-                "tallies": 4,
-                "fees": 5,
-                "epoch": 6,
-                "timestamp": 7,
-                "confirmed": False,
-            },
-        ],
+        "blockchain": [block, block],
         "reverted": [],
         "total_epochs": 0,
     }
@@ -94,32 +80,11 @@ def test_blockchain_response_block_failure_missing():
     )
 
 
-def test_blockchain_response_block_failure_missing_block_data():
+def test_blockchain_response_block_failure_missing_block_data(block):
+    del block["hash"]
+    del block["miner"]
     data = {
-        "blockchain": [
-            {
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 2,
-                "reveals": 3,
-                "tallies": 4,
-                "fees": 5,
-                "epoch": 6,
-                "timestamp": 7,
-                "confirmed": True,
-            },
-            {
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 2,
-                "reveals": 3,
-                "tallies": 4,
-                "fees": 5,
-                "epoch": 6,
-                "timestamp": 7,
-                "confirmed": False,
-            },
-        ],
+        "blockchain": [block, block],
         "reverted": [],
     }
     with pytest.raises(ValidationError) as err_info:

@@ -7,6 +7,7 @@ from schemas.component.mint_schema import (
     MintTransactionForBlock,
     MintTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -51,17 +52,14 @@ def test_mint_transaction_failure_outputs_mismatch(mint_transaction):
 
 
 def test_mint_transaction_failure_address(mint_transaction):
-    mint_transaction["miner"] = "wit100000000000000000000000000000000r0v4g"
-    mint_transaction["output_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
     mint_transaction["output_values"] = [1]
-    with pytest.raises(ValidationError) as err_info:
-        MintTransaction().load(mint_transaction)
-    assert (
-        err_info.value.messages["miner"][0] == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["output_addresses"][0][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        mint_transaction,
+        (
+            "miner",
+            ("output_addresses",),
+        ),
+        MintTransaction,
     )
 
 
