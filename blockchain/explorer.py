@@ -23,7 +23,7 @@ from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.value_transfer import ValueTransfer
 from blockchain.witnet_database import WitnetDatabase
 from node.witnet_node import WitnetNode
-from util.common_functions import calculate_current_epoch
+from util.blockchain_functions import calculate_current_epoch
 from util.common_sql import sql_last_confirmed_block
 from util.socket_manager import SocketManager
 

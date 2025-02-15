@@ -3,6 +3,7 @@ from schemas.component.mint_schema import (
     MintTransactionForApi,
     MintTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 
 
 class Mint(Transaction):
@@ -56,15 +57,12 @@ class Mint(Transaction):
 
             block_hash = block_hash.hex()
 
-            txn_epoch = epoch
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
-
             return MintTransactionForApi().load(
                 {
                     "hash": txn_hash,
                     "block": block_hash,
-                    "epoch": txn_epoch,
-                    "timestamp": txn_time,
+                    "epoch": epoch,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "miner": miner,
                     "output_addresses": output_addresses,
                     "output_values": output_values,

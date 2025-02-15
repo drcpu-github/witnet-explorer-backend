@@ -8,6 +8,7 @@ from schemas.component.tally_schema import (
     TallyTransactionForBlock,
     TallyTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
@@ -129,8 +130,6 @@ class Tally(Transaction):
 
                 success, tally_result = translate_tally(txn_hash.hex(), tally_result)
 
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
                 tally = {
                     "hash": txn_hash.hex(),
                     "block": block_hash.hex(),
@@ -141,7 +140,7 @@ class Tally(Transaction):
                     "tally": tally_result,
                     "success": success,
                     "epoch": epoch,
-                    "timestamp": timestamp,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -193,7 +192,7 @@ class Tally(Transaction):
             success, tally_result = translate_tally(txn_hash, result)
 
             txn_epoch = epoch
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
+            txn_time = calculate_timestamp_from_epoch(epoch)
 
             return TallyTransactionForApi().load(
                 {

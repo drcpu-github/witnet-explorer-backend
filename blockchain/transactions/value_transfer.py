@@ -6,6 +6,7 @@ from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForBlock,
     ValueTransferTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 
 
 class ValueTransfer(Transaction):
@@ -61,8 +62,8 @@ class ValueTransfer(Transaction):
             self.txn_details["priority"] = max(
                 1, int(self.txn_details["fee"] / self.txn_details["weight"])
             )
-            self.txn_details["timestamp"] = (
-                self.start_time + (self.txn_details["epoch"] + 1) * self.epoch_period
+            self.txn_details["timestamp"] = calculate_timestamp_from_epoch(
+                self.txn_details["epoch"]
             )
 
             # Delete fields not used in the frontend to display a block
@@ -159,9 +160,6 @@ class ValueTransfer(Transaction):
                 now,
             )
 
-            txn_epoch = block_epoch
-            txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
-
             return ValueTransferTransactionForApi().load(
                 {
                     "block": block_hash.hex(),
@@ -177,8 +175,8 @@ class ValueTransfer(Transaction):
                     "fee": txn_fee,
                     "weight": weight,
                     "priority": txn_priority,
-                    "epoch": txn_epoch,
-                    "timestamp": txn_time,
+                    "epoch": block_epoch,
+                    "timestamp": calculate_timestamp_from_epoch(block_epoch),
                     "value": total_value,
                     "true_value": true_value,
                     "change_value": change_value,

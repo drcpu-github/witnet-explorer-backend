@@ -11,11 +11,7 @@ from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.mempool_schema import NetworkMempoolArgs, NetworkMempoolResponse
-from util.common_functions import (
-    calculate_priority,
-    calculate_timestamp_from_epoch,
-    get_network_times,
-)
+from util.blockchain_functions import calculate_priority, calculate_timestamp_from_epoch
 from util.data_transformer import re_sql
 
 network_mempool_blueprint = Blueprint(
@@ -62,13 +58,8 @@ class NetworkMempool(MethodView):
             timestamp_start = timestamp_stop - 24 * 60 * 60
         # Calculate timestamps from epochs
         else:
-            start_time, epoch_period = get_network_times(database)
-            timestamp_start = calculate_timestamp_from_epoch(
-                start_time, epoch_period, args["start_epoch"]
-            )
-            timestamp_stop = calculate_timestamp_from_epoch(
-                start_time, epoch_period, args["stop_epoch"]
-            )
+            timestamp_start = calculate_timestamp_from_epoch(args["start_epoch"])
+            timestamp_stop = calculate_timestamp_from_epoch(args["stop_epoch"])
 
         granularity = args["granularity"]
         sample_rate = int(granularity / config["explorer"]["mempool_interval"])

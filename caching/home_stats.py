@@ -11,6 +11,7 @@ from blockchain.objects.wip import WIP
 from caching.client import Client
 from schemas.misc.home_schema import HomeBlock, HomeNetworkStats, HomeTransaction, HomeResponse
 from schemas.network.supply_schema import NetworkSupply
+from util.blockchain_functions import calculate_current_epoch, calculate_timestamp_from_epoch
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 
@@ -30,7 +31,7 @@ class HomeStats(Client):
         self.wip0027_activation_epoch = BlockchainConfig.wip.get_activation_epoch("WIP0027")
 
         # Initialize previous variables
-        self.current_epoch = int((time.time() - self.start_time) / self.epoch_period)
+        self.current_epoch = calculate_current_epoch()
 
         last_saved_home = self.memcached_client.get("home")
         if last_saved_home:
@@ -221,7 +222,7 @@ class HomeStats(Client):
         # Add the number of data requests and value transfers and calculate the block timestamp
         blocks = []
         for block_hash, data_request, value_transfer, epoch, confirmed in result:
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
+            timestamp = calculate_timestamp_from_epoch(epoch)
             blocks.append(
                 HomeBlock().load(
                     {
@@ -260,7 +261,7 @@ class HomeStats(Client):
         data_requests = []
         if result:
             for txn_hash, epoch, block_confirmed in result:
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
+                timestamp = calculate_timestamp_from_epoch(epoch)
                 data_requests.append(
                     HomeTransaction().load(
                         {
@@ -297,7 +298,7 @@ class HomeStats(Client):
         value_transfers = []
         if result:
             for txn_hash, epoch, block_confirmed in result:
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
+                timestamp = calculate_timestamp_from_epoch(epoch)
                 value_transfers.append(
                     HomeTransaction().load(
                         {

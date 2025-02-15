@@ -10,6 +10,7 @@ from blockchain.transactions.tally import translate_tally
 from schemas.search.data_request_history_schema import (
     DataRequestHistory as DataRequestHistorySchema,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.data_transformer import re_sql
 
 
@@ -126,9 +127,6 @@ class DataRequestHistory(object):
             if tally_epoch and tally_epoch <= block_epoch:
                 continue
 
-            txn_epoch = block_epoch
-            txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
-
             if tally_txn_hash:
                 tally_success, tally_result = translate_tally(
                     tally_txn_hash.hex(), tally_result
@@ -144,8 +142,8 @@ class DataRequestHistory(object):
             data_request_history.append(
                 {
                     "success": tally_success,
-                    "epoch": txn_epoch,
-                    "timestamp": txn_time,
+                    "epoch": block_epoch,
+                    "timestamp": calculate_timestamp_from_epoch(block_epoch),
                     "data_request": data_request_hash.hex(),
                     "witnesses": data_request_witnesses,
                     "witness_reward": data_request_witness_reward,

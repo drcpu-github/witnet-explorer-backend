@@ -8,7 +8,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
-from util.common_functions import calculate_priority
+from util.blockchain_functions import calculate_priority, calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
@@ -328,8 +328,6 @@ class DataRequest(Transaction):
                 txn_tally += "."
             txn_tally += translate_reducer(tally_reducer)
 
-            txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
-
             return DataRequestTransactionForApi().load(
                 {
                     "hash": data_request_hash,
@@ -351,7 +349,7 @@ class DataRequest(Transaction):
                     "aggregate": txn_aggregate,
                     "tally": txn_tally,
                     "epoch": block_epoch,
-                    "timestamp": txn_time,
+                    "timestamp": calculate_timestamp_from_epoch(block_epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }

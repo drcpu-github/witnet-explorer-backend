@@ -3,12 +3,12 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from api.connect import send_address_caching_request
 from blockchain.objects.address import Address
 from schemas.address.mint_view_schema import MintView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import send_address_caching_request
 
 address_mints_blueprint = Blueprint(
     "address mints",

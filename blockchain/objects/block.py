@@ -11,6 +11,7 @@ from blockchain.transactions.tally import Tally
 from blockchain.transactions.value_transfer import ValueTransfer
 from node.witnet_node import WitnetNode
 from schemas.component.block_schema import BlockForApi, BlockForExplorer
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.database_manager import DatabaseManager
 
 
@@ -128,8 +129,7 @@ class Block(object):
             "details": {
                 "hash": self.block_hash,
                 "epoch": self.block_epoch,
-                "timestamp": self.start_time
-                + (self.block_epoch + 1) * self.epoch_period,
+                "timestamp": calculate_timestamp_from_epoch(self.block_epoch),
                 "data_request_weight": self.dr_weight,
                 "value_transfer_weight": self.vt_weight,
                 "weight": self.block_weight,

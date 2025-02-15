@@ -2,12 +2,13 @@ import time
 
 from psycopg.sql import SQL, Literal
 
-from blockchain.config import BlockchainConfig
-from blockchain.consensus_constants import ConsensusConstants
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
 from node.witnet_node import WitnetNode
-from util.common_functions import calculate_block_reward
+from util.blockchain_functions import (
+    calculate_block_reward,
+    calculate_timestamp_from_epoch,
+)
 from util.data_transformer import re_sql
 from util.database_manager import DatabaseManager
 
@@ -53,17 +54,6 @@ class Address(object):
         # Connect to node pool
         if self.witnet_node is None:
             self.witnet_node = WitnetNode(logger=self.logger)
-
-        # Save consensus constants
-        consensus_constants = ConsensusConstants(
-            database=self.db_mngr,
-            witnet_node=self.witnet_node,
-            error_retry=BlockchainConfig.config["api"]["error_retry"],
-        )
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
-        self.halving_period = consensus_constants.halving_period
-        self.initial_block_reward = consensus_constants.initial_block_reward
 
     def close_connections(self):
         self.db_mngr.terminate()
@@ -164,8 +154,6 @@ class Address(object):
                     block_confirmed,
                 ) = value_transfer
 
-                timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
-
                 total_value = 0
                 for output_address, output_value in zip(
                     output_addresses, output_values
@@ -194,7 +182,7 @@ class Address(object):
                     {
                         "hash": txn_hash.hex(),
                         "epoch": txn_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(txn_epoch),
                         "direction": "in",
                         "input_addresses": sorted(list(set(input_addresses))),
                         "output_addresses": sorted(list(set(output_addresses))),
@@ -251,8 +239,6 @@ class Address(object):
                     block_confirmed,
                 ) = value_transfer
 
-                timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
-
                 total_value = 0
                 for output_address, output_value in zip(
                     output_addresses, output_values
@@ -290,7 +276,7 @@ class Address(object):
                     {
                         "hash": txn_hash.hex(),
                         "epoch": txn_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(txn_epoch),
                         "direction": direction,
                         "input_addresses": sorted(list(set(input_addresses))),
                         "output_addresses": sorted(output_addresses),
@@ -344,18 +330,14 @@ class Address(object):
                     output_values,
                 ) = block
 
-                timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
-
                 block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(
-                    block_epoch, self.halving_period, self.initial_block_reward
-                )
+                block_fees = sum(output_values) - calculate_block_reward(block_epoch)
 
                 blocks_minted.append(
                     {
                         "hash": block_hash.hex(),
                         "miner": self.address,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(block_epoch),
                         "epoch": block_epoch,
                         "block_reward": block_reward,
                         "block_fees": block_fees,
@@ -413,13 +395,11 @@ class Address(object):
                     if output_address == self.address:
                         value = output_value
 
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
                 mints.append(
                     {
                         "hash": txn_hash.hex(),
                         "epoch": epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
                         "miner": miner,
                         "output_value": value,
                         "confirmed": confirmed,
@@ -487,9 +467,6 @@ class Address(object):
                     success,
                 ) = data_request
 
-                # Calculate timestamp
-                timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
-
                 # Translate reveal value
                 if reveal_value:
                     _, translated_reveal = translate_reveal(
@@ -509,7 +486,7 @@ class Address(object):
                         "hash": data_request_hash.hex(),
                         "success": success,
                         "epoch": tally_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(tally_epoch),
                         "collateral": collateral,
                         "witness_reward": witness_reward,
                         "reveal": translated_reveal,
@@ -581,9 +558,6 @@ class Address(object):
                 if any(dr is None for dr in data_request):
                     continue
 
-                # Calculate timestamp
-                timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
-
                 # Calculate total fee of the data request (witnesses * witness_reward + mining fees per transaction)
                 # Note that this is the sum of the DRO and miner fees to display how much that data request payed in total
                 total_fee = sum(input_values) - output_value
@@ -603,7 +577,7 @@ class Address(object):
                         "hash": data_request_hash.hex(),
                         "success": success,
                         "epoch": tally_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(tally_epoch),
                         "total_fee": total_fee,
                         "witnesses": witnesses,
                         "collateral": collateral,

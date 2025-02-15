@@ -22,6 +22,22 @@ def create_address_caching_server(mockup=False):
     return address_caching_server
 
 
+def send_address_caching_request(logger, caching_server, request):
+    try:
+        caching_server.send_request(request)
+    except ConnectionRefusedError:
+        logger.warning(
+            f"Could not send {request['method']} request to address caching server"
+        )
+        try:
+            caching_server.recreate_socket()
+            caching_server.send_request(request)
+        except ConnectionRefusedError:
+            logger.warning(
+                f"Could not recreate socket, will try again next {request['method']} request"
+            )
+
+
 def create_cache(mockup=False):
     if mockup:
         cache = MockCache()

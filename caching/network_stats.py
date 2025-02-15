@@ -10,7 +10,10 @@ from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.wip import WIP
 from caching.client import Client
 from caching.network_stats_functions import aggregate_nodes, read_from_database
-from util.common_functions import calculate_block_reward
+from util.blockchain_functions import (
+    calculate_block_reward,
+    calculate_timestamp_from_epoch,
+)
 from util.database_manager import DatabaseManager
 from util.data_transformer import re_sql
 from util.logger import configure_logger
@@ -158,7 +161,7 @@ class NetworkStats(Client):
             # If there is a gap of more than 1 epoch between two consecutive blocks, we mark it as a rollback
             if epoch > previous_epoch + 1:
                 # Calculate the timestamp of the rollback and its boundaries
-                timestamp = self.start_time + (previous_epoch + 1) * self.epoch_period
+                timestamp = calculate_timestamp_from_epoch(previous_epoch)
                 self.rollbacks.append([timestamp, previous_epoch + 1, epoch - 1, epoch - previous_epoch - 1])
             previous_epoch = epoch
 
@@ -608,7 +611,7 @@ class NetworkStats(Client):
                         next_aggregation_period = int(e / self.aggregation_epochs + 1) * self.aggregation_epochs
                         per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
-                    block_reward = calculate_block_reward(epoch, self.halving_period, self.initial_block_reward)
+                    block_reward = calculate_block_reward(epoch)
                     self.burn_rate_period[per_period_key][0] += block_reward
 
             previous_epoch = epoch

@@ -9,6 +9,7 @@ from schemas.component.reveal_schema import (
     RevealTransactionForBlock,
     RevealTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
@@ -130,8 +131,6 @@ class Reveal(Transaction):
 
             success, reveal_result = translate_reveal(txn_hash.hex(), reveal_result)
 
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
             reveals.append(
                 {
                     "block": block_hash.hex(),
@@ -142,7 +141,7 @@ class Reveal(Transaction):
                     "error": not success,
                     "liar": False,
                     "epoch": epoch,
-                    "timestamp": timestamp,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -182,7 +181,7 @@ class Reveal(Transaction):
                 epoch,
             ) = result
 
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
+            txn_time = calculate_timestamp_from_epoch(epoch)
 
             success, reveal_result = translate_reveal(txn_hash, reveal_result)
 

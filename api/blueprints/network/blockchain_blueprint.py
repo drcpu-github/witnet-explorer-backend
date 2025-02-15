@@ -7,7 +7,7 @@ from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.blockchain_schema import NetworkBlockchainResponse
-from util.common_functions import (
+from util.blockchain_functions import (
     calculate_block_reward,
     calculate_current_epoch,
     calculate_timestamp_from_epoch,
@@ -49,7 +49,6 @@ class NetworkBlockchain(MethodView):
         cache = current_app.extensions["cache"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
-        witnet_node = current_app.extensions["witnet_node"]
 
         config = BlockchainConfig.config
 
@@ -67,10 +66,7 @@ class NetworkBlockchain(MethodView):
         logger.info(f"Could not find {cache_key} in memcached cache")
 
         # Get the expected epoch
-        expected_epoch = calculate_current_epoch(
-            consensus_constants.checkpoint_zero_timestamp,
-            consensus_constants.checkpoints_period,
-        )
+        expected_epoch = calculate_current_epoch()
 
         # Get the last processed epoch
         data = database.sql_return_one(sql_last_block)
@@ -93,7 +89,6 @@ class NetworkBlockchain(MethodView):
             last_epoch,
             start,
             stop,
-            consensus_constants,
         )
 
         # Validate data before we save it in the cache
@@ -117,7 +112,7 @@ class NetworkBlockchain(MethodView):
         return blockchain, 200, {"X-Version": "1.0.0"}
 
 
-def get_blockchain_details(database, last_epoch, start, stop, consensus_constants):
+def get_blockchain_details(database, last_epoch, start, stop):
     sql = """
         SELECT
             blocks.block_hash,
@@ -153,16 +148,8 @@ def get_blockchain_details(database, last_epoch, start, stop, consensus_constant
         if block[8]:
             continue
 
-        timestamp = calculate_timestamp_from_epoch(
-            consensus_constants.checkpoint_zero_timestamp,
-            consensus_constants.checkpoints_period,
-            block[1],
-        )
-        block_reward = calculate_block_reward(
-            block[1],
-            consensus_constants.halving_period,
-            consensus_constants.initial_block_reward,
-        )
+        timestamp = calculate_timestamp_from_epoch(block[1])
+        block_reward = calculate_block_reward(block[1])
         blockchain.append(
             {
                 "hash": block[0].hex(),

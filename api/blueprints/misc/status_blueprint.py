@@ -7,7 +7,7 @@ from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.status_schema import StatusResponse
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import calculate_current_epoch, get_network_times
+from util.blockchain_functions import calculate_current_epoch
 from util.common_sql import sql_last_block, sql_last_confirmed_block
 
 status_blueprint = Blueprint(
@@ -57,8 +57,7 @@ class Status(MethodView):
             all_healthy = True
 
             # Calculate what the expected epoch should be
-            start_time, epoch_period = get_network_times(database)
-            expected_epoch = calculate_current_epoch(start_time, epoch_period)
+            expected_epoch = calculate_current_epoch()
 
             # Fetch the node pool status
             node_pool_status = witnet_node.get_sync_status()
