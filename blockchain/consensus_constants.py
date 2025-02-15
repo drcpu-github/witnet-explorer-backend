@@ -98,3 +98,22 @@ class ConsensusConstants(object):
         self.superblock_signing_committee_size = consensus_constants[
             "superblock_signing_committee_size"
         ]
+        self.wit2_checkpoints_period = consensus_constants["wit2_checkpoints_period"]
+        self.wit2_minimum_total_stake_nanowits = consensus_constants[
+            "wit2_minimum_total_stake_nanowits"
+        ]
+        self.wit2_activation_delay_epochs = consensus_constants[
+            "wit2_activation_delay_epochs"
+        ]
+        self.wit2_maximum_stake_block_weight = consensus_constants[
+            "wit2_maximum_stake_block_weight"
+        ]
+        self.wit2_maximum_unstake_block_weight = consensus_constants[
+            "wit2_maximum_unstake_block_weight"
+        ]
+        self.wit2_unstaking_delay_seconds = consensus_constants[
+            "wit2_unstaking_delay_seconds"
+        ]
+        self.wit2_min_stake_nanowits = consensus_constants["wit2_min_stake_nanowits"]
+        self.wit2_max_stake_nanowits = consensus_constants["wit2_max_stake_nanowits"]
+        self.wit2_block_reward = consensus_constants["wit2_block_reward"]
