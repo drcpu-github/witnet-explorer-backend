@@ -124,6 +124,7 @@ class Transaction(object):
             """
             hash_type = self.database.sql_return_one(sql, parameters=[hash_bytes])
             if hash_type:
+                # Build SQL statement
                 sql = """
                     SELECT
                         {column_name}
@@ -133,22 +134,38 @@ class Transaction(object):
                         txn_hash=%s
                     LIMIT 1
                 """
-                if hash_type[0] in ("data_request_txn", "commit_txn"):
+                if hash_type[0] in (
+                    "data_request_txn",
+                    "commit_txn",
+                ):
                     assert input_index == 0, "Unexpectedly found a non-zero input index"
                     sql = SQL(re_sql(sql)).format(
                         column_name=Identifier("output_value"),
                         table_name=Identifier(f"{hash_type[0]}s"),
                     )
-                    outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
-                    if outputs:
-                        input_values.append(outputs[0])
+                elif hash_type[0] == "stake_txn":
+                    assert input_index == 0, "Unexpectedly found a non-zero input index"
+                    sql = SQL(re_sql(sql)).format(
+                        column_name=Identifier("change_value"),
+                        table_name=Identifier(f"{hash_type[0]}s"),
+                    )
+                elif hash_type[0] == "unstake_txn":
+                    assert input_index == 0, "Unexpectedly found a non-zero input index"
+                    sql = SQL(re_sql(sql)).format(
+                        column_name=Identifier("unstake_value"),
+                        table_name=Identifier(f"{hash_type[0]}s"),
+                    )
                 else:
                     sql = SQL(re_sql(sql)).format(
                         column_name=Identifier("output_values"),
                         table_name=Identifier(f"{hash_type[0]}s"),
                     )
-                    outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
-                    if outputs:
+
+                outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
+                if outputs:
+                    if type(outputs[0]) is int:
+                        input_values.append(outputs[0])
+                    else:
                         input_values.append(outputs[0][input_index])
 
             # Fall back: transaction not found in database, fetch it from the node
@@ -167,21 +184,23 @@ class Transaction(object):
                     return [], []
 
                 # Figure out the transaction type as the parsing depends on that
-                transaction_type = list(input_txn["transaction"].keys())[0]
-                if transaction_type in ("Tally", "Mint"):
-                    outputs = input_txn["transaction"][transaction_type]["outputs"]
+                txn_type = list(input_txn["transaction"].keys())[0]
+                if txn_type in ("Tally", "Mint"):
+                    outputs = input_txn["transaction"][txn_type]["outputs"]
                     # Append the correct output to the list of input_values
                     input_values.append(outputs[input_index]["value"])
-                elif list(input_txn["transaction"].keys())[0] in (
-                    "DataRequest",
-                    "Commit",
-                    "ValueTransfer",
-                ):
-                    outputs = input_txn["transaction"][transaction_type]["body"][
-                        "outputs"
-                    ]
+                elif txn_type in ("DataRequest", "Commit", "ValueTransfer"):
+                    outputs = input_txn["transaction"][txn_type]["body"]["outputs"]
                     # Append the correct output to the list of input_values
                     input_values.append(outputs[input_index]["value"])
+                elif txn_type == "Stake":
+                    output = input_txn["transaction"][txn_type]["body"]["change"]
+                    # The stake output is not an array
+                    input_values.append(output["value"])
+                elif txn_type == "Unstake":
+                    output = input_txn["transaction"][txn_type]["body"]["withdrawal"]
+                    # The unstake output is not an array
+                    input_values.append(output["value"])
                 else:
                     if self.logger:
                         self.logger.error(

@@ -42,3 +42,13 @@ def reveals():
 @pytest.fixture
 def tallies():
     return json.load(open("mockups/data/tallies.json"))
+
+
+@pytest.fixture
+def stakes():
+    return json.load(open("mockups/data/stakes.json"))
+
+
+@pytest.fixture
+def unstakes():
+    return json.load(open("mockups/data/unstakes.json"))

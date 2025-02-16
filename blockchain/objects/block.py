@@ -7,7 +7,9 @@ from blockchain.transactions.commit import Commit
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.mint import Mint
 from blockchain.transactions.reveal import Reveal
+from blockchain.transactions.stake import Stake
 from blockchain.transactions.tally import Tally
+from blockchain.transactions.unstake import Unstake
 from blockchain.transactions.value_transfer import ValueTransfer
 from node.witnet_node import WitnetNode
 from schemas.component.block_schema import BlockForApi, BlockForExplorer
@@ -132,6 +134,8 @@ class Block(object):
                 "timestamp": calculate_timestamp_from_epoch(self.block_epoch),
                 "data_request_weight": self.dr_weight,
                 "value_transfer_weight": self.vt_weight,
+                "stake_weight": self.st_weight,
+                "unstake_weight": self.ut_weight,
                 "weight": self.block_weight,
                 "confirmed": self.confirmed,
                 "reverted": self.reverted,
@@ -143,6 +147,8 @@ class Block(object):
                 "commit": self.process_commit_txns(call_from),
                 "reveal": self.process_reveal_txns(call_from),
                 "tally": self.process_tally_txns(call_from),
+                "stake": self.process_stake_txns(call_from),
+                "unstake": self.process_unstake_txns(call_from),
             },
         }
 
@@ -192,6 +198,8 @@ class Block(object):
 
         self.dr_weight = self.block["dr_weight"]
         self.vt_weight = self.block["vt_weight"]
+        self.st_weight = self.block["st_weight"] if "st_weight" in self.block else 0
+        self.ut_weight = self.block["ut_weight"] if "ut_weight" in self.block else 0
         self.block_weight = self.block["block_weight"]
 
         self.confirmed = self.block["confirmed"]
@@ -302,6 +310,54 @@ class Block(object):
                 tally.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
                 tally_transactions.append(tally.process_transaction(call_from))
         return tally_transactions
+
+    def process_stake_txns(self, call_from):
+        stake_transactions = []
+        if (
+            "stake" in self.block["txns_hashes"]
+            and len(self.block["txns_hashes"]["stake"]) > 0
+        ):
+            stake = Stake(
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
+            for i, (txn_hash, txn_weight) in enumerate(
+                zip(
+                    self.block["txns_hashes"]["stake"],
+                    self.block["txns_weights"]["stake"],
+                )
+            ):
+                json_txn = self.block["txns"]["stake_txns"][i]
+                stake.set_transaction(
+                    txn_hash, self.block_epoch, txn_weight=txn_weight, json_txn=json_txn
+                )
+                stake_transactions.append(stake.process_transaction(call_from))
+        return stake_transactions
+
+    def process_unstake_txns(self, call_from):
+        unstake_transactions = []
+        if (
+            "unstake" in self.block["txns_hashes"]
+            and len(self.block["txns_hashes"]["unstake"]) > 0
+        ):
+            unstake = Unstake(
+                database=self.database,
+                logger=self.logger,
+                witnet_node=self.witnet_node,
+            )
+            for i, (txn_hash, txn_weight) in enumerate(
+                zip(
+                    self.block["txns_hashes"]["unstake"],
+                    self.block["txns_weights"]["unstake"],
+                )
+            ):
+                json_txn = self.block["txns"]["unstake_txns"][i]
+                unstake.set_transaction(
+                    txn_hash, self.block_epoch, txn_weight=txn_weight, json_txn=json_txn
+                )
+                unstake_transactions.append(unstake.process_transaction(call_from))
+        return unstake_transactions
 
     def calculate_txns_fees(self):
         txns_fees = 0

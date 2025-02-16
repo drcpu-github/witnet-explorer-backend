@@ -15,4 +15,6 @@ class BlockView(HashSchema):
     commits = fields.Int(validate=validate.Range(min=0), required=True)
     reveals = fields.Int(validate=validate.Range(min=0), required=True)
     tallies = fields.Int(validate=validate.Range(min=0), required=True)
+    stakes = fields.Int(validate=validate.Range(min=0), required=True)
+    unstakes = fields.Int(validate=validate.Range(min=0), required=True)
     confirmed = fields.Boolean(required=True)

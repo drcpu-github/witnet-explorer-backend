@@ -16,9 +16,17 @@ from schemas.component.reveal_schema import (
     RevealTransactionForBlock,
     RevealTransactionForExplorer,
 )
+from schemas.component.stake_schema import (
+    StakeTransactionForBlock,
+    StakeTransactionForExplorer,
+)
 from schemas.component.tally_schema import (
     TallyTransactionForBlock,
     TallyTransactionForExplorer,
+)
+from schemas.component.unstake_schema import (
+    UnstakeTransactionForBlock,
+    UnstakeTransactionForExplorer,
 )
 from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForBlock,
@@ -40,6 +48,8 @@ class BlockDetails(TimestampComponent):
         validate=validate.Range(min=0),
         required=True,
     )
+    stake_weight = fields.Integer(validate=validate.Range(min=0), required=True)
+    unstake_weight = fields.Integer(validate=validate.Range(min=0), required=True)
     weight = fields.Integer(validate=validate.Range(min=0), required=True)
     txns_fees = fields.Integer(validate=validate.Range(min=0), required=True)
     confirmed = fields.Boolean(required=True)
@@ -59,6 +69,8 @@ class BlockTransactionsForExplorer(Schema):
     commit = fields.List(fields.Nested(CommitTransactionForExplorer), required=True)
     reveal = fields.List(fields.Nested(RevealTransactionForExplorer), required=True)
     tally = fields.List(fields.Nested(TallyTransactionForExplorer), required=True)
+    stake = fields.List(fields.Nested(StakeTransactionForExplorer), required=True)
+    unstake = fields.List(fields.Nested(UnstakeTransactionForExplorer), required=True)
 
 
 class BlockForExplorer(Schema):
@@ -97,6 +109,8 @@ class BlockTransactionsForApi(Schema):
         required=True,
     )
     tally = fields.List(fields.Nested(TallyTransactionForBlock), required=True)
+    stake = fields.List(fields.Nested(StakeTransactionForBlock), required=True)
+    unstake = fields.List(fields.Nested(UnstakeTransactionForBlock), required=True)
     number_of_commits = fields.Int(validate=validate.Range(min=0), required=True)
     number_of_reveals = fields.Int(validate=validate.Range(min=0), required=True)
 

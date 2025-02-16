@@ -300,6 +300,8 @@ class Address(object):
                 blocks.commit,
                 blocks.reveal,
                 blocks.tally,
+                blocks.stake,
+                blocks.unstake,
                 blocks.epoch,
                 blocks.confirmed,
                 mint_txns.output_values
@@ -325,6 +327,8 @@ class Address(object):
                     commits,
                     reveals,
                     tallies,
+                    stakes,
+                    unstakes,
                     block_epoch,
                     block_confirmed,
                     output_values,
@@ -346,6 +350,8 @@ class Address(object):
                         "commits": commits,
                         "reveals": reveals,
                         "tallies": tallies,
+                        "stakes": stakes,
+                        "unstakes": unstakes,
                         "confirmed": block_confirmed,
                     }
                 )

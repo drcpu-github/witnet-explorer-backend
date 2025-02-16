@@ -38,6 +38,8 @@ class WitnetDatabase(object):
         self.commits = []
         self.reveals = []
         self.tallies = []
+        self.stakes = []
+        self.unstakes = []
 
         self.last_epoch = 0
 
@@ -68,8 +70,12 @@ class WitnetDatabase(object):
                 len(block_json["transactions"]["commit"]),
                 len(block_json["transactions"]["reveal"]),
                 len(block_json["transactions"]["tally"]),
+                len(block_json["transactions"]["stake"]),
+                len(block_json["transactions"]["unstake"]),
                 block_json["details"]["data_request_weight"],
                 block_json["details"]["value_transfer_weight"],
+                block_json["details"]["stake_weight"],
+                block_json["details"]["unstake_weight"],
                 block_json["details"]["weight"],
                 block_json["details"]["txns_fees"],
                 block_json["details"]["epoch"],
@@ -255,6 +261,57 @@ class WitnetDatabase(object):
             )
         )
 
+    def insert_stake_txn(self, txn_details, epoch):
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["hash"]),
+                "stake_txn",
+                epoch,
+            )
+        )
+
+        # Insert stake transaction
+        self.stakes.append(
+            (
+                bytearray.fromhex(txn_details["hash"]),
+                txn_details["input_addresses"],
+                txn_details["input_values"],
+                txn_details["input_utxos"],
+                txn_details["change_address"],
+                txn_details["change_value"],
+                txn_details["weight"],
+                txn_details["validator"],
+                txn_details["withdrawer"],
+                txn_details["stake_value"],
+                epoch,
+            )
+        )
+
+    def insert_unstake_txn(self, txn_details, epoch):
+        # Insert hash type
+        self.hashes.append(
+            (
+                bytearray.fromhex(txn_details["hash"]),
+                "unstake_txn",
+                epoch,
+            )
+        )
+
+        # Insert unstake transaction
+        self.unstakes.append(
+            (
+                bytearray.fromhex(txn_details["hash"]),
+                txn_details["validator"],
+                txn_details["withdrawer"],
+                txn_details["unstake_value"],
+                txn_details["fee"],
+                txn_details["nonce"],
+                txn_details["weight"],
+                epoch,
+            )
+        )
+
     def insert_addresses(self, addresses):
         sql = """
             INSERT INTO addresses(
@@ -322,14 +379,18 @@ class WitnetDatabase(object):
                     commit,
                     reveal,
                     tally,
+                    stake,
+                    unstake,
                     dr_weight,
                     vt_weight,
+                    st_weight,
+                    ut_weight,
                     block_weight,
                     txns_fees,
                     epoch,
                     tapi_signals,
                     confirmed
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT
                     blocks_pkey
                 DO UPDATE SET
@@ -513,6 +574,59 @@ class WitnetDatabase(object):
                     f"Inserted {len(self.tallies)} tally transaction(s) for epoch {epoch}"
                 )
         self.tallies = []
+
+        # insert stake transactions
+        if len(self.stakes) > 0:
+            sql = """
+                INSERT INTO stake_txns (
+                    txn_hash,
+                    input_addresses,
+                    input_values,
+                    input_utxos,
+                    change_address,
+                    change_value,
+                    weight,
+                    validator,
+                    withdrawer,
+                    stake_value,
+                    epoch
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ON CONSTRAINT
+                    stake_txns_pkey
+                DO UPDATE SET
+                    epoch=EXCLUDED.epoch
+            """
+            self.db_mngr.sql_execute_many(sql, self.stakes)
+            if self.logger:
+                self.logger.info(
+                    f"Inserted {len(self.stakes)} stake transaction(s) for epoch {epoch}"
+                )
+        self.stakes = []
+
+        # insert unstake transactions
+        if len(self.unstakes) > 0:
+            sql = """
+                INSERT INTO unstake_txns (
+                    txn_hash,
+                    validator,
+                    withdrawer,
+                    unstake_value,
+                    fee,
+                    nonce,
+                    weight,
+                    epoch
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ON CONSTRAINT
+                    unstake_txns_pkey
+                DO UPDATE SET
+                    epoch=EXCLUDED.epoch
+            """
+            self.db_mngr.sql_execute_many(sql, self.unstakes)
+            if self.logger:
+                self.logger.info(
+                    f"Inserted {len(self.unstakes)} unstake transaction(s) for epoch {epoch}"
+                )
+        self.unstakes = []
 
     def confirm_block(self, block_hash, epoch):
         sql = """

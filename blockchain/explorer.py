@@ -226,6 +226,14 @@ class BlockExplorer(object):
         for txn_details in block_json["transactions"]["tally"]:
             database.insert_tally_txn(txn_details, epoch)
 
+        # Insert tally transactions
+        for txn_details in block_json["transactions"]["stake"]:
+            database.insert_stake_txn(txn_details, epoch)
+
+        # Insert tally transactions
+        for txn_details in block_json["transactions"]["unstake"]:
+            database.insert_unstake_txn(txn_details, epoch)
+
     def insert_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
         # Set up logger
         self.configure_logging_process(log_queue, "explorer-insert")

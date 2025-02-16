@@ -50,6 +50,12 @@ class MockWitnetNode(object):
         tallies = json.load(open("mockups/data/tallies.json"))
         transactions.update(tallies)
 
+        stake = json.load(open("mockups/data/stakes.json"))
+        transactions.update(stake)
+
+        unstake = json.load(open("mockups/data/unstakes.json"))
+        transactions.update(unstake)
+
         return transactions[txn_hash]["rpc"]
 
     def get_sync_status(self):
