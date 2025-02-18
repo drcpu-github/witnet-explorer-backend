@@ -34,7 +34,6 @@ class BlockExplorer(object):
         self.config = BlockchainConfig.config
         self.poll_interval = self.config["explorer"]["poll_interval"]
         self.addresses_config = self.config["api"]["caching"]["scripts"]["addresses"]
-        self.mempool_interval = self.config["explorer"]["mempool_interval"]
 
         # Set up logger
         self.configure_logging_process(log_queue, "explorer")
@@ -239,9 +238,6 @@ class BlockExplorer(object):
         self.configure_logging_process(log_queue, "explorer-insert")
         logger = logging.getLogger("explorer-insert")
 
-        # Get some consensus constants
-        checkpoints_period = self.consensus_constants.checkpoints_period
-
         # Connect to the addresses caching server
         caching_server = SocketManager(
             self.addresses_config["host"],
@@ -267,8 +263,8 @@ class BlockExplorer(object):
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / checkpoints_period) + 1
-        ) * checkpoints_period + 1
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval + 1
         sleep_for = max(0, next_poll_interval - time.time())
         logger.info(f"Waiting {int(sleep_for)}s until the start of the next epoch")
         time.sleep(sleep_for)
@@ -276,8 +272,8 @@ class BlockExplorer(object):
         # Infinite loop
         while True:
             next_poll_interval = (
-                int(time.time() / checkpoints_period) + 1
-            ) * checkpoints_period + 1
+                int(time.time() / self.poll_interval) + 1
+            ) * self.poll_interval + 1
 
             # Get TAPI periods
             tapi_periods = self.get_tapi_periods(self.insert_blocks_database)
@@ -335,7 +331,6 @@ class BlockExplorer(object):
 
         # Calculate superepoch period from consensus constants
         superblock_period = BlockchainConfig.consensus_constants.superblock_period
-        checkpoints_period = BlockchainConfig.consensus_constants.checkpoints_period
 
         # Connect to the addresses caching server
         caching_server = SocketManager(
@@ -346,16 +341,16 @@ class BlockExplorer(object):
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / checkpoints_period) + 1
-        ) * checkpoints_period + 5
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval + 5
         sleep_for = max(0, next_poll_interval - time.time())
         time.sleep(sleep_for)
 
         unconfirmed_blocks = {}
         while True:
             next_poll_interval = (
-                int(time.time() / checkpoints_period) + 1
-            ) * checkpoints_period + 5
+                int(time.time() / self.poll_interval) + 1
+            ) * self.poll_interval + 5
 
             # Get TAPI epochs
             tapi_periods = self.get_tapi_periods(self.confirm_blocks_database)
@@ -513,8 +508,8 @@ class BlockExplorer(object):
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / self.mempool_interval) + 1
-        ) * self.mempool_interval
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval
         sleep_for = max(0, next_poll_interval - time.time())
         time.sleep(sleep_for)
 
@@ -523,12 +518,10 @@ class BlockExplorer(object):
 
         while True:
             current_time = time.time()
-            timestamp = (
-                int(current_time / self.mempool_interval) * self.mempool_interval
-            )
+            timestamp = int(current_time / self.poll_interval) * self.poll_interval
             next_poll_interval = (
-                int(current_time / self.mempool_interval) + 1
-            ) * self.mempool_interval
+                int(current_time / self.poll_interval) + 1
+            ) * self.poll_interval
 
             current_epoch = self.insert_pending_node.get_current_epoch()
             if current_epoch == 0:
