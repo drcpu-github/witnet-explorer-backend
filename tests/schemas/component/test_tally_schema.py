@@ -150,6 +150,23 @@ def test_tally_transaction_for_api_success(tally_transaction_for_api):
     TallyTransactionForApi().load(tally_transaction_for_api)
 
 
+def test_tally_transaction_for_api_failure_wit2_epoch(tally_transaction_for_api):
+    tally_transaction_for_api["epoch"] = 280
+    tally_transaction_for_api["output_addresses"] = []
+    tally_transaction_for_api["output_values"] = []
+    with pytest.raises(ValidationError) as err_info:
+        # Outputs are required before wit/2 is activated
+        TallyTransactionForApi().load(tally_transaction_for_api)
+    assert (
+        err_info.value.messages["output_addresses"]
+        == "Need at least one output address."
+    )
+
+    # No outputs are needed anymore after wit/2 is activated
+    tally_transaction_for_api["epoch"] = 300
+    TallyTransactionForApi().load(tally_transaction_for_api)
+
+
 def test_tally_transaction_for_api_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:

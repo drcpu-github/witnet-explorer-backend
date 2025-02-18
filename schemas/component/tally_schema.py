@@ -1,5 +1,6 @@
 from marshmallow import Schema, ValidationError, fields, validate, validates_schema
 
+from blockchain.config import BlockchainConfig
 from schemas.include.base_transaction_schema import BaseApiTransaction, BaseTransaction
 from schemas.include.bytearray_field import BytearrayField
 from schemas.include.validation_functions import is_valid_address, is_valid_hash
@@ -13,10 +14,15 @@ class TallyOutput(Schema):
 
     @validates_schema
     def validate_sizes(self, args, **kwargs):
+        epoch = args["epoch"] if "epoch" in args else 0
+        wit2_epoch = BlockchainConfig.wip.get_activation_epoch("wit/2") or 1e99
+        output_addresses = args["output_addresses"]
+        output_values = args["output_values"]
+
         errors = {}
-        if len(args["output_addresses"]) < 1:
+        if epoch < wit2_epoch and len(output_addresses) < 1:
             errors["output_addresses"] = "Need at least one output address."
-        if len(args["output_addresses"]) != len(args["output_values"]):
+        if len(output_addresses) != len(output_values):
             errors["output_values"] = (
                 "Size of output addresses and output values does not match."
             )

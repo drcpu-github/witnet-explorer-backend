@@ -19,10 +19,7 @@ from util.data_transformer import hex2bytes
 class TransactionOutput(Schema):
     pkh = fields.Str(validate=is_valid_address, required=True)
     time_lock = fields.Int(required=True, validate=validate.Range(min=0))
-    value = fields.Int(
-        required=True,
-        validate=validate.Range(min=1, max=2500000000000000000),
-    )
+    value = fields.Int(validate=validate.Range(min=1), required=True)
 
 
 class TransactionBody(Schema):

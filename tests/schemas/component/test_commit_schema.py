@@ -182,6 +182,22 @@ def test_commit_transaction_for_explorer_failure_inputs(
     )
 
 
+def test_commit_transaction_for_explorer_failure_wit2_epoch(
+    commit_transaction_for_explorer,
+):
+    commit_transaction_for_explorer["epoch"] = 280
+    commit_transaction_for_explorer["input_values"] = []
+    commit_transaction_for_explorer["input_utxos"] = []
+    with pytest.raises(ValidationError) as err_info:
+        # Inputs are required before wit/2 is activated
+        CommitTransactionForExplorer().load(commit_transaction_for_explorer)
+    assert err_info.value.messages["input_values"] == "Need at least one input value."
+
+    # No inputs are needed anymore after wit/2 is activated
+    commit_transaction_for_explorer["epoch"] = 300
+    CommitTransactionForExplorer().load(commit_transaction_for_explorer)
+
+
 def test_commit_transaction_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:

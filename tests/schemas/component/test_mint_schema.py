@@ -13,6 +13,8 @@ from tests.schemas.include.test_address_schema import generic_address_test
 @pytest.fixture
 def mint_transaction():
     return {
+        "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
+        "epoch": 1,
         "miner": "wit100000000000000000000000000000000r0v4g2",
         "output_addresses": [
             "wit100000000000000000000000000000000r0v4g2",
@@ -63,11 +65,30 @@ def test_mint_transaction_failure_address(mint_transaction):
     )
 
 
+def test_mint_transaction_failure_wit2_epoch(mint_transaction):
+    mint_transaction["epoch"] = 280
+    mint_transaction["output_addresses"] = []
+    mint_transaction["output_values"] = []
+    with pytest.raises(ValidationError) as err_info:
+        # Outputs are required before wit/2 is activated
+        MintTransaction().load(mint_transaction)
+    assert (
+        err_info.value.messages["output_addresses"]
+        == "Need at least one output address."
+    )
+
+    # No outputs are needed anymore after wit/2 is activated
+    mint_transaction["epoch"] = 300
+    MintTransaction().load(mint_transaction)
+
+
 def test_mint_transaction_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         MintTransaction().load(data)
-    assert len(err_info.value.messages) == 3
+    assert len(err_info.value.messages) == 5
+    assert err_info.value.messages["hash"][0] == "Missing data for required field."
+    assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["miner"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["output_addresses"][0]
