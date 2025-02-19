@@ -6,6 +6,8 @@ from psycopg.sql import SQL, Identifier
 
 from blockchain.config import BlockchainConfig
 from blockchain.objects.wip import WIP
+from mockups.database import MockDatabase
+from mockups.witnet_node import MockWitnetNode
 from node.witnet_node import WitnetNode
 from util.address_generator import AddressGenerator
 from util.data_transformer import re_sql
@@ -25,13 +27,19 @@ class Transaction(object):
         self.epoch_period = self.consensus_constants.checkpoints_period
         self.collateral_minimum = self.consensus_constants.collateral_minimum
 
+        # Get the network type
+        network_type = BlockchainConfig.config["environment"]["network"]
+
         # Connect to the database
         if database is not None:
             self.database = database
         else:
-            self.database = DatabaseManager(
-                logger=logger, custom_types=["utxo", "filter"]
-            )
+            if network_type == "pytest":
+                self.database = MockDatabase()
+            else:
+                self.database = DatabaseManager(
+                    logger=logger, custom_types=["utxo", "filter"]
+                )
 
         # Set up logger
         if logger:
@@ -43,10 +51,10 @@ class Transaction(object):
         if witnet_node is not None:
             self.witnet_node = witnet_node
         else:
-            self.witnet_node = WitnetNode(logger=self.logger)
-
-        # Get the network type
-        network_type = BlockchainConfig.config["environment"]["network"]
+            if network_type == "pytest":
+                self.witnet_node = MockWitnetNode()
+            else:
+                self.witnet_node = WitnetNode(logger=self.logger)
 
         # Create address generator
         address_prefix = None
