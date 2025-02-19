@@ -1,4 +1,4 @@
-from marshmallow import Schema, ValidationError, fields, validate, validates_schema
+from marshmallow import Schema, fields, validate
 
 from schemas.component.commit_schema import (
     CommitTransactionForBlock,
@@ -76,16 +76,7 @@ class BlockTransactionsForExplorer(Schema):
 class BlockForExplorer(Schema):
     details = fields.Nested(BlockDetails, required=True)
     transactions = fields.Nested(BlockTransactionsForExplorer, required=True)
-    tapi = fields.List(
-        fields.Int(validate=validate.Range(min=0, max=1)),
-        allow_none=True,
-        required=True,
-    )
-
-    @validates_schema
-    def validate_tapi(self, args, **kwargs):
-        if args["tapi"] is not None and len(args["tapi"]) < 32:
-            raise ValidationError("TAPI signal vector does not have a length of 32.")
+    tapi = fields.Int(validate=validate.Range(min=0), allow_none=True, required=True)
 
 
 class BlockTransactionsForApi(Schema):

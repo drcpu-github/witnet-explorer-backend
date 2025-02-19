@@ -109,7 +109,7 @@ def test_data_request_failure_missing():
 def data_request_transaction_for_api(data_request):
     data_request.update(
         {
-            "timestamp": 1602666090,
+            "timestamp": 1_738_180_845,
             "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
             "confirmed": True,
             "reverted": False,

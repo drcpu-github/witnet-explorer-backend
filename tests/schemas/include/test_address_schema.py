@@ -5,7 +5,7 @@ from schemas.include.address_schema import AddressSchema
 
 
 def test_address_success():
-    data = {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"}
+    data = {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"}
     AddressSchema().load(data)
 
 

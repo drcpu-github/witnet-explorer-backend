@@ -48,7 +48,7 @@ def value_transfer_transaction_for_api():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -254,7 +254,7 @@ def value_transfer_transaction_for_block():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "unique_input_addresses": ["wit100000000000000000000000000000000r0v4g2"],
         "true_output_addresses": ["wit100000000000000000000000000000000r0v4g2"],
         "true_value": 1000,

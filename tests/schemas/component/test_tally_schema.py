@@ -134,7 +134,7 @@ def tally_transaction_for_api(tally_output, tally_addresses, tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -152,6 +152,7 @@ def test_tally_transaction_for_api_success(tally_transaction_for_api):
 
 def test_tally_transaction_for_api_failure_wit2_epoch(tally_transaction_for_api):
     tally_transaction_for_api["epoch"] = 280
+    tally_transaction_for_api["timestamp"] = 1_738_193_400
     tally_transaction_for_api["output_addresses"] = []
     tally_transaction_for_api["output_values"] = []
     with pytest.raises(ValidationError) as err_info:
@@ -164,6 +165,7 @@ def test_tally_transaction_for_api_failure_wit2_epoch(tally_transaction_for_api)
 
     # No outputs are needed anymore after wit/2 is activated
     tally_transaction_for_api["epoch"] = 300
+    tally_transaction_for_api["timestamp"] = 1_738_193_825
     TallyTransactionForApi().load(tally_transaction_for_api)
 
 
@@ -271,7 +273,7 @@ def tally_transaction_for_data_request(tally_addresses, tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,

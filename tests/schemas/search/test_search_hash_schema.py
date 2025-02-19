@@ -45,6 +45,8 @@ search_hash_response_types = [
     "commit",
     "reveal",
     "tally",
+    "stake",
+    "unstake",
     "data_request_report",
     "data_request_history",
 ]

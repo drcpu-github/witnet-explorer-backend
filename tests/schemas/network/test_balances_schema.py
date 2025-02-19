@@ -6,7 +6,7 @@ from schemas.network.balances_schema import AddressBalance, NetworkBalancesRespo
 
 def test_address_balance_success():
     data = {
-        "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+        "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
         "balance": 100,
         "label": "The best address",
     }
@@ -25,12 +25,12 @@ def test_network_balances_success():
     data = {
         "balances": [
             {
-                "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
                 "balance": 100,
                 "label": "The best address",
             },
             {
-                "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
+                "address": "twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh",
                 "balance": 10,
                 "label": "The second best address",
             },

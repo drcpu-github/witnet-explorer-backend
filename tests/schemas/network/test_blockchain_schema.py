@@ -9,7 +9,7 @@ from tests.schemas.include.test_address_schema import generic_address_test
 def block():
     return {
         "hash": "24ef311401232da383ab4dc627cc8b9c1cdebd43f57a8022b383ab099b68e2b1",
-        "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+        "miner": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
         "value_transfers": 0,
         "data_requests": 1,
         "commits": 2,

@@ -15,7 +15,7 @@ def block_details():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "data_request_weight": 1000,
         "value_transfer_weight": 1000,
         "stake_weight": 1000,
@@ -77,6 +77,8 @@ def block_transactions_for_block(
     commit_transaction_for_block,
     reveal_transaction_for_block,
     tally_transaction_for_block,
+    stake_transaction_for_block,
+    unstake_transaction_for_block,
 ):
     return {
         "mint": mint_transaction_for_block,
@@ -93,6 +95,8 @@ def block_transactions_for_block(
             ],
         },
         "tally": [tally_transaction_for_block],
+        "stake": [stake_transaction_for_block],
+        "unstake": [unstake_transaction_for_block],
         "number_of_commits": 0,
         "number_of_reveals": 0,
     }
@@ -130,7 +134,7 @@ def test_block_transactions_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockTransactionsForApi().load(data)
-    assert len(err_info.value.messages) == 8
+    assert len(err_info.value.messages) == 10
     assert err_info.value.messages["mint"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["value_transfer"][0]
@@ -142,6 +146,8 @@ def test_block_transactions_for_block_failure_missing():
     assert err_info.value.messages["commit"][0] == "Missing data for required field."
     assert err_info.value.messages["reveal"][0] == "Missing data for required field."
     assert err_info.value.messages["tally"][0] == "Missing data for required field."
+    assert err_info.value.messages["stake"][0] == "Missing data for required field."
+    assert err_info.value.messages["unstake"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["number_of_commits"][0]
         == "Missing data for required field."
@@ -160,6 +166,8 @@ def block_transactions_for_explorer(
     commit_transaction_for_explorer,
     reveal_transaction_for_explorer,
     tally_transaction_for_explorer,
+    stake_transaction_for_explorer,
+    unstake_transaction_for_explorer,
 ):
     return {
         "mint": mint_transaction_for_explorer,
@@ -168,6 +176,8 @@ def block_transactions_for_explorer(
         "commit": [commit_transaction_for_explorer],
         "reveal": [reveal_transaction_for_explorer],
         "tally": [tally_transaction_for_explorer],
+        "stake": [stake_transaction_for_explorer],
+        "unstake": [unstake_transaction_for_explorer],
     }
 
 
@@ -179,7 +189,7 @@ def test_block_transactions_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockTransactionsForExplorer().load(data)
-    assert len(err_info.value.messages) == 6
+    assert len(err_info.value.messages) == 8
     assert err_info.value.messages["mint"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["value_transfer"][0]
@@ -191,6 +201,8 @@ def test_block_transactions_for_explorer_failure_missing():
     assert err_info.value.messages["commit"][0] == "Missing data for required field."
     assert err_info.value.messages["reveal"][0] == "Missing data for required field."
     assert err_info.value.messages["tally"][0] == "Missing data for required field."
+    assert err_info.value.messages["stake"][0] == "Missing data for required field."
+    assert err_info.value.messages["unstake"][0] == "Missing data for required field."
 
 
 @pytest.fixture
@@ -221,7 +233,7 @@ def block_for_explorer(block_details, block_transactions_for_explorer):
     return {
         "details": block_details,
         "transactions": block_transactions_for_explorer,
-        "tapi": [0] * 32,
+        "tapi": 0,
     }
 
 
@@ -232,26 +244,6 @@ def test_block_for_explorer_success(block_for_explorer):
 def test_block_for_explorer_success_none(block_for_explorer):
     block_for_explorer["tapi"] = None
     BlockForExplorer().load(block_for_explorer)
-
-
-def test_block_for_explorer_failure_tapi_length(block_for_explorer):
-    block_for_explorer["tapi"] = []
-    with pytest.raises(ValidationError) as err_info:
-        BlockForExplorer().load(block_for_explorer)
-    assert (
-        err_info.value.messages["_schema"][0]
-        == "TAPI signal vector does not have a length of 32."
-    )
-
-
-def test_block_for_explorer_failure_tapi_bits(block_for_explorer):
-    block_for_explorer["tapi"] = [0, 1, 2]
-    with pytest.raises(ValidationError) as err_info:
-        BlockForExplorer().load(block_for_explorer)
-    assert (
-        err_info.value.messages["tapi"][2][0]
-        == "Must be greater than or equal to 0 and less than or equal to 1."
-    )
 
 
 def test_block_for_explorer_failure_missing():

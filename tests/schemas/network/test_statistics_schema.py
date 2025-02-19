@@ -119,17 +119,17 @@ def test_network_rollback_failure_missing():
 def test_top_100_success():
     data = {
         "top_100_miners": [
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 30},
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 20},
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 10},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 30},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 20},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 10},
         ]
     }
     NetworkStatisticsResponse().load(data)
     data = {
         "top_100_data_request_solvers": [
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 30},
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 20},
-            {"address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq", "amount": 10},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 30},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 20},
+            {"address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp", "amount": 10},
         ]
     }
     NetworkStatisticsResponse().load(data)

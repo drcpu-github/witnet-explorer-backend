@@ -10,7 +10,7 @@ def mint_view():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1_602_666_090,
+        "timestamp": 1_738_180_845,
         "confirmed": True,
         "miner": "wit100000000000000000000000000000000r0v4g2",
         "output_value": 50000000000,

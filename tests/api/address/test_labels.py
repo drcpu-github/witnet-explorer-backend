@@ -4,14 +4,14 @@ import json
 def test_info_existing_addresses(client):
     response = client.get("/api/address/labels")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["X-Version"] == "1.0.0"
     assert json.loads(response.data) == [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-            "label": "drcpu0",
+            "address": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
+            "label": "label 1",
         },
         {
-            "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
-            "label": "drcpu2",
+            "address": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
+            "label": "label 2",
         },
     ]

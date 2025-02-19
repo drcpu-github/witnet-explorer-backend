@@ -28,6 +28,11 @@ from tests.schemas.component.test_reveal_schema import (  # noqa: F401
     reveal_transaction_for_data_request,
     reveal_transaction_for_explorer,
 )
+from tests.schemas.component.test_stake_schema import (  # noqa: F401
+    stake_transaction_for_api,
+    stake_transaction_for_block,
+    stake_transaction_for_explorer,
+)
 from tests.schemas.component.test_tally_schema import (  # noqa: F401
     tally_addresses,
     tally_output,
@@ -36,6 +41,11 @@ from tests.schemas.component.test_tally_schema import (  # noqa: F401
     tally_transaction_for_block,
     tally_transaction_for_data_request,
     tally_transaction_for_explorer,
+)
+from tests.schemas.component.test_unstake_schema import (  # noqa: F401
+    unstake_transaction_for_api,
+    unstake_transaction_for_block,
+    unstake_transaction_for_explorer,
 )
 from tests.schemas.component.test_value_transfer_schema import (  # noqa: F401
     value_transfer_transaction_for_api,

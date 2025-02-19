@@ -17,7 +17,7 @@ def value_transfer_view():
         "output_addresses": ["wit100000000000000000000000000000000r0v4g2"],
         "priority": 1,
         "weight": 493,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "value": 1,
         "confirmed": True,
     }

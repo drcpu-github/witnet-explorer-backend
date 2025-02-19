@@ -11,7 +11,7 @@ from schemas.address.utxos_schema import (
 
 def test_address_utxos_args_success():
     data = {
-        "addresses": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6"
+        "addresses": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh"
     }
     AddressUtxosArgs().load(data)
 
@@ -100,7 +100,7 @@ def test_utxo_failure_missing():
 def test_address_utxos_response_success():
     data = [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+            "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
             "utxos": [
                 {
                     "output_pointer": "aefc88a00c6ba98fdec3622baec52925a77378c124df325c2bd8a8842e0c01ad:1",
@@ -117,7 +117,7 @@ def test_address_utxos_response_success():
             ],
         },
         {
-            "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
+            "address": "twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh",
             "utxos": [
                 {
                     "output_pointer": "cefc88a00c6ba98fdec3622baec52925a77378c124df325c2bd8a8842e0c01ad:1",

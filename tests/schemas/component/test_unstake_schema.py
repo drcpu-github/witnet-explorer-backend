@@ -22,7 +22,7 @@ def unstake_transaction_for_api():
         "nonce": 1,
         "weight": 986,
         "priority": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_193_845,
         "confirmed": True,
         "reverted": False,
     }
@@ -72,7 +72,7 @@ def unstake_transaction_for_block():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 301,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_193_845,
         "fee": 1,
         "weight": 1,
         "priority": 1,

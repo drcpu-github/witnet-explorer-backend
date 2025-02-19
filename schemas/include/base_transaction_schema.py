@@ -13,7 +13,9 @@ class TimestampComponent(Schema):
     def validate_timestamp(self, args, **kwargs):
         expected_timestamp = calculate_timestamp_from_epoch(args["epoch"])
         if args["timestamp"] != expected_timestamp:
-            raise ValidationError("Incorrect transaction timestamp.")
+            raise ValidationError(
+                f"Incorrect transaction timestamp: got {args['timestamp']}, excepted {expected_timestamp}."
+            )
 
 
 class BaseTransaction(HashSchema):

@@ -2,15 +2,15 @@ import json
 
 
 def test_info_existing_addresses(client):
-    address_1 = "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-    address_2 = "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6"
+    address_1 = "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33"
+    address_2 = "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6"
     response = client.get(f"/api/address/info?addresses={address_1},{address_2}")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["X-Version"] == "1.0.0"
     assert json.loads(response.data) == [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-            "label": "drcpu0",
+            "address": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
+            "label": "label 1",
             "active": 2024098,
             "block": 68,
             "mint": 68,
@@ -21,8 +21,8 @@ def test_info_existing_addresses(client):
             "tally": 3051,
         },
         {
-            "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
-            "label": "drcpu2",
+            "address": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
+            "label": "label 2",
             "active": 1657960,
             "block": 21,
             "mint": 21,
@@ -36,9 +36,9 @@ def test_info_existing_addresses(client):
 
 
 def test_info_non_existing_addresses(client):
-    address_1 = "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsr"
-    address_2 = "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca7"
+    address_1 = "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc32"
+    address_2 = "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf7"
     response = client.get(f"/api/address/info?addresses={address_1},{address_2}")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["X-Version"] == "1.0.0"
     assert json.loads(response.data) == []

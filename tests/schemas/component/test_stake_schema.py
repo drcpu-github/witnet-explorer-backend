@@ -33,7 +33,7 @@ def stake_transaction_for_api():
         "fee": 1,
         "weight": 986,
         "priority": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_185_345,
         "confirmed": True,
         "reverted": False,
     }
@@ -110,7 +110,7 @@ def stake_transaction_for_block():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 101,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_185_345,
         "fee": 1,
         "weight": 1,
         "priority": 1,
