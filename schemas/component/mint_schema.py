@@ -1,7 +1,11 @@
 from marshmallow import ValidationError, fields, validate, validates_schema
 
 from blockchain.config import BlockchainConfig
-from schemas.include.base_transaction_schema import BaseApiTransaction, BaseTransaction
+from schemas.include.base_transaction_schema import (
+    BaseApiTransaction,
+    BaseTransaction,
+    TimestampComponent,
+)
 from schemas.include.validation_functions import is_valid_address
 
 
@@ -34,9 +38,9 @@ class MintTransactionForApi(BaseApiTransaction, MintTransaction):
     pass
 
 
-class MintTransactionForBlock(MintTransaction):
+class MintTransactionForBlock(MintTransaction, TimestampComponent):
     pass
 
 
-class MintTransactionForExplorer(MintTransactionForBlock):
+class MintTransactionForExplorer(MintTransaction):
     pass

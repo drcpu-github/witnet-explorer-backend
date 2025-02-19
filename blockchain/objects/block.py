@@ -141,7 +141,7 @@ class Block(object):
                 "reverted": self.reverted,
             },
             "transactions": {
-                "mint": self.process_mint_txn(),
+                "mint": self.process_mint_txn(call_from),
                 "value_transfer": self.process_value_transfer_txns(call_from),
                 "data_request": self.process_data_request_txns(call_from),
                 "commit": self.process_commit_txns(call_from),
@@ -211,7 +211,7 @@ class Block(object):
         else:
             self.reverted = False
 
-    def process_mint_txn(self):
+    def process_mint_txn(self, call_from):
         txn_hash = self.block["txns_hashes"]["mint"]
         json_txn = self.block["txns"]["mint"]
         block_signature = self.block["block_sig"]["public_key"]
@@ -221,7 +221,7 @@ class Block(object):
             witnet_node=self.witnet_node,
         )
         mint.set_transaction(txn_hash, self.block_epoch, json_txn=json_txn)
-        return mint.process_transaction(block_signature)
+        return mint.process_transaction(block_signature, call_from)
 
     def process_value_transfer_txns(self, call_from):
         value_transfer_txns = []

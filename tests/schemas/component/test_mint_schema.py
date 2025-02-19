@@ -145,6 +145,7 @@ def mint_transaction_for_block(mint_transaction):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
+        "timestamp": 1_738_180_845,
     }
     transaction.update(mint_transaction)
     return transaction
@@ -158,9 +159,10 @@ def test_mint_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         MintTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 5
+    assert len(err_info.value.messages) == 6
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
+    assert err_info.value.messages["timestamp"][0] == "Missing data for required field."
     assert err_info.value.messages["miner"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["output_addresses"][0]
