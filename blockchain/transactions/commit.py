@@ -1,3 +1,4 @@
+from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.transaction import Transaction
 from schemas.component.commit_schema import (
     CommitTransactionForApi,
@@ -32,6 +33,19 @@ class Commit(Transaction):
             data_request = self.txn_details["data_request"]
             raise Exception(
                 f"Could not find fee for commit transaction {hash_value} for data request {data_request}"
+            )
+
+        # Fetch collateral from database since we cannot use output / input difference anymore to calculate it
+        collateral = DataRequest().get_collateral_for_data_request(
+            self.txn_details["data_request"]
+        )
+        if "collateral" in collateral:
+            self.txn_details["collateral"] = collateral["collateral"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find collateral for commit transaction {hash_value} for data request {data_request}"
             )
 
         if call_from == "explorer":

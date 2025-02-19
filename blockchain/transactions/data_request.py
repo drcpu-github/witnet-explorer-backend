@@ -377,6 +377,26 @@ class DataRequest(Transaction):
         else:
             return {"error": "transaction not found"}
 
+    def get_collateral_for_data_request(self, data_request_hash):
+        sql = """
+            SELECT
+                data_request_txns.collateral
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = self.database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"collateral": result[0]}
+        else:
+            return {"error": "transaction not found"}
+
     def calculate_fees(
         self,
         witnesses,
