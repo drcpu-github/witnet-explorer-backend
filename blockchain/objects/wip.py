@@ -294,7 +294,7 @@ class WIP(object):
                 tapi_bit,
             ) = wip
             if wip_title == title:
-                if activation_epoch and epoch >= activation_epoch:
+                if activation_epoch is not None and epoch >= activation_epoch:
                     return True
         return False
 
