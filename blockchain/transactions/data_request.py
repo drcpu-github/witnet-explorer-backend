@@ -405,10 +405,10 @@ class DataRequest(Transaction):
         input_values,
         output_value,
     ):
-        # DRO fee = number of witnesses multiplied by their reward + total number of commits and reveals multiplied by its fee + tally fee (1)
+        # DRO fee = number of witnesses multiplied by their reward + total number of commits and reveals multiplied by its fee
         # The commit fees, reveal fees and tally fee go to the miners including the transactions
         # The witness reward goes to the witnesses solving a data request
-        dro_fee = witnesses * (witness_reward + 2 * commit_and_reveal_fee) + 1
+        dro_fee = witnesses * (witness_reward + 2 * commit_and_reveal_fee)
         # Miner fee = the sum of input values minus the sum of output values minus the DRO fee
         # This fee goes to the miner who picks the data request from the memory pool and includes it in a block
         # This fee is divided by the transaction weight and determines the priority for being executed (included in a block)
