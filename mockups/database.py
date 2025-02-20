@@ -172,6 +172,9 @@ class MockDatabase(object):
                                         e.strip().replace("'", "")
                                         for e in entry[1:-1].split(",")
                                     ]
+                                # Empty entry
+                                elif entry == '""':
+                                    data[row][column][i] = None
 
                 elif isinstance(value, str) and value == "True":
                     data[row][column] = True
