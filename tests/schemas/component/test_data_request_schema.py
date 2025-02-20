@@ -531,7 +531,7 @@ def test_data_request_retrieval_failure_kind(data_request_retrieval):
         DataRequestRetrieval().load(data_request_retrieval)
     assert (
         err_info.value.messages["kind"][0]
-        == "Must be one of: HTTP-GET, HTTP-POST, RNG."
+        == "Must be one of: HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
 
 

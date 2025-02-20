@@ -28,7 +28,8 @@ class DataRequest(BaseTransaction):
 
 class DataRequestRetrieval(Schema):
     kind = fields.Str(
-        validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"]), required=True
+        validate=validate.OneOf(["HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]),
+        required=True,
     )
     url = fields.URL(allow_none=True, required=True)
     headers = fields.List(fields.Str(), required=True)
