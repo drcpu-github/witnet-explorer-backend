@@ -14,6 +14,10 @@ from util.radon_translator import RadonTranslator
 
 class Tally(Transaction):
     def process_transaction(self, call_from):
+        # If we create a Tally from the transaction RPC, we still have to get the sub-dictionary
+        if "transaction" in self.json_txn:
+            self.json_txn = self.json_txn["transaction"]["Tally"]
+
         # Collect output details
         output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
         self.txn_details["output_addresses"] = output_addresses

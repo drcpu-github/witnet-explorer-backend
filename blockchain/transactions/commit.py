@@ -10,7 +10,7 @@ from util.blockchain_functions import calculate_timestamp_from_epoch
 
 class Commit(Transaction):
     def process_transaction(self, call_from):
-        # If we create a DataRequest from the transaction RPC, we still have to get the sub-dictionary
+        # If we create a Commit from the transaction RPC, we still have to get the sub-dictionary
         if "transaction" in self.json_txn:
             self.json_txn = self.json_txn["transaction"]["Commit"]
 

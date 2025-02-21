@@ -1,86 +1,197 @@
 {
-    "b47d06d2a6627f15736d2ca02bf3b184e4349754272d8298567a9e844947f6a0": {
-        "response_type": "tally",
-        "tally": {
-            "hash": "b47d06d2a6627f15736d2ca02bf3b184e4349754272d8298567a9e844947f6a0",
-            "block": "3d95e669702c08a977c08a16b8edf34e0201473ac95b607472016d27862a87c7",
-            "data_request": "0c1d52fda852c48b83ef113a03e85ae0fc10ac466af00a80b067561bfe355ea3",
-            "output_addresses": [
-                "wit12q0hj2ya5cwnn7ef7dlwt4cr58fa4g939msylx",
-                "wit1388dh5l7mu02sqn7h5te58xk0af20cp7dv6k32",
-                "wit15m08usrhhc0guc3wmumkl6450dupkd4adx0w34",
-                "wit18vgg7y80xfqt8339kl2k8cgydsv86hua0af948",
-                "wit15tel7aw8mfnn2rukp5wg8tdg9j9py49gj2f92l",
-                "wit1dutlujsl9xyw5sudhu4d6j6n7ynerzpy7e8h9g",
-                "wit1ta0ppd6229wqvnug7dcxnqu5uqhrd67vmm8ln6",
-                "wit1eq3hrw7g49dj3rgqf4wxy746fyafs4ztwpqmkr",
-                "wit1wze4p707tg2ywuc4fnkxfa27274zf298hq6v0q",
-                "wit1khk9l43xmqheatun20dez8a5fnlvlp82dugqss"
-            ],
-            "output_values": [
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000,
-                15150000000
-            ],
-            "error_addresses": [],
-            "liar_addresses": [],
-            "num_error_addresses": 0,
-            "num_liar_addresses": 0,
-            "success": true,
-            "tally": "122257",
-            "epoch": 2024097,
-            "timestamp": 1693750410,
-            "confirmed": true,
-            "reverted": false
+    "d3cda3a26568992a9866f9119930855586aefab8493358fdf26b283fe1b6d74e": {
+        "processed": {
+            "api": {
+                "hash": "d3cda3a26568992a9866f9119930855586aefab8493358fdf26b283fe1b6d74e",
+                "epoch": 104,
+                "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "tally": "104209.7479",
+                "success": true,
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0
+            },
+            "explorer": {
+                "hash": "d3cda3a26568992a9866f9119930855586aefab8493358fdf26b283fe1b6d74e",
+                "epoch": 104,
+                "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "tally": [
+                    251,
+                    64,
+                    249,
+                    113,
+                    27,
+                    247,
+                    101,
+                    253,
+                    139
+                ],
+                "success": true,
+                "error_addresses": [],
+                "liar_addresses": [],
+                "output_addresses": [
+                    "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
+                ],
+                "output_values": [
+                    21000000000
+                ]
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 104,
+                "blockHash": "acfb91728ffdd9c497c5e9c01ee823f8692f6c1f8bb4832a3658acc424aac864",
+                "confirmed": true,
+                "transaction": {
+                    "Tally": {
+                        "dr_pointer": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                        "error_committers": [],
+                        "out_of_consensus": [],
+                        "outputs": [
+                            {
+                                "pkh": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                                "time_lock": 0,
+                                "value": 21000000000
+                            }
+                        ],
+                        "tally": [
+                            251,
+                            64,
+                            249,
+                            113,
+                            27,
+                            247,
+                            101,
+                            253,
+                            139
+                        ]
+                    }
+                },
+                "weight": 0
+            }
         }
     },
-    "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11": {
-        "response_type": "tally",
-        "tally": {
-            "block": "9ce1ea2cce508bf4dea026da624ad1ea01025b1845e9040dd931f0f0d3e50d0c",
-            "confirmed": true,
-            "data_request": "713973d2f0b4fef783bc2c31b0efa1f931e12add19cad72870d09a2517e711b6",
-            "epoch": 2024100,
-            "error_addresses": [],
-            "hash": "dcb4f1ebde98b4ba0c819fca0cc339993322e67900ba53d9b5534afba844af11",
-            "liar_addresses": [],
-            "num_error_addresses": 0,
-            "num_liar_addresses": 0,
-            "output_addresses": [
-                "wit1erjngvfvd06w7gashwz0gzl9l06cw989f0wj7g",
-                "wit1mdc7sa024zgwnfu7s9jd805cu66zl7uzq24t08",
-                "wit1fxr5m8fhz6lxq9td776dztnwul7faqjgy5ws3l",
-                "wit1alv6kss3rljf28g38whdg8ajjsggvxs58wst96",
-                "wit1hjll4a7zd0tu9uxvtfnygrmnk6tef5hjld20ns",
-                "wit1u68mcvm4nmgwqchw3r429d8updlnxnr67k6skm",
-                "wit17c6kxl7xwhea72szz8pdklptfg6wvk5fqmac5k",
-                "wit1cz98gquc3ae47alnup8rmryw7mjk7jf8f08yee",
-                "wit1x26w253mtz30cxwd6ts67a34q5wtepsjdml7r5",
-                "wit1054dh7c34yp5vafncucrzpjqnxh93aw3yeeppp"
-            ],
-            "output_values": [
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000,
-                1515000000
-            ],
-            "reverted": false,
-            "success": true,
-            "tally": "6016308",
-            "timestamp": 1693750545
+    "e40def582d9c20c6df815d63c7010572e05df1725f6e22a75d755d209d8cd4b0": {
+        "processed": {
+            "api": {
+                "hash": "e40def582d9c20c6df815d63c7010572e05df1725f6e22a75d755d209d8cd4b0",
+                "epoch": 583,
+                "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "tally": "104213.18497500001",
+                "success": true,
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0
+            },
+            "explorer": {
+                "hash": "e40def582d9c20c6df815d63c7010572e05df1725f6e22a75d755d209d8cd4b0",
+                "epoch": 583,
+                "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "tally": [
+                    251,
+                    64,
+                    249,
+                    113,
+                    82,
+                    245,
+                    168,
+                    88,
+                    122
+                ],
+                "success": true,
+                "error_addresses": [],
+                "liar_addresses": [],
+                "output_addresses": [],
+                "output_values": []
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 583,
+                "blockHash": "1386fb207837f26ea69ae332ecb8e200b63a8fc35911b1dc3df46f81967cf6ad",
+                "confirmed": true,
+                "transaction": {
+                    "Tally": {
+                        "dr_pointer": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                        "error_committers": [],
+                        "out_of_consensus": [],
+                        "outputs": [],
+                        "tally": [
+                            251,
+                            64,
+                            249,
+                            113,
+                            82,
+                            245,
+                            168,
+                            88,
+                            122
+                        ]
+                    }
+                },
+                "weight": 0
+            }
+        }
+    },
+    "15ef58fcb4b8d0ebc6175e3f671fd04a8ca8819dc90262dc8eb5709e83b95ff0": {
+        "processed": {
+            "api": {
+                "hash": "15ef58fcb4b8d0ebc6175e3f671fd04a8ca8819dc90262dc8eb5709e83b95ff0",
+                "epoch": 2070,
+                "data_request": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+                "tally": "TooManyWitnesses",
+                "success": false,
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0
+            },
+            "explorer": {
+                "hash": "15ef58fcb4b8d0ebc6175e3f671fd04a8ca8819dc90262dc8eb5709e83b95ff0",
+                "epoch": 2070,
+                "data_request": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+                "tally": [
+                    216,
+                    39,
+                    129,
+                    24,
+                    84
+                ],
+                "success": false,
+                "error_addresses": [],
+                "liar_addresses": [],
+                "output_addresses": [
+                    "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
+                ],
+                "output_values": [
+                    2400000000
+                ]
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 2070,
+                "blockHash": "f641f12371b6136fadc0444d58dd189c297be6a702aa7d00f9ab28f6634992cb",
+                "confirmed": true,
+                "transaction": {
+                    "Tally": {
+                        "dr_pointer": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+                        "error_committers": [],
+                        "out_of_consensus": [],
+                        "outputs": [
+                            {
+                                "pkh": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
+                                "time_lock": 0,
+                                "value": 2400000000
+                            }
+                        ],
+                        "tally": [
+                            216,
+                            39,
+                            129,
+                            24,
+                            84
+                        ]
+                    }
+                },
+                "weight": 0
+            }
         }
     }
 }
