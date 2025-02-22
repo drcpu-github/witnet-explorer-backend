@@ -62,7 +62,7 @@ class SearchEpoch(MethodView):
                 logger.info(
                     f"Found block {epoch} with hash {cached_block_hash} in memcached cache"
                 )
-                return cached_block, 200, {"X-Version": "1.0.0"}
+                return cached_block, 200, {"X-Version": "2.0.0"}
 
         # Fetch block from a node
         block = Block(
@@ -79,7 +79,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
         if "error" in block_json:
@@ -87,7 +87,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Block for epoch {epoch} not found.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
         # Attempt to cache the block
@@ -115,7 +115,7 @@ class SearchEpoch(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for block {epoch}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
                 # Second, cache the block hash with the block epoch as key
                 cache.set(
@@ -144,12 +144,12 @@ class SearchEpoch(MethodView):
                     }
                 ),
                 200,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for block {epoch}: {err_info}")
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )

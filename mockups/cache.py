@@ -19,8 +19,9 @@ class MockCache(object):
 
         blocks = json.load(open("mockups/data/blocks.json"))
         for block_hash, block in blocks.items():
-            self.cache[str(block["cache"]["block"]["details"]["epoch"])] = block_hash
-            self.cache[block_hash] = block["cache"]
+            epoch = str(block["processed"]["api"]["block"]["details"]["epoch"])
+            self.cache[epoch] = block_hash
+            self.cache[block_hash] = block["processed"]["api"]
 
         for fh in (
             "balances",
