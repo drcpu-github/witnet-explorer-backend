@@ -25,16 +25,9 @@ class MockCache(object):
         for fh in (
             "balances",
             "blockchain",
-            "commits",
-            "data_requests",
-            "data_request_reports",
-            "mints",
             "network_mempool",
             "network_statistics",
-            "reveals",
-            "tallies",
             "tapi",
-            "value_transfers",
         ):
             data = json.load(open(f"mockups/data/{fh}.json"))
             for key, value in data.items():
@@ -49,6 +42,16 @@ class MockCache(object):
         app.extensions = getattr(app, "extensions", {})
         if "cache" not in app.extensions:
             app.extensions["cache"] = self
+
+    def load_json_into_cache(self, file_handle, response_type):
+        data = json.load(open(f"mockups/data/{file_handle}"))
+        for key, value in data.items():
+            if "processed" in value and "database" in value["processed"]:
+                value = value["processed"]["database"]
+            self.cache[key] = {
+                "response_type": response_type,
+                response_type: value,
+            }
 
     def get(self, key):
         if key in self.cache:
