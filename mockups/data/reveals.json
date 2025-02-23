@@ -10,6 +10,17 @@
                 "reveal": "104216.17485000001",
                 "success": true
             },
+            "database": {
+                "hash": "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae",
+                "block": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "reveal": "104216.17485000001",
+                "success": true,
+                "epoch": 103,
+                "timestamp": 1738185435,
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae",
                 "epoch": 103,
@@ -185,6 +196,17 @@
                 "fee": 1,
                 "reveal": "104209.7479",
                 "success": true
+            },
+            "database": {
+                "hash": "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea",
+                "block": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "reveal": "104209.7479",
+                "success": true,
+                "epoch": 103,
+                "timestamp": 1738185435,
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea",
@@ -362,6 +384,17 @@
                 "fee": 1,
                 "reveal": "104213.15030000001",
                 "success": true
+            },
+            "database": {
+                "hash": "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3",
+                "block": "352817e548d5a308eca11a001d637e06a8deec97a00f36e307c8f8be6be582fb",
+                "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "reveal": "104213.15030000001",
+                "success": true,
+                "epoch": 582,
+                "timestamp": 1738199465,
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3",

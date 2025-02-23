@@ -11,6 +11,57 @@
                 "miner_fee": 1,
                 "requester": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
             },
+            "database": {
+                "hash": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
+                "DRO_bytes_hash": "46102a67b4ba2ca3f3a8a7e726eb45fd90e2959097ab3fdd2230b42442488cd9",
+                "block": "65214181d85e0457db23358e577cf4269a2e0a6c0b8a029c4f99a8fccbc308fa",
+                "epoch": 101,
+                "timestamp": 1738185345,
+                "input_addresses": [
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "input_utxos": [
+                    {
+                        "address": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                        "value": 2000000000000000,
+                        "input_utxo": "bad7b64ec564b36b03a4ccd2aa7e1f34528f5fdbaa0696925b56e39e0b6c3f90:0"
+                    }
+                ],
+                "miner_fee": 1,
+                "dro_fee": 1000000002,
+                "weight": 1080,
+                "priority": 0,
+                "witnesses": 1,
+                "witness_reward": 1000000000,
+                "collateral": 20000000000,
+                "consensus_percentage": 51,
+                "commit_and_reveal_fee": 1,
+                "retrieve": [
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://www.bitstamp.net/api/ticker/",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetFloat(last)"
+                    },
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)"
+                    }
+                ],
+                "aggregate": "reduce(AverageMean)",
+                "tally": "reduce(AverageMean)",
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
                 "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
@@ -346,6 +397,57 @@
                 "miner_fee": 1,
                 "requester": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
             },
+            "database": {
+                "hash": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
+                "DRO_bytes_hash": "118ff1359cd0d97eff68b49053fc41ef476ec582a0891f0370aa2a125f1dd9cc",
+                "block": "40e8448d93d4e28e30e310cb1502918830343711bc673f6dd7d359c15d3442f6",
+                "epoch": 580,
+                "timestamp": 1738199425,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "input_utxos": [
+                    {
+                        "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                        "value": 7899525999998594,
+                        "input_utxo": "15ad55156aac97d4a81e757bb449d57d8046cbb807d20c486e0ca65663ee9310:0"
+                    }
+                ],
+                "miner_fee": 1,
+                "dro_fee": 4000000008,
+                "weight": 2988,
+                "priority": 0,
+                "witnesses": 4,
+                "witness_reward": 1000000000,
+                "collateral": 20000000000,
+                "consensus_percentage": 51,
+                "commit_and_reveal_fee": 1,
+                "retrieve": [
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://www.bitstamp.net/api/ticker/",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetFloat(last)"
+                    },
+                    {
+                        "kind": "HTTP-GET",
+                        "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": "StringParseJSONMap().MapGetMap(bpi).MapGetMap(USD).MapGetFloat(rate_float)"
+                    }
+                ],
+                "aggregate": "reduce(AverageMean)",
+                "tally": "reduce(AverageMean)",
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
                 "RAD_bytes_hash": "399c06f98a8682b9689cd51099f2177844d2d34f1c90b2a3c50c630c8b6a6ef1",
@@ -680,6 +782,48 @@
                 "collateral": 20000000000,
                 "miner_fee": 100000,
                 "requester": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
+            },
+            "database": {
+                "hash": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+                "RAD_bytes_hash": "65d6d4ee499b0bd13f0a96355ae30ede913555094a265b75305e904de1afbf3c",
+                "DRO_bytes_hash": "09608e789a5d792253e6ffb7886185eeb8a768a274eabb57b0d61375501138b5",
+                "block": "f641f12371b6136fadc0444d58dd189c297be6a702aa7d00f9ab28f6634992cb",
+                "epoch": 2070,
+                "timestamp": 1738229225,
+                "input_addresses": [
+                    "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
+                ],
+                "input_utxos": [
+                    {
+                        "address": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
+                        "value": 21000000000,
+                        "input_utxo": "026d76c3052077949c06caf232fc2e00c35019c820877455497d5b3cb0b4d463:0"
+                    }
+                ],
+                "miner_fee": 100000,
+                "dro_fee": 2400000000,
+                "weight": 6677,
+                "priority": 14,
+                "witnesses": 10,
+                "witness_reward": 200000000,
+                "collateral": 20000000000,
+                "consensus_percentage": 66,
+                "commit_and_reveal_fee": 20000000,
+                "retrieve": [
+                    {
+                        "kind": "RNG",
+                        "url": null,
+                        "headers": [
+                            ""
+                        ],
+                        "body": "",
+                        "script": ""
+                    }
+                ],
+                "aggregate": "reduce(Mode)",
+                "tally": "reduce(HashConcatenate)",
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",

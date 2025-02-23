@@ -23,6 +23,21 @@
                 ],
                 "epoch": 4,
                 "miner": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+            },
+            "database": {
+                "hash": "55b1e998e00e62a71664b52191450788fe0c4a62bab32cc995cf89281845998f",
+                "block": "efbe6fbdabe9754441e424de95e540ef35da4087f407f0b9b968043ae1c4960a",
+                "output_addresses": [
+                    "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+                ],
+                "output_values": [
+                    250000000000
+                ],
+                "epoch": 4,
+                "timestamp": 1738180980,
+                "miner": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u",
+                "confirmed": true,
+                "reverted": false
             }
         },
         "rpc": {
@@ -99,6 +114,17 @@
                 "output_values": [],
                 "epoch": 580,
                 "miner": "twit1hhnz04x5tzpvszvj3jsfj6tcjzf32lh4lkkcjp"
+            },
+            "database": {
+                "hash": "ebda819d3e69db289ed43e66c58c8dfd155c3de1ece316f1bccceca47446e556",
+                "block": "40e8448d93d4e28e30e310cb1502918830343711bc673f6dd7d359c15d3442f6",
+                "output_addresses": [],
+                "output_values": [],
+                "epoch": 580,
+                "timestamp": 1738199425,
+                "miner": "twit1hhnz04x5tzpvszvj3jsfj6tcjzf32lh4lkkcjp",
+                "confirmed": true,
+                "reverted": false
             }
         },
         "rpc": {

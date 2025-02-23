@@ -12,7 +12,9 @@ from blockchain.transactions.commit import Commit
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.mint import Mint
 from blockchain.transactions.reveal import Reveal
+from blockchain.transactions.stake import Stake
 from blockchain.transactions.tally import Tally
+from blockchain.transactions.unstake import Unstake
 from blockchain.transactions.value_transfer import ValueTransfer
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
@@ -98,8 +100,9 @@ class SearchHash(MethodView):
             ):
                 found = True
             else:
-                return hashed_item, 200, {"X-Version": "1.0.0"}
+                return hashed_item, 200, {"X-Version": "2.0.0"}
 
+        # Check if the hash is present in the database
         sql = """
             SELECT
                 type
@@ -124,39 +127,37 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message="Could not fetch the pending transactions.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
+            message = None
             transactions_pool = transactions_pool["result"]
             if hash_value in transactions_pool["data_request"]:
-                return (
-                    SearchHashResponse().load(
-                        {
-                            "response_type": "pending",
-                            "pending": "Data request is pending.",
-                        }
-                    ),
-                    200,
-                    {"X-Version": "1.0.0"},
-                )
+                message = "Data request transaction is pending."
             elif hash_value in transactions_pool["value_transfer"]:
-                return (
-                    SearchHashResponse().load(
-                        {
-                            "response_type": "pending",
-                            "pending": "Value transfer is pending.",
-                        }
-                    ),
-                    200,
-                    {"X-Version": "1.0.0"},
-                )
+                message = "Value transfer transaction is pending."
+            elif hash_value in transactions_pool["stake"]:
+                message = "Stake transaction is pending."
+            elif hash_value in transactions_pool["unstake"]:
+                message = "Unstake transaction is pending."
             else:
                 logger.warning(f"Could not find transaction hash {hash_value}")
                 abort(
                     404,
                     message=f"Could not find transaction hash {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
+
+            return (
+                SearchHashResponse().load(
+                    {
+                        "response_type": "pending",
+                        "pending": message,
+                    }
+                ),
+                200,
+                {"X-Version": "2.0.0"},
+            )
 
         if found:
             logger.info(
@@ -187,7 +188,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for block {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
             if block_json["details"]["confirmed"]:
                 try:
@@ -217,7 +218,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for block {hash_value}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
                 except pylibmc.TooBig:
                     logger.warning(
@@ -236,14 +237,14 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "1.0.0"},
+                    {"X-Version": "2.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(f"Incorrect message format for block: {err_info}")
                 abort(
                     404,
                     message=f"Incorrect message format for block {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
         # Create mint transaction and get the details from the database
@@ -262,7 +263,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for mint transaction {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
             if mint_txn["confirmed"]:
                 logger.info(
@@ -286,7 +287,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for mint transaction {hash_value}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
             else:
                 logger.info(
@@ -298,7 +299,7 @@ class SearchHash(MethodView):
                         {"response_type": "mint", "mint": mint_txn}
                     ),
                     200,
-                    {"X-Version": "1.0.0"},
+                    {"X-Version": "2.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -307,7 +308,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for mint transaction {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
         # Create value transfer transaction and get the details from the database
@@ -328,7 +329,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for value transfer transaction {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
             if value_transfer_txn["confirmed"]:
                 logger.info(
@@ -352,7 +353,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for value transfer transaction {hash_value}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
             else:
                 logger.info(
@@ -367,7 +368,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "1.0.0"},
+                    {"X-Version": "2.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -376,7 +377,7 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for value transfer transaction {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
         if hash_type in ("data_request_txn", "commit_txn", "reveal_txn", "tally_txn"):
@@ -399,7 +400,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for data request {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                     try:
                         # Do not cache a the result of a query for a single data request transaction
@@ -412,13 +413,13 @@ class SearchHash(MethodView):
                                 }
                             ),
                             200,
-                            {"X-Version": "1.0.0"},
+                            {"X-Version": "2.0.0"},
                         )
                     except ValidationError:
                         abort(
                             404,
                             message=f"Incorrect message format for data request {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                 elif hash_type == "commit_txn":
                     commit = Commit(
@@ -435,7 +436,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for commit transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                     try:
                         cache.set(
@@ -451,13 +452,13 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "commit", "commit": transaction},
                             200,
-                            {"X-Version": "1.0.0"},
+                            {"X-Version": "2.0.0"},
                         )
                     except ValidationError:
                         abort(
                             404,
                             message=f"Incorrect message format for commit transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                 elif hash_type == "reveal_txn":
                     reveal = Reveal(
@@ -474,7 +475,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for reveal transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                     try:
                         cache.set(
@@ -490,13 +491,13 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "reveal", "reveal": transaction},
                             200,
-                            {"X-Version": "1.0.0"},
+                            {"X-Version": "2.0.0"},
                         )
                     except ValidationError:
                         abort(
                             404,
                             message=f"Incorrect message format for reveal transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                 elif hash_type == "tally_txn":
                     tally = Tally(
@@ -513,7 +514,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for tally transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                     try:
                         cache.set(
@@ -529,13 +530,13 @@ class SearchHash(MethodView):
                         return (
                             {"response_type": "tally", "tally": transaction},
                             200,
-                            {"X-Version": "1.0.0"},
+                            {"X-Version": "2.0.0"},
                         )
                     except ValidationError:
                         abort(
                             404,
                             message=f"Incorrect message format for tally transaction {hash_value}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
             # Create data request report for this hash
             else:
@@ -562,7 +563,7 @@ class SearchHash(MethodView):
                     logger.info(
                         f"Found a data request report {data_request_hash} for a {hash_type.replace('_', ' ')} in our memcached instance"
                     )
-                    return cached_data_request_report, 200, {"X-Version": "1.0.0"}
+                    return cached_data_request_report, 200, {"X-Version": "2.0.0"}
 
                 try:
                     data_request_report_json = data_request_report.get_report()
@@ -573,7 +574,7 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for data request report {data_request_hash}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
 
                 # From the API: only cache data request reports with a confirmed tally transaction
@@ -605,7 +606,7 @@ class SearchHash(MethodView):
                         abort(
                             404,
                             message=f"Incorrect message format for data request report {data_request_hash}.",
-                            headers={"X-Version": "1.0.0"},
+                            headers={"X-Version": "2.0.0"},
                         )
                 else:
                     if "tally" not in data_request_report_json:
@@ -626,7 +627,7 @@ class SearchHash(MethodView):
                             }
                         ),
                         200,
-                        {"X-Version": "1.0.0"},
+                        {"X-Version": "2.0.0"},
                     )
                 except ValidationError as err_info:
                     logger.error(
@@ -635,8 +636,140 @@ class SearchHash(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for data request report {data_request_hash}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
+
+        if hash_type == "stake_txn":
+            stake = Stake(
+                logger=logger,
+                database=database,
+                witnet_node=witnet_node,
+            )
+            try:
+                stake_txn = stake.get_transaction_from_database(hash_value)
+            except ValidationError as err_info:
+                logger.error(
+                    f"Incorrect message format for stake transaction {hash_value}: {err_info}"
+                )
+                abort(
+                    404,
+                    message=f"Incorrect message format for stake transaction {hash_value}.",
+                    headers={"X-Version": "2.0.0"},
+                )
+            if stake_txn["confirmed"]:
+                logger.info(
+                    f"Added stake transaction {hash_value} to our memcached instance"
+                )
+                try:
+                    cache.set(
+                        hash_value,
+                        SearchHashResponse().load(
+                            {
+                                "response_type": "stake",
+                                "stake": stake_txn,
+                            }
+                        ),
+                        timeout=cache_config["views"]["hash"]["timeout"],
+                    )
+                except ValidationError as err_info:
+                    logger.error(
+                        f"Incorrect message format for stake transaction {hash_value}: {err_info}"
+                    )
+                    abort(
+                        404,
+                        message=f"Incorrect message format for stake transaction {hash_value}.",
+                        headers={"X-Version": "2.0.0"},
+                    )
+            else:
+                logger.info(
+                    f"Did not add unconfirmed stake transaction {hash_value} to our memcached instance"
+                )
+            try:
+                return (
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "stake",
+                            "stake": stake_txn,
+                        }
+                    ),
+                    200,
+                    {"X-Version": "2.0.0"},
+                )
+            except ValidationError as err_info:
+                logger.error(
+                    f"Incorrect message format for stake transaction {hash_value}: {err_info}"
+                )
+                abort(
+                    404,
+                    message=f"Incorrect message format for stake transaction {hash_value}.",
+                    headers={"X-Version": "2.0.0"},
+                )
+
+        if hash_type == "unstake_txn":
+            unstake = Unstake(
+                logger=logger,
+                database=database,
+                witnet_node=witnet_node,
+            )
+            try:
+                unstake_txn = unstake.get_transaction_from_database(hash_value)
+            except ValidationError as err_info:
+                logger.error(
+                    f"Incorrect message format for unstake transaction {hash_value}: {err_info}"
+                )
+                abort(
+                    404,
+                    message=f"Incorrect message format for unstake transaction {hash_value}.",
+                    headers={"X-Version": "2.0.0"},
+                )
+            if unstake_txn["confirmed"]:
+                logger.info(
+                    f"Added unstake transaction {hash_value} to our memcached instance"
+                )
+                try:
+                    cache.set(
+                        hash_value,
+                        SearchHashResponse().load(
+                            {
+                                "response_type": "unstake",
+                                "unstake": unstake_txn,
+                            }
+                        ),
+                        timeout=cache_config["views"]["hash"]["timeout"],
+                    )
+                except ValidationError as err_info:
+                    logger.error(
+                        f"Incorrect message format for unstake transaction {hash_value}: {err_info}"
+                    )
+                    abort(
+                        404,
+                        message=f"Incorrect message format for unstake transaction {hash_value}.",
+                        headers={"X-Version": "2.0.0"},
+                    )
+            else:
+                logger.info(
+                    f"Did not add unconfirmed unstake transaction {hash_value} to our memcached instance"
+                )
+            try:
+                return (
+                    SearchHashResponse().load(
+                        {
+                            "response_type": "unstake",
+                            "unstake": unstake_txn,
+                        }
+                    ),
+                    200,
+                    {"X-Version": "2.0.0"},
+                )
+            except ValidationError as err_info:
+                logger.error(
+                    f"Incorrect message format for unstake transaction {hash_value}: {err_info}"
+                )
+                abort(
+                    404,
+                    message=f"Incorrect message format for unstake transaction {hash_value}.",
+                    headers={"X-Version": "2.0.0"},
+                )
 
         if hash_type in ("DRO_bytes_hash", "RAD_bytes_hash"):
             # Create data request history
@@ -664,7 +797,7 @@ class SearchHash(MethodView):
                         }
                     ),
                     200,
-                    {"X-Version": "1.0.0"},
+                    {"X-Version": "2.0.0"},
                 )
             except ValidationError as err_info:
                 logger.error(
@@ -673,5 +806,5 @@ class SearchHash(MethodView):
                 abort(
                     404,
                     message=f"Incorrect message format for data request history: {hash_value}.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )

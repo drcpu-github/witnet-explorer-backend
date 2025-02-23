@@ -9,6 +9,23 @@
                 "collateral": 20000000000,
                 "fee": 1
             },
+            "database": {
+                "hash": "1255f0fcb6d8320ce4c7bf65c30e344bef6c1ccc594265260d0169e2841509bf",
+                "block": "e1130ee3282ee37ca32081d5468ff4d4ebfb8eeb23a1e0f279d114369bd88aa2",
+                "epoch": 102,
+                "timestamp": 1738185390,
+                "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "input_utxos": [
+                    {
+                        "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                        "value": 2000000000000000,
+                        "input_utxo": "624556995b5fb0cbb1ed3412af73bdccad55cccbb94de7d59b49cd06c77bc13e:0"
+                    }
+                ],
+                "output_value": 1999980000000000,
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "1255f0fcb6d8320ce4c7bf65c30e344bef6c1ccc594265260d0169e2841509bf",
                 "epoch": 102,
@@ -378,6 +395,17 @@
                 "collateral": 20000000000,
                 "fee": 1
             },
+            "database": {
+                "hash": "a0bc14a003f83eedb5fead4461e4324576dcbc9c66038fd0f8fdbe1a6a1a8cc0",
+                "block": "d7569187caac509846bae2d94fffe3c240830b0f3e687bed9591e238c53137bb",
+                "epoch": 581,
+                "timestamp": 1738199445,
+                "address": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "input_utxos": [],
+                "output_value": 0,
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "a0bc14a003f83eedb5fead4461e4324576dcbc9c66038fd0f8fdbe1a6a1a8cc0",
                 "epoch": 581,
@@ -661,6 +689,23 @@
                 "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
                 "collateral": 20000000000,
                 "fee": 1
+            },
+            "database": {
+                "hash": "a74072a067316d4a04d5d30c26b07d078cf29a9b51535eb0dbc3321a9a8ae2ed",
+                "block": "e1130ee3282ee37ca32081d5468ff4d4ebfb8eeb23a1e0f279d114369bd88aa2",
+                "epoch": 102,
+                "timestamp": 1738185390,
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "input_utxos": [
+                    {
+                        "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                        "value": 2000000000000000,
+                        "input_utxo": "6616f7edc7543973daf2905d4ad42550c2985f005fd5149efe42dcf3e0e194c1:0"
+                    }
+                ],
+                "output_value": 1999980000000000,
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "a74072a067316d4a04d5d30c26b07d078cf29a9b51535eb0dbc3321a9a8ae2ed",
@@ -1030,6 +1075,17 @@
                 "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
                 "collateral": 20000000000,
                 "fee": 1
+            },
+            "database": {
+                "hash": "f2668d8060b317c97b7efff043cccad51e73ca63255b18cde89b2eb522accaa2",
+                "block": "d7569187caac509846bae2d94fffe3c240830b0f3e687bed9591e238c53137bb",
+                "epoch": 581,
+                "timestamp": 1738199445,
+                "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_utxos": [],
+                "output_value": 0,
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "f2668d8060b317c97b7efff043cccad51e73ca63255b18cde89b2eb522accaa2",

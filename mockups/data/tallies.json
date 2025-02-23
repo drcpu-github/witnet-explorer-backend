@@ -10,6 +10,27 @@
                 "num_error_addresses": 0,
                 "num_liar_addresses": 0
             },
+            "database": {
+                "hash": "d3cda3a26568992a9866f9119930855586aefab8493358fdf26b283fe1b6d74e",
+                "block": "acfb91728ffdd9c497c5e9c01ee823f8692f6c1f8bb4832a3658acc424aac864",
+                "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "output_addresses": [
+                    "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
+                ],
+                "output_values": [
+                    21000000000
+                ],
+                "error_addresses": [],
+                "liar_addresses": [],
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0,
+                "success": true,
+                "tally": "104209.7479",
+                "epoch": 104,
+                "timestamp": 1738185480,
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "d3cda3a26568992a9866f9119930855586aefab8493358fdf26b283fe1b6d74e",
                 "epoch": 104,
@@ -81,6 +102,23 @@
                 "num_error_addresses": 0,
                 "num_liar_addresses": 0
             },
+            "database": {
+                "hash": "e40def582d9c20c6df815d63c7010572e05df1725f6e22a75d755d209d8cd4b0",
+                "block": "1386fb207837f26ea69ae332ecb8e200b63a8fc35911b1dc3df46f81967cf6ad",
+                "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "output_addresses": [],
+                "output_values": [],
+                "error_addresses": [],
+                "liar_addresses": [],
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0,
+                "success": true,
+                "tally": "104213.18497500001",
+                "epoch": 583,
+                "timestamp": 1738199485,
+                "confirmed": true,
+                "reverted": false
+            },
             "explorer": {
                 "hash": "e40def582d9c20c6df815d63c7010572e05df1725f6e22a75d755d209d8cd4b0",
                 "epoch": 583,
@@ -141,6 +179,27 @@
                 "success": false,
                 "num_error_addresses": 0,
                 "num_liar_addresses": 0
+            },
+            "database": {
+                "hash": "15ef58fcb4b8d0ebc6175e3f671fd04a8ca8819dc90262dc8eb5709e83b95ff0",
+                "block": "f641f12371b6136fadc0444d58dd189c297be6a702aa7d00f9ab28f6634992cb",
+                "data_request": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+                "output_addresses": [
+                    "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
+                ],
+                "output_values": [
+                    2400000000
+                ],
+                "error_addresses": [],
+                "liar_addresses": [],
+                "num_error_addresses": 0,
+                "num_liar_addresses": 0,
+                "success": false,
+                "tally": "TooManyWitnesses",
+                "epoch": 2070,
+                "timestamp": 1738229225,
+                "confirmed": true,
+                "reverted": false
             },
             "explorer": {
                 "hash": "15ef58fcb4b8d0ebc6175e3f671fd04a8ca8819dc90262dc8eb5709e83b95ff0",

@@ -1,162 +1,68 @@
 {
-    "response_type": "data_request_history",
-    "data_request_history": {
+    "cce5f4a27632ccd2f85ff161efc024d6ba13f53bcd4db3739693cf3c67271891": {
         "history": [
             {
-                "success": true,
-                "epoch": 2002284,
-                "timestamp": 1692768825,
-                "data_request": "40154603f62f60da0293151b994ce35232dcc32de54cee5d0788f6404dfc4d3f",
-                "witnesses": 10,
-                "witness_reward": 15000000,
-                "collateral": 1500000000,
-                "consensus_percentage": 51,
+                "success": false,
+                "epoch": 32853,
+                "timestamp": 1738844885,
+                "data_request": "ac4c47725c05af73a9f27f782eb002809f87d40764b326fda5ca76ec5eb65391",
+                "witnesses": 2,
+                "witness_reward": 1000000000,
+                "collateral": 100000000000,
+                "consensus_percentage": 66,
                 "num_errors": 0,
                 "num_liars": 0,
-                "result": "7230",
-                "confirmed": true,
-                "reverted": false
-            },
-            {
-                "success": true,
-                "epoch": 2001260,
-                "timestamp": 1692722745,
-                "data_request": "cdf76eb25f7f8418387d13c1edf3468e0fd2186d1f8bdf898fd825a436f5ea06",
-                "witnesses": 5,
-                "witness_reward": 150000000,
-                "collateral": 15000000000,
-                "consensus_percentage": 51,
-                "num_errors": 0,
-                "num_liars": 0,
-                "result": "7359",
+                "result": "UnhandledIntercept",
                 "confirmed": true,
                 "reverted": false
             },
             {
                 "success": false,
-                "epoch": 2001244,
-                "timestamp": 1692722025,
-                "data_request": "32db57516cb83a135a5bc512bad1f7f72d4cbead29067d7ab17fde885c4dd7a7",
-                "witnesses": 5,
-                "witness_reward": 150000000,
-                "collateral": 15000000000,
-                "consensus_percentage": 51,
-                "num_errors": 5,
-                "num_liars": 0,
-                "result": "HTTPError: 429",
-                "confirmed": true,
-                "reverted": false
-            },
-            {
-                "success": true,
-                "epoch": 2001244,
-                "timestamp": 1692722025,
-                "data_request": "5b67b9e2919a3c2a08c3b00266b45919ba422f33cd96c3556b2ba4231a6e79f4",
-                "witnesses": 10,
-                "witness_reward": 15000000,
-                "collateral": 1500000000,
-                "consensus_percentage": 51,
-                "num_errors": 2,
-                "num_liars": 0,
-                "result": "7365",
-                "confirmed": true,
-                "reverted": false
-            },
-            {
-                "success": true,
-                "epoch": 1999122,
-                "timestamp": 1692626535,
-                "data_request": "1e609e4169ce956e6fbf21fb6e1d8c2d417f23c0d59ac4be69b48f4a1ebd2703",
-                "witnesses": 5,
-                "witness_reward": 150000000,
-                "collateral": 15000000000,
-                "consensus_percentage": 51,
-                "num_errors": 1,
-                "num_liars": 0,
-                "result": "7167",
-                "confirmed": true,
-                "reverted": false
-            },
-            {
-                "success": true,
-                "epoch": 1999122,
-                "timestamp": 1692626535,
-                "data_request": "f30f5558d062f9ea165a3a30c76c31929cb76e28938ffc94c69b856418f735e9",
-                "witnesses": 10,
-                "witness_reward": 15000000,
-                "collateral": 1500000000,
-                "consensus_percentage": 51,
-                "num_errors": 2,
-                "num_liars": 0,
-                "result": "7197",
-                "confirmed": true,
-                "reverted": false
-            },
-            {
-                "success": true,
-                "epoch": 1998925,
-                "timestamp": 1692617670,
-                "data_request": "c3eb1ff06979ec7ea03557ca821a73fa7651760aa2fb1d564e6ca30042d3c95d",
-                "witnesses": 5,
-                "witness_reward": 150000000,
-                "collateral": 15000000000,
-                "consensus_percentage": 51,
+                "epoch": 32848,
+                "timestamp": 1738844785,
+                "data_request": "f2049d77f67a26ea677385f6b057918092f5e2be42cef77de61ec41b9a152e62",
+                "witnesses": 2,
+                "witness_reward": 1000000000,
+                "collateral": 100000000000,
+                "consensus_percentage": 66,
                 "num_errors": 0,
                 "num_liars": 0,
-                "result": "7288",
+                "result": "UnhandledIntercept",
                 "confirmed": true,
                 "reverted": false
             },
             {
                 "success": true,
-                "epoch": 1998908,
-                "timestamp": 1692616905,
-                "data_request": "09306358bc4a3d6a1c44f248971e171885a7a21ed6eff800b3fa06bc8cd607d4",
-                "witnesses": 10,
-                "witness_reward": 15000000,
-                "collateral": 1500000000,
-                "consensus_percentage": 51,
+                "epoch": 32837,
+                "timestamp": 1738844565,
+                "data_request": "7df31dcddac54a0e253f81e9e3266bc4bd9bd2e7c27f2b5941fc715cdcd0cb43",
+                "witnesses": 1,
+                "witness_reward": 1000000000,
+                "collateral": 100000000000,
+                "consensus_percentage": 66,
                 "num_errors": 0,
                 "num_liars": 0,
-                "result": "7320",
+                "result": "ab535e12c689cb711a8b76d4c3f6b59a9dfa817007883b7465a43d360775ecc5",
                 "confirmed": true,
                 "reverted": false
             }
         ],
         "hash_type": "RAD_bytes_hash",
-        "hash": "1a643dcd0299ee7982ede4387580ff406207930a6b11fd14d2e9ec5dccab476a",
+        "hash": "cce5f4a27632ccd2f85ff161efc024d6ba13f53bcd4db3739693cf3c67271891",
         "RAD_data": {
             "retrieve": [
                 {
-                    "kind": "HTTP-GET",
-                    "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=WIT_USDT",
+                    "kind": "RNG",
+                    "url": null,
                     "headers": [
                         ""
                     ],
                     "body": "",
-                    "script": "StringParseJSONMap().MapGetMap(data).MapGetArray(tickers).ArrayGetMap(0).MapGetFloat(last_price).FloatMultiply(1000000).FloatRound()"
-                },
-                {
-                    "kind": "HTTP-GET",
-                    "url": "https://data.gateapi.io/api2/1/ticker/wit_usdt",
-                    "headers": [
-                        ""
-                    ],
-                    "body": "",
-                    "script": "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
-                },
-                {
-                    "kind": "HTTP-GET",
-                    "url": "https://www.mexc.com/open/api/v2/market/ticker?symbol=WIT_USDT",
-                    "headers": [
-                        ""
-                    ],
-                    "body": "",
-                    "script": "StringParseJSONMap().MapGetArray(data).ArrayGetMap(0).MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
+                    "script": ""
                 }
             ],
-            "aggregate": "filter(DeviationStandard, 1.4).reduce(AverageMedian)",
-            "tally": "filter(DeviationStandard, 2.5).reduce(AverageMedian)"
+            "aggregate": "reduce(Mode)",
+            "tally": "filter(Mode).reduce(HashConcatenate)"
         }
     }
 }

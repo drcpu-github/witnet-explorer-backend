@@ -1,9 +1,15 @@
 {
     "data_request": [
-        "1bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+        "000827cdc18272dca45f77507a511db718b0dd1d801a6801bb0649d079e32240"
     ],
     "value_transfer": [
-        "2bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
-        "3bcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789"
+        "fdac6c85753c72ba90d3918571495708171b18c6fc774241b9388825ceb25628",
+        "5b24740a09fe304484ac89facd4349d33444bcfc228fd03d02d4a1a5dc326ddc"
+    ],
+    "stake": [
+        "11d2381ef9ee5d46edf674f39297719bcf370d413d8c9d1cf34a39f2998ecd25"
+    ],
+    "unstake": [
+        "6e8161fedf39f7a7a40d1c3bb9127d608b58891c66189765c7c1b18646002dcd"
     ]
 }
