@@ -792,8 +792,7 @@ def main():
     # Create blockchain configuration object
     BlockchainConfig.config = toml.load(options.config_file)
     BlockchainConfig.wip = WIP()
-    error_retry = BlockchainConfig.config["explorer"]["error_retry"]
-    BlockchainConfig.consensus_constants = ConsensusConstants(error_retry=error_retry)
+    BlockchainConfig.consensus_constants = ConsensusConstants()
 
     # Start logging process
     log_queue = Queue()

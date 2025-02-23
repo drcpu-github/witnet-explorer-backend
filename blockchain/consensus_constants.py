@@ -1,5 +1,6 @@
 import time
 
+from blockchain.config import BlockchainConfig
 from mockups.database import MockDatabase
 from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
@@ -10,7 +11,6 @@ class ConsensusConstants(object):
         self,
         database=None,
         witnet_node=None,
-        error_retry=0,
         mockup=False,
     ):
         # First try to fetch the consensus constants from the database
@@ -38,7 +38,7 @@ class ConsensusConstants(object):
 
             consensus_constants = witnet_node.get_consensus_constants()
             while "error" in consensus_constants:
-                time.sleep(error_retry)
+                time.sleep(BlockchainConfig.config["node-pool"]["error_retry"])
                 consensus_constants = witnet_node.get_consensus_constants()
             if witnet_node_created:
                 witnet_node.close_connection()

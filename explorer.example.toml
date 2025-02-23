@@ -17,10 +17,12 @@ min_connections = 8
 # host: IP address of the node pool
 # port: RPC port on which the node pool can be reached
 # default_timeout: timeout for a socket to receive a request response
+# error_retry: timeout before retrying a request that returned an error
 [node-pool]
 host = "127.0.0.1"
 port = 22819
 default_timeout = 15
+error_retry = 60
 
 # log_file: specify logging file name
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
@@ -67,11 +69,9 @@ master_key = "/path/to/node/key/node-2.key"
 log_file = "/path/to/logs/node-2.log"
 
 # path: path to explorer directory
-# error_retry: timeout before retrying a request that returned an error
 # poll_interval: time between querying the witnet nodes for new data
 [explorer]
 path = "/home/witnet/explorer"
-error_retry = 60
 poll_interval = 60
 
 # log_file: specify logging file name
@@ -82,10 +82,8 @@ log_file = "/path/to/logs/explorer.log"
 level_file = "info"
 level_stdout = "info"
 
-# error_retry: timeout before retrying a request that returned an error
 # cache_server: caching is enabled through memcached
 [api]
-error_retry = 60
 cache_server = "memcached"
 
 # log_file: specify logging file name

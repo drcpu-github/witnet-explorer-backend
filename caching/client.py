@@ -57,7 +57,6 @@ class Client(object):
             self.consensus_constants = ConsensusConstants(
                 database=self.database,
                 witnet_node=self.witnet_node,
-                error_retry=config["api"]["error_retry"],
             )
         except ConnectionRefusedError:
             self.logger.error("Could not connect to the node pool!")
