@@ -25,7 +25,7 @@ class TransactionMempool(MethodView):
     @transaction_mempool_blueprint.response(
         200,
         TransactionMempoolResponse,
-        description="Returns a snapshot of the current mempool transactions split by data requests and value transfers.",
+        description="Returns a snapshot of the current mempool transactions.",
         headers={
             "X-Version": {
                 "description": "Version of this API endpoint.",
@@ -59,7 +59,7 @@ class TransactionMempool(MethodView):
             return (
                 build_return_value(args["type"], mempool),
                 200,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )
 
         mempool = witnet_node.get_mempool()
@@ -78,7 +78,7 @@ class TransactionMempool(MethodView):
                 abort(
                     404,
                     message="Incorrect message format for mempool data.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
             except pylibmc.TooBig:
                 logger.warning(
@@ -88,14 +88,14 @@ class TransactionMempool(MethodView):
             return (
                 build_return_value(args["type"], mempool),
                 200,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )
         else:
             logger.error(f"Could not fetch the live mempool: {mempool['error']}")
             abort(
                 404,
                 message="Could not fetch the live mempool.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
 
@@ -104,8 +104,14 @@ def build_return_value(txn_type, mempool):
         return {
             "data_request": mempool["data_request"],
             "value_transfer": mempool["value_transfer"],
+            "stake": mempool["stake"],
+            "unstake": mempool["unstake"],
         }
-    if txn_type == "data_requests":
+    if txn_type == "data_request":
         return {"data_request": mempool["data_request"]}
-    else:
+    elif txn_type == "value_transfer":
         return {"value_transfer": mempool["value_transfer"]}
+    elif txn_type == "stake":
+        return {"stake": mempool["stake"]}
+    else:
+        return {"unstake": mempool["unstake"]}
