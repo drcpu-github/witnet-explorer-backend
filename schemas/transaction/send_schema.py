@@ -1,9 +1,9 @@
 from marshmallow import Schema, fields
 
 
-class ValueTransferArgs(Schema):
+class SendArgs(Schema):
     test = fields.Boolean(load_default=False)
 
 
-class ValueTransferResponse(Schema):
+class SendResponse(Schema):
     result = fields.Str(required=True)

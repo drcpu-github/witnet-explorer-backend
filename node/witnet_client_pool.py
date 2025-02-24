@@ -83,9 +83,9 @@ class WitnetClientPool(Queue):
         with self.reserve() as witnet_node:
             return witnet_node.get_utxos(address)
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         with self.reserve() as witnet_node:
-            return witnet_node.send_vtt(vtt)
+            return witnet_node.send_transaction(transaction)
 
     def get_priority(self):
         with self.reserve() as witnet_node:

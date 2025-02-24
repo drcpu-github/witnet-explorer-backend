@@ -131,10 +131,10 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getUtxoInfo", "params": [address], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         if self.logger:
-            self.logger.info(f"send_vtt({vtt})")
-        request = {"jsonrpc": "2.0", "method": "inventory", "params": vtt, "id": str(WitnetNode.request_id)}
+            self.logger.info(f"send_transaction({transaction})")
+        request = {"jsonrpc": "2.0", "method": "inventory", "params": transaction, "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_priority(self):

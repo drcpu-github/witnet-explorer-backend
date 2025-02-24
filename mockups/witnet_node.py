@@ -70,7 +70,7 @@ class MockWitnetNode(object):
         address_data = json.load(open("mockups/data/address_data.json"))
         return {"result": {"utxos": address_data[address]["utxos"]}}
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         return {"result": 1}
 
     def get_priority(self):

@@ -22,11 +22,6 @@ class TransactionOutput(Schema):
     value = fields.Int(validate=validate.Range(min=1), required=True)
 
 
-class TransactionBody(Schema):
-    inputs = fields.List(fields.Nested(OutputPointer), required=True)
-    outputs = fields.List(fields.Nested(TransactionOutput))
-
-
 class TransactionPublicKey(Schema):
     key_bytes = fields.String(
         validate=is_valid_hash,
@@ -51,7 +46,7 @@ class TransactionSecp256k1(Schema):
         return args
 
 
-class TransactionSignatures(Schema):
+class TransactionSignature(Schema):
     public_key = fields.Nested(TransactionPublicKey, required=True)
     signature = fields.Dict(
         keys=fields.Str(required=True, validate=validate.Equal("Secp256k1")),
@@ -60,24 +55,62 @@ class TransactionSignatures(Schema):
     )
 
 
+class ValueTransferTransactionBody(Schema):
+    inputs = fields.List(fields.Nested(OutputPointer), required=True)
+    outputs = fields.List(fields.Nested(TransactionOutput))
+
+
+class StakeKey(Schema):
+    validator = fields.Str(validate=is_valid_address, required=True)
+    withdrawer = fields.Str(validate=is_valid_address, required=True)
+
+
+class StakeTransactionOutput(Schema):
+    authorization = fields.Nested(TransactionSignature, required=True)
+    key = fields.Nested(StakeKey, required=True)
+    value = fields.Int(validate=validate.Range(min=0), required=True)
+
+
+class StakeTransactionBody(Schema):
+    inputs = fields.List(fields.Nested(OutputPointer), required=True)
+    output = fields.Nested(StakeTransactionOutput, required=True)
+    change = fields.Nested(TransactionOutput)
+
+
+class UnstakeTransactionBody(Schema):
+    operator = fields.Str(validate=is_valid_address, required=True)
+    withdrawal = fields.Nested(TransactionOutput, required=True)
+    nonce = fields.Int(validate=validate.Range(min=0), required=True)
+    fee = fields.Int(validate=validate.Range(min=0), required=True)
+
+
 class PostValueTransfer(Schema):
-    body = fields.Nested(TransactionBody, required=True)
-    signatures = fields.List(fields.Nested(TransactionSignatures), required=True)
+    body = fields.Nested(ValueTransferTransactionBody, required=True)
+    signatures = fields.List(fields.Nested(TransactionSignature), required=True)
 
     @validates_schema
     def validate_input_signatures(self, args, **kwargs):
         if len(args["signatures"]) != len(args["body"]["inputs"]):
             raise ValidationError(
-                f"Amount of signatures ({len(args['signatures'])}) != amount of inputs ({len(args['body']['inputs'])})."
+                f"Unexpected amount of signatures: {len(args['signatures'])} signatures, {len(args['body']['inputs'])} inputs."
             )
 
 
 class PostStake(Schema):
-    pass
+    body = fields.Nested(StakeTransactionBody, required=True)
+    signatures = fields.List(fields.Nested(TransactionSignature), required=True)
+
+    @validates_schema
+    def validate_input_signatures(self, args, **kwargs):
+        if len(args["signatures"]) != len(args["body"]["inputs"]):
+            raise ValidationError(
+                f"Unexpected amount of signatures: {len(args['signatures'])} signatures, {len(args['body']['inputs'])} inputs."
+            )
 
 
 class PostUnstake(Schema):
-    pass
+    body = fields.Nested(UnstakeTransactionBody, required=True)
+    signature = fields.Nested(TransactionSignature, required=True)
 
 
 class PostTransaction(Schema):
