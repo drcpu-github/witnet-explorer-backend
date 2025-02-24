@@ -83,6 +83,18 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getBalance", "params": ["all", True], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
+    def get_balance_2(self, node_address):
+        if self.logger:
+            self.logger.info(f"get_balance({node_address}, {simple})")
+        request = {"jsonrpc": "2.0", "method": "getBalance2", "params": {"pkh": node_address}, "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
+    def get_balance_2_all(self, min_balance=0, max_balance=None):
+        if self.logger:
+            self.logger.info("get_balance_all()")
+        request = {"jsonrpc": "2.0", "method": "getBalance2", "params": {"all": {"minBalance": min_balance, "maxBalance": max_balance}}, "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def get_reputation(self, node_address):
         if self.logger:
             self.logger.info(f"get_reputation({node_address})")
@@ -123,6 +135,12 @@ class WitnetNode(object):
         if self.logger:
             self.logger.info("get_supply_info()")
         request = {"jsonrpc": "2.0", "method": "getSupplyInfo", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
+    def get_supply_info_2(self):
+        if self.logger:
+            self.logger.info("get_supply_info_2()")
+        request = {"jsonrpc": "2.0", "method": "getSupplyInfo2", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_utxos(self, address):
