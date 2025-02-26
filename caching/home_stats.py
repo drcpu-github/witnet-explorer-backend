@@ -24,20 +24,16 @@ class HomeStats(Client):
 
         super().__init__(BlockchainConfig.config)
 
-        # Assign some of the consensus constants
-        self.start_time = self.consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = self.consensus_constants.checkpoints_period
-
-        self.wip0027_activation_epoch = BlockchainConfig.wip.get_activation_epoch("WIP0027")
-
         # Initialize previous variables
         self.current_epoch = calculate_current_epoch()
 
         last_saved_home = self.memcached_client.get("home")
         if last_saved_home:
             self.default_supply_info = last_saved_home["supply_info"]
-            self.last_saved_num_active_nodes = last_saved_home["network_stats"]["num_active_nodes"]
-            self.last_saved_num_reputed_nodes = last_saved_home["network_stats"]["num_reputed_nodes"]
+            if "num_stakes" in last_saved_home["network_stats"]:
+                self.last_saved_num_stakes = last_saved_home["network_stats"]["num_stakes"]
+            if "num_unstakes" in last_saved_home["network_stats"]:
+                self.last_saved_num_unstakes = last_saved_home["network_stats"]["num_unstakes"]
             self.last_saved_num_pending_requests = last_saved_home["network_stats"]["num_pending_requests"]
 
     def collect_home_stats(self):
@@ -71,6 +67,16 @@ class HomeStats(Client):
         self.logger.info("Collecting latest value transfers")
         self.home_stats["latest_value_transfers"] = self.get_latest_value_transfers()
         self.logger.info(f"Collected latest value transfers in {time.perf_counter() - start_inner:.2f}s")
+
+        start_inner = time.perf_counter()
+        self.logger.info("Collecting latest stakes")
+        self.home_stats["latest_stakes"] = self.get_latest_stakes()
+        self.logger.info(f"Collected latest stakes in {time.perf_counter() - start_inner:.2f}s")
+
+        start_inner = time.perf_counter()
+        self.logger.info("Collecting latest unstakes")
+        self.home_stats["latest_unstakes"] = self.get_latest_unstakes()
+        self.logger.info(f"Collected latest unstakes in {time.perf_counter() - start_inner:.2f}s")
 
         self.home_stats["last_updated"] = int(time.time())
 
@@ -121,19 +127,33 @@ class HomeStats(Client):
         else:
             num_value_transfers = 0
 
-        # Fetch all reputation statistics from a witnet node
-        # On error: use the previous active and reputed nodes
-        # On success:
-        #   1) sum active and reputed nodes separately
-        #   2) update the previous active and reputed nodes
-        active_nodes = self.witnet_node.get_reputation_all()
-        if "error" in active_nodes:
-            num_active_nodes = self.last_saved_num_active_nodes
-            num_reputed_nodes = self.last_saved_num_reputed_nodes
+        # Count the total number of stakes included in all confirmed blocks
+        sql = """
+            SELECT
+                SUM(stake)
+            FROM blocks
+            WHERE
+                blocks.confirmed=true
+        """
+        num_stakes = self.database.sql_return_one(re_sql(sql))
+        if num_stakes:
+            num_stakes = num_stakes[0]
         else:
-            active_nodes = active_nodes["result"]
-            num_active_nodes = sum([1 for key in active_nodes["stats"].keys() if active_nodes["stats"][key]["is_active"]])
-            num_reputed_nodes = sum([1 for key in active_nodes["stats"].keys() if active_nodes["stats"][key]["reputation"] > 0])
+            num_stakes = 0
+
+        # Count the total number of unstakes included in all confirmed blocks
+        sql = """
+            SELECT
+                SUM(unstake)
+            FROM blocks
+            WHERE
+                blocks.confirmed=true
+        """
+        num_unstakes = self.database.sql_return_one(re_sql(sql))
+        if num_unstakes:
+            num_unstakes = num_unstakes[0]
+        else:
+            num_unstakes = 0
 
         # Fetch the mempool from a witnet node
         # On error: use the previous pending requests
@@ -145,7 +165,7 @@ class HomeStats(Client):
             num_pending_requests = self.last_saved_num_pending_requests
         else:
             pending_requests = pending_requests["result"]
-            num_pending_requests = len(pending_requests["data_request"]) + len(pending_requests["value_transfer"])
+            num_pending_requests = len(pending_requests["data_request"]) + len(pending_requests["value_transfer"]) + len(pending_requests["stake"]) + len(pending_requests["unstake"])
 
         return HomeNetworkStats().load(
             {
@@ -153,8 +173,8 @@ class HomeStats(Client):
                 "num_blocks": num_blocks,
                 "num_data_requests": num_data_requests,
                 "num_value_transfers": num_value_transfers,
-                "num_active_nodes": num_active_nodes,
-                "num_reputed_nodes": num_reputed_nodes,
+                "num_stakes": num_stakes,
+                "num_unstakes": num_unstakes,
                 "num_pending_requests": num_pending_requests,
             }
         )
@@ -166,38 +186,19 @@ class HomeStats(Client):
         #   1) extract the current supply info
         #   2) update the previous supply info
         supply_info = self.witnet_node.get_supply_info()
-        if "error" in supply_info:
+        supply_info_2 = self.witnet_node.get_supply_info_2()
+        if "error" in supply_info or "error" in supply_info_2:
             return self.default_supply_info
         else:
             supply_info = supply_info["result"]
+            supply_info_2 = supply_info_2["result"]
 
-            supply_info["current_supply"] = supply_info["current_unlocked_supply"] + supply_info["current_locked_supply"]
+            del supply_info["maximum_supply"]
 
-            sql = """
-                SELECT
-                    data_request_txns.collateral,
-                    tally_txns.liar_addresses
-                FROM
-                    data_request_txns
-                INNER JOIN
-                    blocks
-                ON
-                    blocks.epoch = data_request_txns.epoch
-                INNER JOIN
-                    tally_txns
-                ON
-                    data_request_txns.txn_hash = tally_txns.data_request
-                WHERE
-                    blocks.confirmed = true
-                AND
-                    blocks.epoch >= %s
-            """ % self.wip0027_activation_epoch
-            self.database.reset_cursor()
-            burn_rate_data = self.database.sql_return_all(re_sql(sql))
+            supply_info["current_staked_supply"] = supply_info_2["current_staked_supply"]
 
-            supply_info["supply_burned_lies"] = sum(collateral * len(liar_addresses) for collateral, liar_addresses in burn_rate_data)
-
-            supply_info["total_supply"] = supply_info["maximum_supply"] - supply_info["blocks_missing_reward"] - supply_info["supply_burned_lies"]
+            supply_info["current_supply"] = supply_info_2["initial_supply"] + supply_info_2["blocks_minted_reward"]
+            supply_info["supply_burned_lies"] = supply_info_2["burnt_supply"]
 
             return NetworkSupply().load(supply_info)
 
@@ -208,6 +209,8 @@ class HomeStats(Client):
                 block_hash,
                 data_request,
                 value_transfer,
+                stake,
+                unstake,
                 epoch,
                 confirmed
             FROM
@@ -221,7 +224,7 @@ class HomeStats(Client):
 
         # Add the number of data requests and value transfers and calculate the block timestamp
         blocks = []
-        for block_hash, data_request, value_transfer, epoch, confirmed in result:
+        for block_hash, data_request, value_transfer, stake, unstake, epoch, confirmed in result:
             timestamp = calculate_timestamp_from_epoch(epoch)
             blocks.append(
                 HomeBlock().load(
@@ -229,6 +232,8 @@ class HomeStats(Client):
                         "hash": block_hash.hex(),
                         "data_request": data_request,
                         "value_transfer": value_transfer,
+                        "stake": stake,
+                        "unstake": unstake,
                         "timestamp": timestamp,
                         "confirmed": confirmed,
                     }
@@ -310,6 +315,80 @@ class HomeStats(Client):
                 )
 
         return value_transfers
+
+    def get_latest_stakes(self):
+        # Fetch the latest 32 stake transactions
+        sql = """
+            SELECT
+                stake_txns.txn_hash,
+                stake_txns.epoch,
+                blocks.confirmed
+            FROM
+                stake_txns
+            LEFT JOIN
+                blocks
+            ON
+                stake_txns.epoch=blocks.epoch
+            ORDER BY
+                epoch
+            DESC
+            LIMIT 32
+        """
+        result = self.database.sql_return_all(re_sql(sql))
+
+        # Calculate the value transfer timestamp
+        stakes = []
+        if result:
+            for txn_hash, epoch, block_confirmed in result:
+                timestamp = calculate_timestamp_from_epoch(epoch)
+                stakes.append(
+                    HomeTransaction().load(
+                        {
+                            "hash": txn_hash.hex(),
+                            "timestamp": timestamp,
+                            "confirmed": block_confirmed,
+                        }
+                    )
+                )
+
+        return stakes
+
+    def get_latest_unstakes(self):
+        # Fetch the latest 32 value transfers transactions
+        sql = """
+            SELECT
+                unstake_txns.txn_hash,
+                unstake_txns.epoch,
+                blocks.confirmed
+            FROM
+                unstake_txns
+            LEFT JOIN
+                blocks
+            ON
+                unstake_txns.epoch=blocks.epoch
+            ORDER BY
+                epoch
+            DESC
+            LIMIT 32
+        """
+        result = self.database.sql_return_all(re_sql(sql))
+
+        # Calculate the value transfer timestamp
+        unstakes = []
+        if result:
+            for txn_hash, epoch, block_confirmed in result:
+                timestamp = calculate_timestamp_from_epoch(epoch)
+                unstakes.append(
+                    HomeTransaction().load(
+                        {
+                            "hash": txn_hash.hex(),
+                            "timestamp": timestamp,
+                            "confirmed": block_confirmed,
+                        }
+                    )
+                )
+
+        return unstakes
 
     def save_home_stats(self):
         self.logger.info("Saving all data in the memcached instance")

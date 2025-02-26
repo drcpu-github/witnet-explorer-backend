@@ -1,12 +1,12 @@
 {
     "network_stats": {
-        "epochs": 2073930,
-        "num_blocks": 2014083,
-        "num_data_requests": 1563170,
-        "num_value_transfers": 1172879,
-        "num_active_nodes": 5837,
-        "num_reputed_nodes": 2106,
-        "num_pending_requests": 122
+        "epochs": 118,
+        "num_blocks": 118,
+        "num_data_requests": 470,
+        "num_value_transfers": 749,
+        "num_stakes": 16,
+        "num_unstakes": 9,
+        "num_pending_requests": 5
     },
     "supply_info": {
         "blocks_minted": 60205,
@@ -25,93 +25,538 @@
     },
     "latest_blocks": [
         {
-            "hash": "0686750c6285ab437eca237064aedfa113451167b19d708b409eec44ea3dbcf7",
+            "hash": "82a014777204c746245fbf4cdf7048a3ffc266be004621122304c5b40f273641",
             "data_request": 0,
-            "value_transfer": 20,
-            "timestamp": 1695992850,
-            "confirmed": false
+            "value_transfer": 5,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738868925,
+            "confirmed": true
         },
         {
-            "hash": "a71c739633224db1e8596610ef0f3fea959e42a4b68b99ee0af7ac7ad1303afc",
+            "hash": "5f14f59d63fc6da7128f12f3d55bd7c6af26c3b7266b1bba12613ac40b14a554",
+            "data_request": 0,
+            "value_transfer": 6,
+            "stake": 1,
+            "unstake": 0,
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "d25914d1190f1b2dba0cd4119919d9f32e962a6b9d703b224c58ac090c90cd0a",
+            "data_request": 0,
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 8,
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "f641f12371b6136fadc0444d58dd189c297be6a702aa7d00f9ab28f6634992cb",
             "data_request": 1,
-            "value_transfer": 20,
-            "timestamp": 1695992805,
-            "confirmed": false
+            "value_transfer": 9,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738229225,
+            "confirmed": true
         },
         {
-            "hash": "e9e9f3054d1d425a345933f66b14c4b0a763ede10b9780d4317a0657d733c416",
+            "hash": "1386fb207837f26ea69ae332ecb8e200b63a8fc35911b1dc3df46f81967cf6ad",
+            "data_request": 4,
+            "value_transfer": 9,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738199485,
+            "confirmed": true
+        },
+        {
+            "hash": "352817e548d5a308eca11a001d637e06a8deec97a00f36e307c8f8be6be582fb",
+            "data_request": 4,
+            "value_transfer": 8,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738199465,
+            "confirmed": true
+        },
+        {
+            "hash": "d7569187caac509846bae2d94fffe3c240830b0f3e687bed9591e238c53137bb",
+            "data_request": 4,
+            "value_transfer": 4,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738199445,
+            "confirmed": true
+        },
+        {
+            "hash": "40e8448d93d4e28e30e310cb1502918830343711bc673f6dd7d359c15d3442f6",
+            "data_request": 4,
+            "value_transfer": 7,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738199425,
+            "confirmed": true
+        },
+        {
+            "hash": "bae93cc611419c17c0d6b004b218c4c90a7a2220c351607615e919dbb32aeab6",
             "data_request": 0,
-            "value_transfer": 20,
-            "timestamp": 1695992760,
-            "confirmed": false
+            "value_transfer": 12,
+            "stake": 5,
+            "unstake": 0,
+            "timestamp": 1738190295,
+            "confirmed": true
         },
         {
-            "hash": "401768caf16585203453d7b48329e4c3e6fc83781aa177347ef954538c67cc3a",
+            "hash": "e737df5565547ad8136b6aa52ce1f4f234f947168be6763d6ac7d336ee45f2ce",
+            "data_request": 6,
+            "value_transfer": 11,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "acfb91728ffdd9c497c5e9c01ee823f8692f6c1f8bb4832a3658acc424aac864",
+            "data_request": 9,
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738185480,
+            "confirmed": true
+        },
+        {
+            "hash": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
             "data_request": 2,
-            "value_transfer": 20,
-            "timestamp": 1695992715,
-            "confirmed": false
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738185435,
+            "confirmed": true
         },
         {
-            "hash": "1f1d08df9ef2dd3449be56bd0572538fae0d1ebce0c9b4888328188909641b5e",
+            "hash": "e1130ee3282ee37ca32081d5468ff4d4ebfb8eeb23a1e0f279d114369bd88aa2",
+            "data_request": 1,
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738185390,
+            "confirmed": true
+        },
+        {
+            "hash": "65214181d85e0457db23358e577cf4269a2e0a6c0b8a029c4f99a8fccbc308fa",
+            "data_request": 4,
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738185345,
+            "confirmed": true
+        },
+        {
+            "hash": "efbe6fbdabe9754441e424de95e540ef35da4087f407f0b9b968043ae1c4960a",
             "data_request": 0,
-            "value_transfer": 20,
-            "timestamp": 1695992670,
-            "confirmed": false
+            "value_transfer": 0,
+            "stake": 0,
+            "unstake": 0,
+            "timestamp": 1738180980,
+            "confirmed": true
         }
     ],
     "latest_data_requests": [
         {
-            "hash": "e5a78bc8c3dbd971decdcc17263ec0387c9b2152b23927190ab5e6eaf8c01674",
-            "timestamp": 1695992805,
-            "confirmed": false
+            "hash": "81bd191c77e5ce8a795911846c6adf1e0337ba5828e945c7d38531b511478f41",
+            "timestamp": 1738229225,
+            "confirmed": true
         },
         {
-            "hash": "5bde6235bdc4f62d64d91873dd7b35cff912bcacbbfc65d210d15560819ff805",
-            "timestamp": 1695992715,
-            "confirmed": false
+            "hash": "78aa5ad99c2876db34738ad27d690caae72cf5efbf97c15a14ca97d1979740af",
+            "timestamp": 1738199485,
+            "confirmed": true
         },
         {
-            "hash": "75715cbc7a38aad2817a17f8ef9e0d8c25526ff1f67e9b8ca1a904c392ecf415",
-            "timestamp": 1695992715,
-            "confirmed": false
+            "hash": "6c20b7a550fd331e1f33f1cbde0673b797a160d827411ddffa56dd3af737b0fd",
+            "timestamp": 1738199485,
+            "confirmed": true
         },
         {
-            "hash": "568994530d128abb359b6de7f399f08190a499c5c8a043f0533c4fe874c9fb39",
-            "timestamp": 1695992625,
-            "confirmed": false
+            "hash": "f8d545032a35283421cfb4c841abc39902369b287363fc2a8351139802da60aa",
+            "timestamp": 1738199485,
+            "confirmed": true
         },
         {
-            "hash": "47dc60742a44b60021628a404a03f47a50814c0dad0f842a56acb270964cade8",
-            "timestamp": 1695992625,
-            "confirmed": false
+            "hash": "36cd245b747e281e1e4fb0352d1cf7bd43664e8f6521de89b5b1a7b1c1cd369a",
+            "timestamp": 1738199485,
+            "confirmed": true
+        },
+        {
+            "hash": "da7b1eeee8be0a36da4a3bde36a047d3adcd72d5d8035dc7d4deba0420f3d5f5",
+            "timestamp": 1738199465,
+            "confirmed": true
+        },
+        {
+            "hash": "51aa0116f3d4f19b68ddbeb014f08718fd988e5e2e46849f3c677578bcd3a506",
+            "timestamp": 1738199465,
+            "confirmed": true
+        },
+        {
+            "hash": "f6251eb6052c47571cae9c7df6e69f8145cb71275e9138f5daecef5be0df5554",
+            "timestamp": 1738199465,
+            "confirmed": true
+        },
+        {
+            "hash": "15f08edcb086178db065b9f521f4ef3c7704f8442d877f849135752434666c10",
+            "timestamp": 1738199465,
+            "confirmed": true
+        },
+        {
+            "hash": "af85ef14fd2862e0c8d029c70dd7c93556118bc70a6016bfa82c764cee5bd77d",
+            "timestamp": 1738199445,
+            "confirmed": true
+        },
+        {
+            "hash": "7645b20f9f3c36e9a1feee3eb2d9f5a8e4d2314e7702f60ef832cb9c6af2395d",
+            "timestamp": 1738199445,
+            "confirmed": true
+        },
+        {
+            "hash": "7242dba01cadb07f4d7f8ee76eb144792441e21d5ba29792b8868ca5a9013cd0",
+            "timestamp": 1738199445,
+            "confirmed": true
+        },
+        {
+            "hash": "312150cd4c86bb4895654594cd6d6e373ea0fdf178ff082b560f567e23cf5062",
+            "timestamp": 1738199445,
+            "confirmed": true
+        },
+        {
+            "hash": "4da3b6efbede2055d58e21937de1b536ce776498a53e7b7aa5c6a168d402d476",
+            "timestamp": 1738199425,
+            "confirmed": true
+        },
+        {
+            "hash": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+            "timestamp": 1738199425,
+            "confirmed": true
+        },
+        {
+            "hash": "dea7422fe09b77e3593b563abe0895c32a05a09af97b7fe7744bb8a63477d136",
+            "timestamp": 1738199425,
+            "confirmed": true
+        },
+        {
+            "hash": "1d8adeb99a35d5aca5f365e821fb8784add2494ce69cc901a8dadd3621f15f5d",
+            "timestamp": 1738199425,
+            "confirmed": true
+        },
+        {
+            "hash": "cd5f3542a0e2a0a57e4e756194f0a21dcbead973f6dc9996883591e9134a053f",
+            "timestamp": 1738199405,
+            "confirmed": true
+        },
+        {
+            "hash": "25f5c53b054c3f08cf072585e00e1a8953fd54cf6ebc0403f04f7887b767ad2d",
+            "timestamp": 1738199405,
+            "confirmed": true
+        },
+        {
+            "hash": "982111ec6cf58fc03ac2af6910130b24c36d42da02a5d3145d78e3639c9ff0b7",
+            "timestamp": 1738199405,
+            "confirmed": true
+        },
+        {
+            "hash": "7835142a7d7195e7f2f0478276ad972aace40f6991ba0aa5d676eb01de1ef0ad",
+            "timestamp": 1738199405,
+            "confirmed": true
+        },
+        {
+            "hash": "15ad55156aac97d4a81e757bb449d57d8046cbb807d20c486e0ca65663ee9310",
+            "timestamp": 1738199385,
+            "confirmed": true
+        },
+        {
+            "hash": "b44131f09ce84e069876a09e566fcebd82fb642347067d86fee8edeeb7234eed",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "56b1d9e944e887a3fcf32e8e194a2bf30dc66bf7b03d2cd4042ea565bba0c5e1",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "7e92c85916ca912a88ea386ff093838e4118c036bde515eddb27e9dc214a0092",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "751d83f85ece38fdd478b0faaf657f173d149678b5195d8704209a42c7c287d6",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "a8ba32f1bcfdb0138c5cbe0d221ddf8aecaea7077bb77449c087b0e0f3057050",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "6742568bdfc638c315d792be50dee515826cfa7f63fba35aed4eb1fa44341370",
+            "timestamp": 1738189350,
+            "confirmed": true
+        },
+        {
+            "hash": "669e0183ee4217b7eae446ff4570c49927f4f07581fa50a1d271dfa5ab6297c5",
+            "timestamp": 1738189305,
+            "confirmed": true
+        },
+        {
+            "hash": "af4a7e596fafe4a8eff0abd6ef0689a052ebe215dce83b659936bc87a4fc4442",
+            "timestamp": 1738189305,
+            "confirmed": true
+        },
+        {
+            "hash": "351fb26f4a7f6076f8fc9e5d605ad35b00f74e38b53503954903a76f4d237011",
+            "timestamp": 1738189260,
+            "confirmed": true
+        },
+        {
+            "hash": "5dd780e05b71588b72bb7cc97136c3ec71f6e9e00e73e023e0590a73994dc714",
+            "timestamp": 1738188450,
+            "confirmed": true
         }
     ],
     "latest_value_transfers": [
         {
-            "hash": "55723c624f0ef55325e1b9e6ce4dd57426a5a84bcdee0cf2bf3bed54dbf66255",
-            "timestamp": 1695992850,
-            "confirmed": false
+            "hash": "e22cad472149be98e113cfdd6b8da1a91195452ffcdf279d0e2b7fa581e8880d",
+            "timestamp": 1738868925,
+            "confirmed": true
         },
         {
-            "hash": "6b31deac2d10a08d4f3b0b95d3a279a2f281339bf2dffe84967afc2a7b5d6de4",
-            "timestamp": 1695992850,
-            "confirmed": false
+            "hash": "4beab4a2b6062c246c37be7eddd7863b17b6259dc9327288050f9342e490f825",
+            "timestamp": 1738868925,
+            "confirmed": true
         },
         {
-            "hash": "fb3aec1d853bf5f42f305f1a45c1f04414dd01c8673039c8e8d342dc05b60e6d",
-            "timestamp": 1695992850,
-            "confirmed": false
+            "hash": "0e36fadaeb48f8b44569a327bfb4d0aeebe1ae4e09075c9ad450c487875fa6a2",
+            "timestamp": 1738868925,
+            "confirmed": true
         },
         {
-            "hash": "f6672961d26b8d464a07c22f2f3094ffe1fda882689ae809da3a1ac0263d922c",
-            "timestamp": 1695992850,
-            "confirmed": false
+            "hash": "676c3eab6696b9be920079fc17df1f5cd13b5ecd90bd1312b082de4999487032",
+            "timestamp": 1738868925,
+            "confirmed": true
         },
         {
-            "hash": "df29655848cc8a8f9a02c08a287ba5b18f2188b8448f89bd1b3f018424d2aabe",
-            "timestamp": 1695992850,
-            "confirmed": false
+            "hash": "b5e66a66ae344bf5a790ed6291cd468802fab79cb200774c9850bc7b95aabaef",
+            "timestamp": 1738868925,
+            "confirmed": true
+        },
+        {
+            "hash": "d78376d10021c979cbdf00c44b8c8373dbca2789253fdc41ca412c37de813298",
+            "timestamp": 1738868865,
+            "confirmed": true
+        },
+        {
+            "hash": "43c02a82dd1e333d08a95274eeae514b7bf1dfc65142dd971a6e57cb1e209f2f",
+            "timestamp": 1738868865,
+            "confirmed": true
+        },
+        {
+            "hash": "dc69c6e54227a67b3d5071eedc9521cd6f97e3d7e3600378f6499a42b05abb9d",
+            "timestamp": 1738868865,
+            "confirmed": true
+        },
+        {
+            "hash": "491508e0e447c05ad372572a9d0ea49fedf60ce87493cf70549372eb6a9452dc",
+            "timestamp": 1738868865,
+            "confirmed": true
+        },
+        {
+            "hash": "10c082ed1f09bbeeaee5d98dee9ac0a95f2c99237b67f088a2abddd2fab9b0b9",
+            "timestamp": 1738868865,
+            "confirmed": true
+        },
+        {
+            "hash": "9b83d2423a11299f1b4e25076460c784f8440d558f4b9cd24a805c87fdb1ff23",
+            "timestamp": 1738868845,
+            "confirmed": true
+        },
+        {
+            "hash": "51cf7e73f9f97791e3a0501f0d5b780d25d905770c7ec83969e5e59b6da51180",
+            "timestamp": 1738868845,
+            "confirmed": true
+        },
+        {
+            "hash": "d5ce8555a55989d08211a1d70d643fceaa2c9142b6c341b94401cdc3589e685e",
+            "timestamp": 1738868825,
+            "confirmed": true
+        },
+        {
+            "hash": "bb90a8eac0aa30daae7dbcf735cb6e51ac9fe0ecb901be6dfaee134d36a5e051",
+            "timestamp": 1738868805,
+            "confirmed": true
+        },
+        {
+            "hash": "db67879bf79337858982d758ac34e89c4e312099978f30d2c52bf0f632e50175",
+            "timestamp": 1738868745,
+            "confirmed": true
+        },
+        {
+            "hash": "22bebcfaa3bcecf6bfc231c740d4bbedc1da4f7fd16b42aa741aefb00538417e",
+            "timestamp": 1738868385,
+            "confirmed": true
+        },
+        {
+            "hash": "c619af74e5690558819f2ab215a0fda7af0eea2a024fec277eca0d7ca822c7b7",
+            "timestamp": 1738868365,
+            "confirmed": true
+        },
+        {
+            "hash": "90b370ac56bef2bb3c74291b55f87b914f015195b177462fd9a260d02284764a",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "6b15a6ea510718e666edaa5b87875418a2c3bffcb494d704043db52ab4ec51aa",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "4f974f2779a55d37ff180797e0fc4289795cbd156c4f501259321d70541fa740",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "3e3b9e3bbbb071e74a1b837efc063bf24347fb0a6a8308eee18285dc3188eadd",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "1c1a132c4f385f5255139b93f2ea8709ce802d0dce01207d9a19e2ae8096eea0",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "e46166ad9018665b2665e3761be63e7ec9ba6a55955840a545695a5b9fd0a514",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "b966f3ff76b73523d069be143c7c23b9f6daa122573f85548899729c6cada9bd",
+            "timestamp": 1738867505,
+            "confirmed": true
+        },
+        {
+            "hash": "91a61abf26f578c98444bc68eaa3710f4bebe6b14eb93c9df7e299da2d587944",
+            "timestamp": 1738867505,
+            "confirmed": true
+        },
+        {
+            "hash": "bceeafd431e209dd1f3f73cacb5334afeca90afe917a01554751a48bcac0b841",
+            "timestamp": 1738867485,
+            "confirmed": true
+        },
+        {
+            "hash": "e706d473fb8b0d267266282c3c834fa384b115e551c31cf58a96e39daa839654",
+            "timestamp": 1738867485,
+            "confirmed": true
+        },
+        {
+            "hash": "6f9014adc4673c8983de42d78f00fc74392e3ef0e55a541c660f2490dedf6a74",
+            "timestamp": 1738867445,
+            "confirmed": true
+        },
+        {
+            "hash": "ada0270a9653add5b7527632d60cbf558d5407cf9a75530ad132f4ac3da52d6c",
+            "timestamp": 1738867445,
+            "confirmed": true
+        },
+        {
+            "hash": "0115e791f65d239067ef66d863599a9f525626afd56d35d015f2a5d52754e743",
+            "timestamp": 1738867425,
+            "confirmed": true
+        },
+        {
+            "hash": "da73a309b98bca24c4afe7c1bd235ca72e917c66eb28f50bb7fc1507f4df5362",
+            "timestamp": 1738867385,
+            "confirmed": true
+        },
+        {
+            "hash": "202c07a74f5d605b301538279ba2f961fd01a2fb4950cc216287c7a5ec8981e5",
+            "timestamp": 1738867365,
+            "confirmed": true
+        }
+    ],
+    "latest_stakes": [
+        {
+            "hash": "0ea59be6f3c154836b26387dcdfbb5372f47a338706b8f108da342b699f0f1b3",
+            "timestamp": 1738867525,
+            "confirmed": true
+        },
+        {
+            "hash": "73c94862d3ce34d6d3a6844ad29aef0a23f952ccd4cc88559bd72e12615029df",
+            "timestamp": 1738190295,
+            "confirmed": true
+        },
+        {
+            "hash": "53c9d9167d78782699092b533f1bb682a68a013811889879c62ce55683ddbdc4",
+            "timestamp": 1738190295,
+            "confirmed": true
+        },
+        {
+            "hash": "4f5ed5e40ace7b600a4c43a774ee4b173191d91785919e8ec928278510d6aac5",
+            "timestamp": 1738190295,
+            "confirmed": true
+        },
+        {
+            "hash": "ce12167b2c5515cf3e9e1fe3089eb3771c4b92117f2ec8ed119b6885fedb6c8e",
+            "timestamp": 1738190295,
+            "confirmed": true
+        },
+        {
+            "hash": "7fdbfba5239650557dae61e0ae94bec383dcdc96a2e8b7f77a36b916ad1b0a0b",
+            "timestamp": 1738190295,
+            "confirmed": true
+        }
+    ],
+    
+    "latest_unstakes": [
+        {
+            "hash": "c66e40e48763678b4ada2442e59b5a04b69a620a2bf72799abf0cd652a5a68e7",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "8c691354a80176785fac53c7671b075daa732e69e78f426a5083cb7458372b93",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "79353e6640f1107c6087c6922dfa66fb8507a5bc06fe177d7ae15c4501596423",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "76b9b5f815d7737ffd65e1f8b2702ee22874578397940137e37e2fee7a271bdf",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "6f0964fb8241d9074189c8f9a5bf8088ccfaca53a79a9a167b4235f027468791",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "6c3dc26d133f22cbe5d732e5c319789a57b4a790d49db4016e686bc2f0f16c1b",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "0c73e408f7da0c1fef931158f5d9cce330a8b0c50e5c12a1ed394e7680d92239",
+            "timestamp": 1738237385,
+            "confirmed": true
+        },
+        {
+            "hash": "01c7371aee95a77fbccd24d4121675b7cc66d52473d0a2d657b0b28f9842328b",
+            "timestamp": 1738237385,
+            "confirmed": true
         }
     ],
     "last_updated": 1695992895

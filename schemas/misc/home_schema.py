@@ -15,6 +15,8 @@ class HomeArgs(Schema):
                 "blocks",
                 "data_requests",
                 "value_transfers",
+                "stakes",
+                "unstakes",
             ]
         ),
     )
@@ -25,14 +27,16 @@ class HomeNetworkStats(Schema):
     num_blocks = fields.Int(validate=validate.Range(min=0), required=True)
     num_data_requests = fields.Int(validate=validate.Range(min=0), required=True)
     num_value_transfers = fields.Int(validate=validate.Range(min=0), required=True)
-    num_active_nodes = fields.Int(validate=validate.Range(min=0), required=True)
-    num_reputed_nodes = fields.Int(validate=validate.Range(min=0), required=True)
+    num_stakes = fields.Int(validate=validate.Range(min=0), required=True)
+    num_unstakes = fields.Int(validate=validate.Range(min=0), required=True)
     num_pending_requests = fields.Int(validate=validate.Range(min=0), required=True)
 
 
 class HomeBlock(HashSchema):
     data_request = fields.Int(validate=validate.Range(min=0), required=True)
     value_transfer = fields.Int(validate=validate.Range(min=0), required=True)
+    stake = fields.Int(validate=validate.Range(min=0), required=True)
+    unstake = fields.Int(validate=validate.Range(min=0), required=True)
     timestamp = fields.Int(validate=validate.Range(min=0), required=True)
     confirmed = fields.Boolean(required=True)
 
@@ -48,4 +52,6 @@ class HomeResponse(Schema):
     latest_blocks = fields.List(fields.Nested(HomeBlock))
     latest_data_requests = fields.List(fields.Nested(HomeTransaction))
     latest_value_transfers = fields.List(fields.Nested(HomeTransaction))
+    latest_stakes = fields.List(fields.Nested(HomeTransaction))
+    latest_unstakes = fields.List(fields.Nested(HomeTransaction))
     last_updated = fields.Int(validate=validate.Range(min=0))
