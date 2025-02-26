@@ -16,10 +16,9 @@ class NetworkSupplyArgs(Schema):
                 "epoch",
                 "in_flight_requests",
                 "locked_wits_by_requests",
-                "maximum_supply",
                 "current_supply",
-                "total_supply",
                 "supply_burned_lies",
+                "current_staked_supply",
             ]
         ),
     )
@@ -32,7 +31,7 @@ class NetworkSupply(Schema):
     )
     blocks_minted_reward = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=1750000000000000000),
+        validate=validate.Range(min=0),
     )
     blocks_missing = fields.Int(
         required=True,
@@ -40,11 +39,11 @@ class NetworkSupply(Schema):
     )
     blocks_missing_reward = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=1750000000000000000),
+        validate=validate.Range(min=0),
     )
     current_locked_supply = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
+        validate=validate.Range(min=0),
     )
     current_time = fields.Int(
         required=True,
@@ -52,7 +51,7 @@ class NetworkSupply(Schema):
     )
     current_unlocked_supply = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
+        validate=validate.Range(min=0),
     )
     epoch = fields.Int(
         required=True,
@@ -64,21 +63,17 @@ class NetworkSupply(Schema):
     )
     locked_wits_by_requests = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
-    )
-    maximum_supply = fields.Int(
-        required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
+        validate=validate.Range(min=0),
     )
     current_supply = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
-    )
-    total_supply = fields.Int(
-        required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
+        validate=validate.Range(min=0),
     )
     supply_burned_lies = fields.Int(
         required=True,
-        validate=validate.Range(min=0, max=2500000000000000000),
+        validate=validate.Range(min=0),
+    )
+    current_staked_supply = fields.Int(
+        required=True,
+        validate=validate.Range(min=0),
     )
