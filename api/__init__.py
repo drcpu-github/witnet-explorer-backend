@@ -12,6 +12,8 @@ from api.blueprints.address.details_blueprint import address_details_blueprint
 from api.blueprints.address.info_blueprint import address_info_blueprint
 from api.blueprints.address.labels_blueprint import address_labels_blueprint
 from api.blueprints.address.mints_blueprint import address_mints_blueprint
+from api.blueprints.address.stakes_blueprint import address_stakes_blueprint
+from api.blueprints.address.unstakes_blueprint import address_unstakes_blueprint
 from api.blueprints.address.utxos_blueprint import address_utxos_blueprint
 from api.blueprints.address.value_transfers_blueprint import (
     address_value_transfers_blueprint,
@@ -122,7 +124,9 @@ def create_app(config, mockup=False):
     address_blueprint.register_blueprint(address_info_blueprint)
     address_blueprint.register_blueprint(address_labels_blueprint)
     address_blueprint.register_blueprint(address_mints_blueprint)
+    address_blueprint.register_blueprint(address_stakes_blueprint)
     address_blueprint.register_blueprint(address_utxos_blueprint)
+    address_blueprint.register_blueprint(address_unstakes_blueprint)
     address_blueprint.register_blueprint(address_value_transfers_blueprint)
     api.register_blueprint(address_blueprint, url_prefix="/api/address")
 

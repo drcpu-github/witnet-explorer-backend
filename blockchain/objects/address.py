@@ -596,6 +596,140 @@ class Address(object):
 
         return data_requests_created
 
+    def get_stakes(self):
+        sql = """
+            SELECT
+                stake_txns.txn_hash,
+                stake_txns.epoch,
+                stake_txns.input_addresses,
+                stake_txns.input_values,
+                stake_txns.change_address,
+                stake_txns.change_value,
+                stake_txns.validator,
+                stake_txns.withdrawer,
+                stake_txns.stake_value,
+                blocks.confirmed
+            FROM
+                stake_txns
+            LEFT JOIN blocks ON
+                stake_txns.epoch=blocks.epoch
+            WHERE
+                stake_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
+            OR
+                stake_txns.validator=%s
+            ORDER BY
+                stake_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address, self.address],
+        )
+
+        stakes = []
+        if result:
+            for stake in result:
+                (
+                    txn_hash,
+                    epoch,
+                    input_addresses,
+                    input_values,
+                    change_address,
+                    change_value,
+                    validator,
+                    withdrawer,
+                    stake_value,
+                    confirmed,
+                ) = stake
+
+                fee = sum(input_values) - stake_value - (change_value or 0)
+
+                value = -fee
+                for input_address, input_value in zip(input_addresses, input_values):
+                    if input_address == self.address:
+                        value += input_value
+
+                if change_address == self.address:
+                    value -= change_value
+
+                if validator == self.address:
+                    direction = "in"
+                else:
+                    direction = "out"
+
+                stakes.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": epoch,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
+                        "direction": direction,
+                        "validator": validator,
+                        "withdrawer": withdrawer,
+                        "input_value": value,
+                        "stake_value": stake_value,
+                        "confirmed": confirmed,
+                    }
+                )
+
+        return stakes
+
+    def get_unstakes(self):
+        sql = """
+            SELECT
+                unstake_txns.txn_hash,
+                unstake_txns.epoch,
+                unstake_txns.validator,
+                unstake_txns.withdrawer,
+                unstake_txns.unstake_value,
+                blocks.confirmed
+            FROM
+                unstake_txns
+            LEFT JOIN blocks ON
+                unstake_txns.epoch=blocks.epoch
+            WHERE
+                unstake_txns.validator=%s
+            OR
+                unstake_txns.withdrawer=%s
+            ORDER BY
+                unstake_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(
+            sql, parameters=[self.address, self.address]
+        )
+
+        unstakes = []
+        if result:
+            for unstake in result:
+                (
+                    txn_hash,
+                    epoch,
+                    validator,
+                    withdrawer,
+                    unstake_value,
+                    confirmed,
+                ) = unstake
+
+                if validator == self.address:
+                    direction = "out"
+                else:
+                    direction = "in"
+
+                unstakes.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": epoch,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
+                        "direction": direction,
+                        "validator": validator,
+                        "withdrawer": withdrawer,
+                        "unstake_value": unstake_value,
+                        "confirmed": confirmed,
+                    }
+                )
+
+        return unstakes
+
     def get_last_epoch_processed(self):
         sql = """
             SELECT

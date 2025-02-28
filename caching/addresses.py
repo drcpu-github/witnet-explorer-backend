@@ -30,7 +30,9 @@ from blockchain.objects.wip import WIP
 from schemas.address.block_view_schema import BlockView
 from schemas.address.data_request_view_schema import DataRequestCreatedView, DataRequestSolvedView
 from schemas.address.mint_view_schema import MintView
+from schemas.address.stake_view_schema import StakeView
 from schemas.address.value_transfer_view_schema import ValueTransferView
+from schemas.address.unstake_view_schema import UnstakeView
 
 from util.logger import create_logging_listener
 from util.logger import select_logging_level
@@ -228,6 +230,8 @@ class Addresses(object):
                             memcached_client.delete(f"{address}-value-transfers")
                             memcached_client.delete(f"{address}-data-requests-solved")
                             memcached_client.delete(f"{address}-data-requests-created")
+                            memcached_client.delete(f"{address}-stakes")
+                            memcached_client.delete(f"{address}-unstakes")
                             logger.info(f"Removed all cached views for {address}")
 
                 # Data in the cache should timeout after some time to prevent stale data
@@ -291,6 +295,8 @@ class Addresses(object):
                         "value-transfers",
                         "data-requests-solved",
                         "data-requests-created",
+                        "stakes",
+                        "unstakes",
                         "utxos",
                     ]
                     for function in all_functions:
@@ -333,6 +339,14 @@ class Addresses(object):
                         elif function == "data-requests-created":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
                             func_args = (logging_queue, "data requests created", address, address.get_data_requests_created, views_timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
+                        elif function == "stakes":
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for stakes")
+                            func_args = (logging_queue, "stakes", address, address.get_stakes, views_timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
+                        elif function == "unstakes":
+                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for unstakes")
+                            func_args = (logging_queue, "unstakes", address, address.get_unstakes, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
                             logger.info(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
@@ -409,6 +423,10 @@ class Addresses(object):
                     DataRequestSolvedView(many=True).load(address_data)
                 elif label == "data requests created":
                     DataRequestCreatedView(many=True).load(address_data)
+                elif label == "stakes":
+                    StakeView(many=True).load(address_data)
+                elif label == "unstakes":
+                    UnstakeView(many=True).load(address_data)
             except ValidationError:
                 logger.error(f"Could not save {label} data for {identity} because it did not conform with the Marshmallow format")
 

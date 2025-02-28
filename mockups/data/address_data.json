@@ -547,5 +547,223 @@
             "total_reputation": 16560,
             "label": ""
         }
+    },
+    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh": {
+        "stakes": [
+            {
+                "hash": "0a4ce506e1bcaff08a4210d2456e8e92b03fb626fcce69272ba5c5f63013423f",
+                "epoch": 98948,
+                "timestamp": 1740166785,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "445d6d1b76d70acd6ac49206f293ffddfe23b68a811a433116467fb054d68cae",
+                "epoch": 98947,
+                "timestamp": 1740166765,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "95e37a5398ad737142fd3609171dbd8d7d8442d5543ae5ee1e438494dd32bdf5",
+                "epoch": 98946,
+                "timestamp": 1740166745,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "9fd604c8e4396a8e2da691cef0a1bb73dfcc3711d14de7d9f7bba86d771e01d0",
+                "epoch": 98945,
+                "timestamp": 1740166725,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "ba4f2a535cb22c8d4a7ba3274b54eb68937bf5ae6922d1ed5b328d9dcd822777",
+                "epoch": 98944,
+                "timestamp": 1740166705,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "c5e78ca28381a5b7592ff2772c88ed764afef927029bfb0637af9d564c40ff66",
+                "epoch": 98943,
+                "timestamp": 1740166685,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "da138bf271bd0eea1e8fd40f9a50a2611e262e35e6c93283364d1040dee64a10",
+                "epoch": 98942,
+                "timestamp": 1740166665,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "df993e447443951ee30001e01b8fafe8365cc167dec872f40c15b747218f2f7a",
+                "epoch": 98941,
+                "timestamp": 1740166645,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "e99c1ce63aa624359efd590005a789a263b00001ada759d6891632a168103649",
+                "epoch": 98940,
+                "timestamp": 1740166625,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "f191e48a9f4b5b275ab1385ca3740987c4614075e5bf7393461509270971a9ee",
+                "epoch": 98939,
+                "timestamp": 1740166605,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "input_value": 100000000000000,
+                "stake_value": 100000000000000,
+                "confirmed": true
+            }
+        ]
+    },
+    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx": {
+        "unstakes": [
+            {
+                "hash": "7bfcec034de6db93e67a4b2f7799a7fb3c6d96cc82ec49ac75980e99b878218f",
+                "epoch": 98967,
+                "timestamp": 1740167165,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "22a286b3464c150eecb4104158601ecafd65b7b30affd07edb2bf3f35a82fbc1",
+                "epoch": 98965,
+                "timestamp": 1740167125,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "ed8de15cd7979d300ed06cd652766c311149b8846324b243ef99913b61775662",
+                "epoch": 98964,
+                "timestamp": 1740167105,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "2aa958792fb2b2c3e454fd3aad4ce2ad0464aa39c1af8ce1e3adec2f6a1392e0",
+                "epoch": 98962,
+                "timestamp": 1740167065,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "b9f19036b0423fca18ea67c8782e1865046efdb2e2b2824836c6b0a5d142f01d",
+                "epoch": 98961,
+                "timestamp": 1740167045,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "f58e4ffd9075067794deb11613fe3afc2ad365744787b7bef3c029e32dd65ce4",
+                "epoch": 98959,
+                "timestamp": 1740167005,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "6e493c0e9fb0f43902206be27f6fae87913bb78e2bb88046b50c118522f1873f",
+                "epoch": 98958,
+                "timestamp": 1740166985,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "357ecdec594c3a64629c0693d421d7e716279fce8d43537a22130dbe97a184a5",
+                "epoch": 98956,
+                "timestamp": 1740166945,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "08aefc13e94e656dd4756f1edf5263a8a0b69c5f74fa7d8ffe0e9fefa0e0e48c",
+                "epoch": 98955,
+                "timestamp": 1740166925,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            },
+            {
+                "hash": "1f99d6dd5cb9aae7c92731b3cfd6bd880aa3f223e3e8df11a060dfeb89c8bf8c",
+                "epoch": 98953,
+                "timestamp": 1740166885,
+                "direction": "in",
+                "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
+                "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "unstake_value": 150000000000000,
+                "confirmed": true
+            }
+        ]
     }
 }
