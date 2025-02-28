@@ -18,11 +18,6 @@ class Tally(Transaction):
         if "transaction" in self.json_txn:
             self.json_txn = self.json_txn["transaction"]["Tally"]
 
-        # Collect output details
-        output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
-        self.txn_details["output_addresses"] = output_addresses
-        self.txn_details["output_values"] = output_values
-
         self.txn_details["data_request"] = self.json_txn["dr_pointer"]
 
         # Translate tally value
@@ -33,6 +28,14 @@ class Tally(Transaction):
 
         # Get error_addresses and liar_addresses
         if call_from == "explorer":
+            # Collect output details
+            output_addresses, output_values, _ = self.get_outputs(
+                self.json_txn["outputs"]
+            )
+            self.txn_details["output_addresses"] = output_addresses
+            self.txn_details["output_values"] = output_values
+
+            # Calculate the error and liar addresses
             self.txn_details["error_addresses"] = self.json_txn["error_committers"]
             self.txn_details["liar_addresses"] = list(
                 set(self.json_txn["out_of_consensus"])

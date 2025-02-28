@@ -212,13 +212,12 @@ def test_tally_transaction_for_api_failure_missing():
 
 
 @pytest.fixture
-def tally_transaction_for_block(tally_output, tally_summary):
+def tally_transaction_for_block(tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
     }
-    transaction.update(tally_output)
     transaction.update(tally_summary)
     return transaction
 
@@ -242,19 +241,11 @@ def test_tally_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         TallyTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 9
+    assert len(err_info.value.messages) == 7
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["output_addresses"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["output_values"][0]
-        == "Missing data for required field."
     )
     assert (
         err_info.value.messages["num_error_addresses"][0]

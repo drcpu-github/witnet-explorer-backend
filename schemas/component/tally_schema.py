@@ -48,7 +48,7 @@ class TallyTransactionForApi(
     data_request = fields.Str(validate=is_valid_hash, required=True)
 
 
-class TallyTransactionForBlock(BaseTransaction, TallyOutput, TallySummary):
+class TallyTransactionForBlock(BaseTransaction, TallySummary):
     data_request = fields.Str(validate=is_valid_hash, required=True)
 
 
