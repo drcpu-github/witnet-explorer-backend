@@ -1,17 +1,17 @@
 {
     "database_confirmed": {
-        "epoch": 2024100,
-        "hash": "9ce1ea2cce508bf4dea026da624ad1ea01025b1845e9040dd931f0f0d3e50d0c"
+        "epoch": 115910,
+        "hash": "908869efd655ee5854af970ac2c8ccdfbcc1f1d00d7e3cdd076a740b4ea09e5a"
     },
     "database_message": "database processes seem healthy",
     "database_unconfirmed": {
-        "epoch": 2024100,
-        "hash": "9ce1ea2cce508bf4dea026da624ad1ea01025b1845e9040dd931f0f0d3e50d0c"
+        "epoch": 115910,
+        "hash": "908869efd655ee5854af970ac2c8ccdfbcc1f1d00d7e3cdd076a740b4ea09e5a"
     },
-    "expected_epoch": 2079351,
+    "expected_epoch": 115921,
     "message": "all backend services are up and running",
     "node_pool_message": {
-        "epoch": 2079351,
+        "epoch": 115921,
         "message": "fetched node pool status correctly",
         "status": "Synced"
     }
