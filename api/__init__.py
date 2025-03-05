@@ -31,6 +31,7 @@ from api.blueprints.network.tapi_blueprint import network_tapi_blueprint
 from api.blueprints.search.epoch_blueprint import search_epoch_blueprint
 from api.blueprints.search.hash_blueprint import search_hash_blueprint
 from api.blueprints.transaction.mempool_blueprint import transaction_mempool_blueprint
+from api.blueprints.transaction.nonce_blueprint import transaction_nonce_blueprint
 from api.blueprints.transaction.priority_blueprint import transaction_priority_blueprint
 from api.blueprints.transaction.send_blueprint import transaction_send_blueprint
 from api.connect import (
@@ -150,6 +151,7 @@ def create_app(config, mockup=False):
     api.register_blueprint(search_blueprint, url_prefix="/api/search")
 
     transaction_blueprint.register_blueprint(transaction_mempool_blueprint)
+    transaction_blueprint.register_blueprint(transaction_nonce_blueprint)
     transaction_blueprint.register_blueprint(transaction_priority_blueprint)
     transaction_blueprint.register_blueprint(transaction_send_blueprint)
     api.register_blueprint(transaction_blueprint, url_prefix="/api/transaction")
