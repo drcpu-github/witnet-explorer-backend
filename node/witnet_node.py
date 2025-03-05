@@ -161,6 +161,19 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "priority", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
+    def get_stakes(self, validator, withdrawer):
+        if self.logger:
+            self.logger.info(f"get_stakes({validator}, {withdrawer})")
+        if validator and withdrawer:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"validator": validator, "withdrawer": withdrawer}}, "id": str(WitnetNode.request_id)}
+        elif validator:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"validator": validator}}, "id": str(WitnetNode.request_id)}
+        elif withdrawer:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"withdrawer": withdrawer}}, "id": str(WitnetNode.request_id)}
+        else:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def get_current_epoch(self):
         if self.logger:
             self.logger.info("get_current_epoch()")

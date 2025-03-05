@@ -77,6 +77,44 @@ class MockWitnetNode(object):
         priority = json.load(open("mockups/data/priority.json"))
         return {"result": priority}
 
+    def get_stakes(self, validator, withdrawer):
+        stakes = json.load(open("mockups/data/query_stakes.json"))
+        if validator and withdrawer:
+            for stake in stakes:
+                if (
+                    stake["key"]["validator"] == validator
+                    and stake["key"]["withdrawer"] == withdrawer
+                ):
+                    return {"result": stake}
+        elif validator:
+            selected_stakes = []
+            for stake in stakes:
+                if stake["key"]["validator"] == validator:
+                    selected_stakes.append(stake)
+            if len(selected_stakes) > 0:
+                return {"result": selected_stakes}
+            else:
+                return {
+                    "error": {
+                        "message": "Tried to query for a stake entry by validator"
+                    }
+                }
+        elif withdrawer:
+            selected_stakes = []
+            for stake in stakes:
+                if stake["key"]["withdrawer"] == withdrawer:
+                    selected_stakes.append(stake)
+            if len(selected_stakes) > 0:
+                return {"result": selected_stakes}
+            else:
+                return {
+                    "error": {
+                        "message": "Tried to query for a stake entry by withdrawer"
+                    }
+                }
+        else:
+            return {"result": stakes}
+
     def get_current_epoch(self):
         blockchain = self.get_blockchain(-1, -1)
         if "error" not in blockchain:
