@@ -23,7 +23,7 @@ class AddressDetails(MethodView):
     @address_details_blueprint.response(
         200,
         DetailsView,
-        description="Returns the balance, reputation and label of an address.",
+        description="Returns the balance, stake info and label of an address.",
         headers={
             "X-Version": {
                 "description": "Version of this API endpoint.",
@@ -69,6 +69,6 @@ class AddressDetails(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for details data for {arg_address}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
-        return details, 200, {"X-Version": "1.0.0"}
+        return details, 200, {"X-Version": "2.0.0"}

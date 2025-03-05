@@ -1,554 +1,372 @@
 {
-    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq": {
-        "blocks": [
-            {
-                "hash": "331be63f70ec30bccc34af99bf1e31f752053143313029f38cabf93b29e2d591",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1692926730,
-                "epoch": 2005793,
-                "block_reward": 250100200000,
-                "block_fees": 100200000,
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 0,
-                "reveals": 10,
-                "tallies": 1,
-                "confirmed": true
-            },
-            {
-                "hash": "12263769a915e33a51924f7737f1030c1cc3d2f0d346fa6d8c737cedc237f570",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1691896950,
-                "epoch": 1982909,
-                "block_reward": 250200010000,
-                "block_fees": 200010000,
-                "value_transfers": 0,
-                "data_requests": 1,
-                "commits": 10,
-                "reveals": 100,
-                "tallies": 0,
-                "confirmed": true
-            },
-            {
-                "hash": "73f9b78b9731694f72640b81fbc0176460d1e33efeedb242e0845b1183a7b96f",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1689858810,
-                "epoch": 1937617,
-                "block_reward": 250200010000,
-                "block_fees": 200010000,
-                "value_transfers": 0,
-                "data_requests": 0,
-                "commits": 120,
-                "reveals": 0,
-                "tallies": 0,
-                "confirmed": true
-            },
-            {
-                "hash": "67d822cbad8e55f9e4c6bde1a4ec207d4b3298e226548a0b7a84cfb0d5ea5ea9",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1687502880,
-                "epoch": 1885263,
-                "block_reward": 250000012000,
-                "block_fees": 12000,
-                "value_transfers": 2,
-                "data_requests": 0,
-                "commits": 100,
-                "reveals": 0,
-                "tallies": 0,
-                "confirmed": true
-            },
-            {
-                "hash": "be0f658e0c180d8839360ddb772a945ec354ca912cb9b948efdd0f313d85ec24",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1686355110,
-                "epoch": 1859757,
-                "block_reward": 250200010000,
-                "block_fees": 200010000,
-                "value_transfers": 0,
-                "data_requests": 0,
-                "commits": 10,
-                "reveals": 110,
-                "tallies": 0,
-                "confirmed": true
-            },
-            {
-                "hash": "79b6bd9922582dbbf4391206a1a8aed71ccb7f78fa8153a26ea59453e12776dd",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1684869075,
-                "epoch": 1826734,
-                "block_reward": 250000010000,
-                "block_fees": 10000,
-                "value_transfers": 0,
-                "data_requests": 0,
-                "commits": 0,
-                "reveals": 100,
-                "tallies": 0,
-                "confirmed": true
-            },
-            {
-                "hash": "f600b7019dfdc1280b96dcaba0f53c81a3f2bdc773ca155d5e286d47a899c484",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "timestamp": 1683267075,
-                "epoch": 1791134,
-                "block_reward": 250300200000,
-                "block_fees": 300200000,
-                "value_transfers": 0,
-                "data_requests": 2,
-                "commits": 10,
-                "reveals": 0,
-                "tallies": 0,
-                "confirmed": true
-            }
-        ],
-        "mints": [
-            {
-                "hash": "ad32e033a662f9db4a1909a70ea1244974869e8cb272ef496bb64fadea45d52c",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250100200000,
-                "epoch": 2005793,
-                "timestamp": 1692926730,
-                "confirmed": true
-            },
-            {
-                "hash": "caefef77f8e304d66936a4c8badcceac26b1cf411ab15ee52ebe5c891e49ea67",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250200010000,
-                "epoch": 1982909,
-                "timestamp": 1691896950,
-                "confirmed": true
-            },
-            {
-                "hash": "df44bfaa60a783c11cb2e8747d10f66881f40837825d0eae5257143e055d1f26",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250200010000,
-                "epoch": 1937617,
-                "timestamp": 1689858810,
-                "confirmed": true
-            },
-            {
-                "hash": "d32236d117ad6ab2d19d3c85b8fa3cdc39f71cb00212d896fd2cb874804a6e9f",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250000012000,
-                "epoch": 1885263,
-                "timestamp": 1687502880,
-                "confirmed": true
-            },
-            {
-                "hash": "e3af96b74924fea950746ef492d7b69a36ef0983d9192520e647d54b728fdca8",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250200010000,
-                "epoch": 1859757,
-                "timestamp": 1686355110,
-                "confirmed": true
-            },
-            {
-                "hash": "5cf0abee15585bf49446058f518f298908d6af713bb12f6c5d123ee09f6bdabb",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250000010000,
-                "epoch": 1826734,
-                "timestamp": 1684869075,
-                "confirmed": true
-            },
-            {
-                "hash": "df3b573fd185ed7486aa77a8c3f9816da21ffd9fe453f3057e4911a2a484115c",
-                "miner": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
-                "output_value": 250300200000,
-                "epoch": 1791134,
-                "timestamp": 1683267075,
-                "confirmed": true
-            }
-        ],
-        "value-transfers": [
-            {
-                "direction": "self",
-                "hash": "45069cd5e5c00bfa59b3c056e37090a94884b26fc7fb9be7ae11054b9db78189",
-                "epoch": 48144,
-                "timestamp": 1604832525,
-                "input_addresses": [
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "output_addresses": [
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "value": 0,
-                "fee": 0,
-                "weight": 853,
-                "priority": 1,
-                "locked": false,
-                "confirmed": true
-            },
-            {
-                "direction": "in",
-                "hash": "6e785ec161a9ffff50eef211e64f3d59e76ae613abcf80aeefa53a9fa042ef3a",
-                "epoch": 31355,
-                "timestamp": 1604077020,
-                "input_addresses": [
-                    "wit19gx44w7r4r3aash3d4gzdm7fy4q2gqdawxpfug"
-                ],
-                "output_addresses": [
-                    "wit14fyc8vftu9vvrk4mfd8p0xe0r52apfjthwn3tf",
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "value": 1000000000,
-                "fee": 1000,
-                "weight": 853,
-                "priority": 1,
-                "locked": false,
-                "confirmed": true
-            },
-            {
-                "direction": "out",
-                "hash": "e0c14eb913587dbf486a309a53b8d0329457095d7eab8d50b1c67aa3e96160ce",
-                "epoch": 30727,
-                "timestamp": 1604048760,
-                "input_addresses": [
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "output_addresses": [
-                    "wit1atd87eh29swg7trpeqhlpep2ymr7fwg2je08yl"
-                ],
-                "value": 4500000000000,
-                "fee": 1000000,
-                "weight": 4178,
-                "priority": 239,
-                "locked": false,
-                "confirmed": true
-            },
-            {
-                "direction": "out",
-                "hash": "e4e3999edbc72629ab89db6dce92bbadf8aba4a153902b5d4c70d70ed73414b0",
-                "epoch": 766,
-                "timestamp": 1602700515,
-                "input_addresses": [
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "output_addresses": [
-                    "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6"
-                ],
-                "value": 3,
-                "fee": 1,
-                "weight": 853,
-                "priority": 1,
-                "locked": false,
-                "confirmed": true
-            },
-            {
-                "direction": "in",
-                "hash": "f94e92da5adc92b3e44725c16e680301cde9b4940222f69ce16e1d71e04d20e4",
-                "epoch": 753,
-                "timestamp": 1602699930,
-                "input_addresses": [
-                    "wit1epn54l8z2ek9cs299phhtaxewtcc8la2ewh6h4"
-                ],
-                "output_addresses": [
-                    "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
-                ],
-                "value": 249999999999,
-                "fee": 1,
-                "weight": 493,
-                "priority": 1,
-                "locked": false,
-                "confirmed": true
-            }
-        ],
-        "data-requests-created": [
-            {
-                "hash": "fd6b92322bcd7376ed47698a2d93a37efd6d955bed5ccfbe564e4da8fd5a7378",
-                "witnesses": 10,
-                "collateral": 5000000000,
-                "consensus_percentage": 51,
-                "epoch": 1004130,
-                "num_errors": 0,
-                "num_liars": 0,
-                "result": "963316",
-                "success": true,
-                "total_fee": 300000000,
-                "timestamp": 1647851895
-            },
-            {
-                "hash": "c2f3d701ca145b853c9df205d1b49115eabeba2fc10b7d40d2ba36086d3098ea",
-                "witnesses": 10,
-                "collateral": 1000000000,
-                "consensus_percentage": 51,
-                "epoch": 687209,
-                "num_errors": 0,
-                "num_liars": 0,
-                "result": "cc5b51fb693cae5f028b341f599b7b9f610dadfa21da397ae6d5ae4f217db414",
-                "success": true,
-                "total_fee": 31,
-                "timestamp": 1633590450
-            },
-            {
-                "hash": "6cb7d805220991e1723bd556ff949c81ad946c2645870adc5baf6d41ed8b115f",
-                "witnesses": 10,
-                "collateral": 1000000000,
-                "consensus_percentage": 51,
-                "epoch": 686556,
-                "num_errors": 10,
-                "num_liars": 0,
-                "result": "InsufficientConsensus: 30% <= 51%",
-                "success": false,
-                "total_fee": 31,
-                "timestamp": 1633561065
-            },
-            {
-                "hash": "cf1349f312ce93485f94265402aa60474a4696bc98af1b0e31c2eb639c8877a9",
-                "witnesses": 100,
-                "collateral": 1000000000,
-                "consensus_percentage": 51,
-                "epoch": 135500,
-                "num_errors": 2,
-                "num_liars": 0,
-                "result": "23156.021071428546",
-                "success": true,
-                "total_fee": 301,
-                "timestamp": 1608763545
-            },
-            {
-                "hash": "44659759b8e6bddefa23f34ada66b1437081b4a0f7b5d54dea675778264fb718",
-                "witnesses": 100,
-                "collateral": 1000000000,
-                "consensus_percentage": 51,
-                "epoch": 135494,
-                "num_errors": 3,
-                "num_liars": 0,
-                "result": "23107.138281958774",
-                "success": true,
-                "total_fee": 301,
-                "timestamp": 1608763275
-            },
-            {
-                "hash": "04f5bc103dbc8494b9b3c2846ecad9e231dbef132d3299e1c9d819fadb35722f",
-                "witnesses": 100,
-                "collateral": 1000000000,
-                "consensus_percentage": 51,
-                "epoch": 135482,
-                "num_errors": 0,
-                "num_liars": 0,
-                "result": "InsufficientCommits",
-                "success": false,
-                "total_fee": 301,
-                "timestamp": 1608762735
-            },
-            {
-                "collateral": 20000000000,
-                "consensus_percentage": 51,
-                "epoch": 31361,
-                "hash": "a5ea7ab98a90aaccc9ca03b0c172e895dc2e5db0b7c20effb19a9aed7dd9b1af",
-                "num_errors": 0,
-                "num_liars": 0,
-                "result": "13543.348881500011",
-                "success": true,
-                "timestamp": 1604077290,
-                "total_fee": 301,
-                "witnesses": 100
-            }
-        ],
-        "data-requests-solved": [
-            {
-                "collateral": 1000000000,
-                "witness_reward": 8000001,
-                "hash": "753921d9f14ee71a5ab3e5d8706e749ec214c2a66b2def7087d809901d06d3be",
-                "epoch": 2024098,
-                "error": false,
-                "liar": false,
-                "success": true,
-                "reveal": "25922.59505",
-                "timestamp": 1693750455
-            },
-            {
-                "collateral": 1000000000,
-                "witness_reward": 8000001,
-                "hash": "c884940f3c00322bd70a94eb2c6389ed8acdd2c84ebeac9042ecf64530c7847a",
-                "epoch": 2011838,
-                "error": false,
-                "liar": false,
-                "success": true,
-                "reveal": "26017.656750000002",
-                "timestamp": 1693198755
-            },
-            {
-                "collateral": 1000000000,
-                "witness_reward": 8000001,
-                "hash": "831816e5ff2b5ce8e54b4f5c3ad00a261c81415f613c2b1b483a196a5eb0b5b7",
-                "epoch": 2005784,
-                "error": false,
-                "liar": false,
-                "success": true,
-                "reveal": "26093.2803",
-                "timestamp": 1692926325
-            },
-            {
-                "collateral": 1500000000,
-                "witness_reward": 15000000,
-                "hash": "63522cfdfd9ec2de3a307e1f2c4640c99884f609c4c410ea717a45fe618d07f6",
-                "epoch": 2005586,
-                "error": false,
-                "liar": false,
-                "success": true,
-                "reveal": "999035",
-                "timestamp": 1692917415
-            },
-            {
-                "collateral": 1500000000,
-                "witness_reward": 15000000,
-                "hash": "dcf6fd8adc5c31175ab79490cdbdf747c44a10586ce2700df885896c9db9ebc0",
-                "epoch": 2004941,
-                "error": false,
-                "liar": true,
-                "success": true,
-                "reveal": "1647490000",
-                "timestamp": 1692888390
-            },
-            {
-                "collateral": 15000000000,
-                "witness_reward": 150000000,
-                "hash": "38fbeab7a028d81ea04c58104e20179e32eaf4acaec745266f152c2ba6e5c0c6",
-                "epoch": 2004900,
-                "error": false,
-                "liar": false,
-                "success": true,
-                "reveal": "26313764400",
-                "timestamp": 1692886545
-            }
-        ],
-        "utxos": [
-            {
-                "output_pointer": "53c618c94043852acfddbfe3ea7bcb654a49192a2d1b4e45be6c3a9a34eed6af:47",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 1008000001
-            },
-            {
-                "output_pointer": "44f383eee8169cdb7dfe4bb32e35cc7cbc9221c3791492c24603541cebda2796:2",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 15150000000
-            },
-            {
-                "output_pointer": "13de7592e0f6055bb3eb5401b54744263e6e645d1361b254eaba601a8549e492:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250000000000
-            },
-            {
-                "output_pointer": "4d23aa3a08b1a67d4200b45e74c1aca45168289bac62b524d98adb22b2533a01:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 240000030
-            },
-            {
-                "output_pointer": "4f846a58114dc390f2e8209cff487e134d89267038af02279ec47890db07cc97:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250000000000
-            },
-            {
-                "output_pointer": "562fe5fa82d2bb976ba44fc0c77f9f7f4144cc78f2245624fcee8a7c8b42490b:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250000011000
-            },
-            {
-                "output_pointer": "5d3c22affb500f331214bfe804133154d02a36535f494eb90aaae865b80a7a26:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250000000000
-            },
-            {
-                "output_pointer": "9ba6f66ac714abca8199510cdaf3d06dd8c690446893a96958eaf1d17e4a857f:1",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 16500000000
-            },
-            {
-                "output_pointer": "1ecd8d42ee145837af6d96c6f39301a8e268cd3999ec8206730ba4fefb7f279f:1",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 249000000000
-            },
-            {
-                "output_pointer": "2fb86d3471c9b3599cb8fde880913e5bba0555adadbbc8c4440c255d56b4213f:14",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 1008000001
-            }
-        ]
-    },
-    "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6": {
-        "utxos": [
-            {
-                "output_pointer": "04231a2750adae2e3af0ee1cbc362a24d075990d4c8fb427aeb190ac5efa490b:2",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 50050000000
-            },
-            {
-                "output_pointer": "e50c2c324917a577c4ea53a63493ee5fb0eaffb541fcd6a6a3862db28ed8e9b0:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250010010000
-            },
-            {
-                "output_pointer": "c1257a950551efc636f8a2a14fece25454e836e8a1bdad2e3e5a7da1c735bc5a:5",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 2717391305
-            },
-            {
-                "output_pointer": "d0ec2ed89a3bcddfea99b2f23a3d04c28a8da8869793d621c3b7198874c557aa:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250000010000
-            },
-            {
-                "output_pointer": "52c5a7c55c9434aec3fa2d8121c8733414bbd1e66baac035eaf89622f3a15a45:0",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 250800000106
-            },
-            {
-                "output_pointer": "49412fc4e164315af91501ec4aec18b897326e93ade2250d152d03359bbed6f1:10",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 2927631579
-            },
-            {
-                "output_pointer": "dc5ef37d55ab666e21875f2baeac5b0465c9c73343ac32967d5ea0a560ced9e6:8",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 2761627907
-            },
-            {
-                "output_pointer": "f5edd6e766fb493671da05b9bced6dab76a01d2e1cf4f9f6a6149bb6a9b2030f:7",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 5001000000
-            },
-            {
-                "output_pointer": "fe9082e88a3c94c0a08aeb831b270bc4c734a7793ad372e917dcab209838f98f:4",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 50050000000
-            },
-            {
-                "output_pointer": "b8f21c1aa2c09c0b5bc0a88b1bac1ee5039ab4e8594cb9daa707480cbbb0a028:7",
-                "timelock": 0,
-                "utxo_mature": true,
-                "value": 50050000000
-            }
-        ]
-    },
-    "wit10a4ynl3v39jpps9v2wlddg638xz55jzgr5algm": {
+    "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp": {
         "details": {
             "balance": 546229542864,
-            "reputation": 4062,
-            "eligibility": 953,
-            "total_reputation": 16560,
+            "staked_validator": 10270791591933587,
+            "staked_withdrawer": 19907004679081993,
             "label": ""
-        }
+        },
+        "utxos": [
+            {
+                "output_pointer": "d630319e197e7e246d79c83775e0b0c9b14e40a95b7f418eed0f449d1d36c970:0",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 21000000000
+            },
+            {
+                "output_pointer": "ddd387a8439d78fa0901636a1d4eee53e8f14c7681ff79db67dac90b358c7ea8:4",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 21000000000
+            },
+            {
+                "output_pointer": "f4506cbe51bc5913a5a4ad9b317aedf8805d0abe1bc457cb689f6ad9730909ba:1",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 21000000000
+            },
+            {
+                "output_pointer": "fdab9ffbcf7cddf157574e03a64e94d2a12b6d41339d6d951596cc4c06780d22:3",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 21000000000
+            },
+            {
+                "output_pointer": "38b0235b9a385e9cb26bdea059a2c0e4e6b45153ddc87b087d1964850a5949fd:0",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 250000000119
+            }
+        ]
+    },
+    "twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh": {
+        "details": {
+            "balance": 446229542864,
+            "staked_validator": 0,
+            "staked_withdrawer": 0,
+            "label": ""
+        },
+        "utxos": [
+            {
+                "output_pointer": "d630319e197e7e246d79c83775e0b0c9b14e40a95b7f418eed0f449d1d36c970:1",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 11000000000
+            },
+            {
+                "output_pointer": "ddd387a8439d78fa0901636a1d4eee53e8f14c7681ff79db67dac90b358c7ea8:5",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 11000000000
+            },
+            {
+                "output_pointer": "f4506cbe51bc5913a5a4ad9b317aedf8805d0abe1bc457cb689f6ad9730909ba:2",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 211000000000
+            },
+            {
+                "output_pointer": "fdab9ffbcf7cddf157574e03a64e94d2a12b6d41339d6d951596cc4c06780d22:4",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 21000000000
+            },
+            {
+                "output_pointer": "38b0235b9a385e9cb26bdea059a2c0e4e6b45153ddc87b087d1964850a5949fd:1",
+                "timelock": 0,
+                "utxo_mature": true,
+                "value": 150000000119
+            }
+        ]
     },
     "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh": {
+        "value-transfers": [
+            {
+                "direction": "in",
+                "hash": "e42fe51a271f6d297ad6a36b8e1420451fbff16fa2278b190fd8fd1ad8dbdc7f",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1119,
+                "priority": 893,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "db9686a9040f76b60f84b65b0903684272b19d31da161b9bb362062bf7d8912d",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 853,
+                "priority": 1172,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "96fd4a289d954a1952641dd7fef67a0733c4945206b6a07d539397b079f32e60",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 853,
+                "priority": 1172,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "561afa57ecc650852c20b0fce58c0ebbe5d62d816abe4de2949e1107517d6aab",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1385,
+                "priority": 722,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "4f73e1b2b35d52b9acbf88f0100fcfd362e9cd57de822075a771f8c294f92d9b",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1784,
+                "priority": 560,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "2d6b25132b894516a6430e9e8dde9a40f8e8db510d03946a93badaffbe898935",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 2183,
+                "priority": 458,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "293c2bb25015b2a679c86e9ab3b3ed36fa9e92d8a2415e79b3e5c130afb8f59e",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1518,
+                "priority": 658,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "1cd1667e04d140f9f807f538865f9af4710b000cebb82774e66ed2476467a0c2",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1784,
+                "priority": 560,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "132991c0bdfb0cbcfcc644a4381ea59beb3bc48701f854fb1b1526f15d01bb5f",
+                "epoch": 98920,
+                "timestamp": 1740166225,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 1651,
+                "priority": 605,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "97aff6b306980c2068f7b5f774fe63972b821e49b3c91d70a05c3783588b2e02",
+                "epoch": 98919,
+                "timestamp": 1740166205,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 1000000000000000,
+                "fee": 1000000,
+                "weight": 986,
+                "priority": 1014,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "1316e81c7439c3303421a33a7b4e1e7634126c63a85ef076710c9fa4e37fb335",
+                "epoch": 17,
+                "timestamp": 1738181565,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 2000000000000000,
+                "fee": 1,
+                "weight": 853,
+                "priority": 1,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "452184170e0994ec940882c3d603cfc63f394612d0a0142af73cca0412f99dc5",
+                "epoch": 16,
+                "timestamp": 1738181520,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 2000000000000000,
+                "fee": 1,
+                "weight": 853,
+                "priority": 1,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "3a37a4c969557e0a65a9cc8c9daca3b1e2b75d0f357afad2c5721503ed9da85c",
+                "epoch": 16,
+                "timestamp": 1738181520,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 2000000000000000,
+                "fee": 1,
+                "weight": 853,
+                "priority": 1,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "356ef516a4c2250e73de0aa5ea8423cf79fe681b4b6cd8d4b7f0eb6ab9ec2ec7",
+                "epoch": 16,
+                "timestamp": 1738181520,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 2000000000000000,
+                "fee": 1,
+                "weight": 853,
+                "priority": 1,
+                "locked": false,
+                "confirmed": true
+            },
+            {
+                "direction": "in",
+                "hash": "bad7b64ec564b36b03a4ccd2aa7e1f34528f5fdbaa0696925b56e39e0b6c3f90",
+                "epoch": 15,
+                "timestamp": 1738181475,
+                "input_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx"
+                ],
+                "output_addresses": [
+                    "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                    "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh"
+                ],
+                "value": 2000000000000000,
+                "fee": 1,
+                "weight": 853,
+                "priority": 1,
+                "locked": false,
+                "confirmed": true
+            }
+        ],
         "stakes": [
             {
                 "hash": "0a4ce506e1bcaff08a4210d2456e8e92b03fb626fcce69272ba5c5f63013423f",
@@ -763,6 +581,453 @@
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
                 "unstake_value": 150000000000000,
                 "confirmed": true
+            }
+        ]
+    },
+    "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5": {
+        "mints": [
+            {
+                "confirmed": true,
+                "epoch": 205,
+                "hash": "f60fe2e95933c5080bedace34f7d416849bc187aab5f3571d0037babdfb2f507",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000107,
+                "timestamp": 1738190025
+            },
+            {
+                "hash": "9bd7d860b400beb29b8ce3de19b81802ee55b27f0e4c53121ec0c1754ffab4a9",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000053,
+                "epoch": 159,
+                "timestamp": 1738187955,
+                "confirmed": true
+            },
+            {
+                "confirmed": true,
+                "epoch": 145,
+                "hash": "d3037d4cabe818d8c096a4e0d3598e4c1c4d04f18623bb075c7e7719e2856e26",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000068,
+                "timestamp": 1738187325
+            },
+            {
+                "hash": "acc24aaa959a8e42eae08019d17cff95b8ec93906c17fd316ce9ef33eb393928",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000071,
+                "epoch": 144,
+                "timestamp": 1738187280,
+                "confirmed": true
+            },
+            {
+                "hash": "95a339edf2a1ceddfa228897890426b7eff1e1316a332833d07e259d6426cfb4",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000043,
+                "epoch": 131,
+                "timestamp": 1738186695,
+                "confirmed": true
+            },
+            {
+                "confirmed": true,
+                "epoch": 109,
+                "hash": "ff554018230fa9938799d50207f77f26eafcb5c140a4a22f3acc2d5ef5421215",
+                "miner": "twit1a64uygwh3s650l88mexhw4kgnue45cuj83ghf5",
+                "output_value": 250000000005,
+                "timestamp": 1738185705
+            }
+        ]
+    },
+    "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv": {
+        "blocks": [
+            {
+                "block_fees": 166666670,
+                "block_reward": 50166666670,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 1,
+                "epoch": 111444,
+                "hash": "f3dea1ec4687408c88cd928c04e2216758e6d580be1d3359b78047445565f27d",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1740416705,
+                "unstakes": 0,
+                "value_transfers": 0
+            },
+            {
+                "block_fees": 0,
+                "block_reward": 50000000000,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 111297,
+                "hash": "b393029ef97f8d383eb1224da9c69ded46eee2e582675f191d234def95069765",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 1,
+                "timestamp": 1740413765,
+                "unstakes": 0,
+                "value_transfers": 0
+            },
+            {
+                "block_fees": 1000,
+                "block_reward": 50000001000,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 98941,
+                "hash": "f60b61ffb71f780a5feab03dbd7f0e0a650290a0dbb8287888fe439a300279a8",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 1,
+                "tallies": 0,
+                "timestamp": 1740166645,
+                "unstakes": 0,
+                "value_transfers": 0
+            },
+            {
+                "block_fees": 9000000,
+                "block_reward": 50009000000,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 98920,
+                "hash": "c641b501b6176dcb9a9bc45bcb60bd2ffeca91d4e932347e3fa7156e7a015ebd",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1740166225,
+                "unstakes": 0,
+                "value_transfers": 9
+            },
+            {
+                "block_fees": 2000000026,
+                "block_reward": 52000000026,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 34027,
+                "hash": "5a037a919d13d5ca8480dfae8e1583d65d31ad6135e6755d5ccbb3403bbd2259",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1738868365,
+                "unstakes": 0,
+                "value_transfers": 13
+            },
+            {
+                "block_fees": 200000014,
+                "block_reward": 50200000014,
+                "commits": 3,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 6156,
+                "hash": "09902eb9afd1ee10384fce301d831e055065ee5956ecabc324df3b5d5cde1ea0",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 1,
+                "timestamp": 1738310945,
+                "unstakes": 0,
+                "value_transfers": 9
+            },
+            {
+                "block_fees": 200000010,
+                "block_reward": 50200000010,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 5828,
+                "hash": "1df241264389ff23330ef1884497934a967752f4bd74997ff9ca4c31766927f1",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 3,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1738304385,
+                "unstakes": 0,
+                "value_transfers": 7
+            },
+            {
+                "block_fees": 200000025,
+                "block_reward": 50200000025,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 4362,
+                "hash": "173a0266572a80500b4bf64c73874b4fa8f6446d5e38eb87ef7d5620f29876e7",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 3,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1738275065,
+                "unstakes": 0,
+                "value_transfers": 9
+            },
+            {
+                "block_fees": 400100015,
+                "block_reward": 50400100015,
+                "commits": 0,
+                "confirmed": true,
+                "data_requests": 1,
+                "epoch": 4340,
+                "hash": "1ccb665f8d9992f60023e842f810c7bdc2b4f667e17ee128d56798080f4a747f",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 6,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1738274625,
+                "unstakes": 0,
+                "value_transfers": 7
+            },
+            {
+                "block_fees": 400000012,
+                "block_reward": 50400000012,
+                "commits": 6,
+                "confirmed": true,
+                "data_requests": 0,
+                "epoch": 3970,
+                "hash": "0022665de7f57e83e10124c39d3c707143c93148d198d312bb0f3b8a0598a776",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 0,
+                "stakes": 0,
+                "tallies": 0,
+                "timestamp": 1738267225,
+                "unstakes": 0,
+                "value_transfers": 6
+            },
+            {
+                "block_fees": 32,
+                "block_reward": 50000000032,
+                "commits": 4,
+                "confirmed": true,
+                "data_requests": 4,
+                "epoch": 583,
+                "hash": "1386fb207837f26ea69ae332ecb8e200b63a8fc35911b1dc3df46f81967cf6ad",
+                "miner": "twit1exkk9usj6d5g9zyzhws45xxn5jc002vrmzz9fv",
+                "reveals": 5,
+                "stakes": 0,
+                "tallies": 3,
+                "timestamp": 1738199485,
+                "unstakes": 0,
+                "value_transfers": 9
+            }
+        ]
+    },
+    "twit19rnvq8yjrmpa6tjdahct4pd49ha5lmvxjeyfha": {
+        "data-requests-created": [
+            {
+                "hash": "9719ac88341aeab202eae0cf22df9e0b90e4e885e7940dbc8a22fb26bd37e879",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 115910,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "583081361518",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740506025
+            },
+            {
+                "hash": "b83841f9b3ae9fee87d977376a514511f0f609e7e8f5664decca338a70c59632",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111547,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "488131150602",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740418765
+            },
+            {
+                "hash": "c333a2b5f2b1b18131ef53320fb3e84eccc3beeb47d057c495751079e1e452dc",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111531,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "d2a12fa6a7eb36581973e245ab8ba6e341f9e7fc546ca2c5b74e95aec477acee",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740418445
+            },
+            {
+                "hash": "45a1bdf285384bde845192d13670fd43ddaa1422d84d3c6c9570866cb4a60701",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111456,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "488131150602",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740416945
+            },
+            {
+                "hash": "091c5dd902beffa72f3a11096666e26a0fd423a90e16b4419e743c2773f79f18",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111449,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "822173eeff81d0156aa2d92dc14e5d0d0f4d5b07074d14e4e73038bc7daadeee",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740416805
+            },
+            {
+                "hash": "f1c0cd23a3674a05b2688f095a2c9804a81604ce6a82edd9e83ff9c7ae58660f",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111303,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "c56604176e330bc6d0ec41485ad7f74164c3bc87ec36623acbf8bb9f17b7f1ce",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740413885
+            },
+            {
+                "hash": "e73c87d4799b07e90725807fa9aed21b128fd91077b51f3841b2e2c3ffff51b3",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111297,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "97562a6715d893dfc4f7de9c8d2e227307fcad320e7338663a4c6d918361e55d",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740413765
+            },
+            {
+                "hash": "e742c9164c03c847449d9b4416f0de547c9574346da636b890521641ca6108a2",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111268,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "f9ef7b7a431bd61e65674d710be9dd7bef237cacdd8e90172b0629d813789c05",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740413185
+            },
+            {
+                "hash": "ee50a740174fe7807c1cd0b99da1e553b3cdc8c05a3cc7b3cb986fb3c7256143",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111209,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "b5567f8d26ede4ef1a290b2d1170f84fca0e0c02dfec14da8a496d94f7ae167c",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740412005
+            },
+            {
+                "hash": "eaf218a8f3892eec990e700daecde7fb55c8baeda7db0185570c28d089ea7f90",
+                "witnesses": 3,
+                "collateral": 20833333125,
+                "consensus_percentage": 51,
+                "epoch": 111132,
+                "num_errors": 0,
+                "num_liars": 0,
+                "result": "488131150602",
+                "success": true,
+                "total_fee": 999999995,
+                "timestamp": 1740410465
+            }
+        ]
+    },
+    "twit1a0dkarqa5w36quq37tvyxthlhl5049wg63z3zu": {
+        "data-requests-solved": [
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "e8b4453648660dce59caae98556e71e4d5df512fc2bbad4774a5c05ed1374bd8",
+                "epoch": 6488,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "1409825",
+                "timestamp": 1738317585
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "9977d99397858803a3603c2bcfed7a52be708e3b382d38f840f111f6ad223054",
+                "epoch": 6158,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "1413025",
+                "timestamp": 1738310985
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "6703fcbca184bb30c4d4fa48d9972144406bc209ebdbb29aa7acf80a14df7d69",
+                "epoch": 5834,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "1417050",
+                "timestamp": 1738304505
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "584ff65b671bab7537afde260b91514eeb55fdb486b9d23cca65749ed771fb28",
+                "epoch": 4371,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "1000039",
+                "timestamp": 1738275245
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "2e47cf4a0fbd10c6dff47c23f1011d2de9f2610feec326f2f7e7b6be3cf84239",
+                "epoch": 4199,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "3238361000",
+                "timestamp": 1738271805
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "feedf7ddc0a574a14f9bf5dd56d36da6c463a4e7575ab6fb234b91dd9e12e347",
+                "epoch": 3972,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "1486260",
+                "timestamp": 1738267265
+            },
+            {
+                "collateral": 20000000000,
+                "witness_reward": 200000000,
+                "hash": "f6a3441ac16377378a9aab52c106f8127e0ec665b43cc425ddcc055894a68f73",
+                "epoch": 3679,
+                "error": false,
+                "liar": false,
+                "success": true,
+                "reveal": "999999",
+                "timestamp": 1738261405
             }
         ]
     }

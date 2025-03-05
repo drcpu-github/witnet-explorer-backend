@@ -19,6 +19,8 @@ def block():
         "commits": 1,
         "reveals": 1,
         "tallies": 1,
+        "stakes": 1,
+        "unstakes": 1,
         "confirmed": True,
     }
 
@@ -40,7 +42,7 @@ def test_address_block_response_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockView().load(data)
-    assert len(err_info.value.messages) == 12
+    assert len(err_info.value.messages) == 14
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["miner"][0] == "Missing data for required field."
     assert err_info.value.messages["timestamp"][0] == "Missing data for required field."
@@ -62,4 +64,6 @@ def test_address_block_response_failure_missing():
     assert err_info.value.messages["commits"][0] == "Missing data for required field."
     assert err_info.value.messages["reveals"][0] == "Missing data for required field."
     assert err_info.value.messages["tallies"][0] == "Missing data for required field."
+    assert err_info.value.messages["stakes"][0] == "Missing data for required field."
+    assert err_info.value.messages["unstakes"][0] == "Missing data for required field."
     assert err_info.value.messages["confirmed"][0] == "Missing data for required field."

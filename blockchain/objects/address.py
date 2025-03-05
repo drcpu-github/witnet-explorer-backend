@@ -67,18 +67,32 @@ class Address(object):
         else:
             balance = balance["result"]["total"]
 
-        # Get reputation
-        reputation = self.witnet_node.get_reputation(self.address)
-        if type(reputation) is dict and "error" in reputation:
-            total_reputation = "Could not retrieve total reputation"
-            eligibility = "Could not retrieve eligibility"
-            reputation = "Could not retrieve reputation"
+        # Get staked amounts
+        staked_validator = self.witnet_node.get_stakes(self.address, None)
+        if type(staked_validator) is dict and "error" in staked_validator:
+            if staked_validator["error"]["message"].startswith(
+                "Tried to query for a stake entry by validator"
+            ):
+                staked_validator = 0
+            else:
+                staked_validator = "Could not retrieve validator staked balance"
         else:
-            result = reputation["result"]
-            total_reputation = result["total_reputation"]
-            reputation = result["stats"][self.address]
-            eligibility = reputation["eligibility"]
-            reputation = reputation["reputation"]
+            staked_validator = sum(
+                [stake["value"]["coins"] for stake in staked_validator["result"]]
+            )
+
+        staked_withdrawer = self.witnet_node.get_stakes(None, self.address)
+        if type(staked_withdrawer) is dict and "error" in staked_withdrawer:
+            if staked_withdrawer["error"]["message"].startswith(
+                "Tried to query for a stake entry by withdrawer"
+            ):
+                staked_withdrawer = 0
+            else:
+                staked_withdrawer = "Could not retrieve withdrawer staked balance"
+        else:
+            staked_withdrawer = sum(
+                [stake["value"]["coins"] for stake in staked_withdrawer["result"]]
+            )
 
         # Get label
         label = ""
@@ -99,9 +113,8 @@ class Address(object):
 
         return {
             "balance": balance,
-            "reputation": reputation,
-            "eligibility": eligibility,
-            "total_reputation": total_reputation,
+            "staked_validator": staked_validator,
+            "staked_withdrawer": staked_withdrawer,
             "label": label,
         }
 
@@ -109,7 +122,11 @@ class Address(object):
         value_transfers = []
         value_transfers.extend(self.get_value_transfers_in())
         value_transfers.extend(self.get_value_transfers_out())
-        return sorted(value_transfers, key=lambda vt: vt["epoch"], reverse=True)
+        return sorted(
+            value_transfers,
+            key=lambda vt: (vt["epoch"], vt["hash"]),
+            reverse=True,
+        )
 
     def get_value_transfers_in(self):
         # get value transfers arriving at our address
@@ -302,9 +319,9 @@ class Address(object):
                 blocks.tally,
                 blocks.stake,
                 blocks.unstake,
+                blocks.txns_fees,
                 blocks.epoch,
-                blocks.confirmed,
-                mint_txns.output_values
+                blocks.confirmed
             FROM
                 blocks
             LEFT JOIN mint_txns ON
@@ -329,13 +346,10 @@ class Address(object):
                     tallies,
                     stakes,
                     unstakes,
+                    txns_fees,
                     block_epoch,
                     block_confirmed,
-                    output_values,
                 ) = block
-
-                block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(block_epoch)
 
                 blocks_minted.append(
                     {
@@ -343,8 +357,8 @@ class Address(object):
                         "miner": self.address,
                         "timestamp": calculate_timestamp_from_epoch(block_epoch),
                         "epoch": block_epoch,
-                        "block_reward": block_reward,
-                        "block_fees": block_fees,
+                        "block_reward": calculate_block_reward(block_epoch) + txns_fees,
+                        "block_fees": txns_fees,
                         "value_transfers": value_transfers,
                         "data_requests": data_requests,
                         "commits": commits,
@@ -532,7 +546,7 @@ class Address(object):
             WHERE
                 data_request_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
-                data_request_txns.epoch
+                tally_txns.epoch
             DESC
         """
         result = self.db_mngr.sql_return_all(
