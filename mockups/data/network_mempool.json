@@ -1,224 +1,708 @@
 {
-    "network_mempool_data_requests_1696016115_1696017015_60": [
+    "network_mempool_data_requests_1740756425_1740758425_60": [
         {
-            "timestamp": 1696016115,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756425
         },
         {
-            "timestamp": 1696016175,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756485
         },
         {
-            "timestamp": 1696016235,
-            "fee": [
-                27379
-            ],
-            "amount": [
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016295,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756545
         },
         {
-            "timestamp": 1696016355,
-            "fee": [
-                3,
-                14021
-            ],
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756605
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756665
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756725
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756785
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756845
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756905
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756965
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757025
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757085
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757145
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757205
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757265
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757325
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757385
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757445
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757505
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757565
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757625
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757685
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757745
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757805
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757865
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757925
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757985
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758045
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758105
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758165
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758225
+        },
+        {
             "amount": [
                 1,
                 1
-            ]
+            ],
+            "fee": [
+                61958,
+                66138
+            ],
+            "timestamp": 1740758285
         },
         {
-            "timestamp": 1696016415,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740758345
         },
         {
-            "timestamp": 1696016475,
+            "amount": [],
             "fee": [],
-            "amount": []
-        },
-        {
-            "timestamp": 1696016535,
-            "fee": [
-                3,
-                27334
-            ],
-            "amount": [
-                1,
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016595,
-            "fee": [
-                27871
-            ],
-            "amount": [
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016655,
-            "fee": [
-                27364,
-                27379
-            ],
-            "amount": [
-                1,
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016715,
-            "fee": [
-                3
-            ],
-            "amount": [
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016775,
-            "fee": [
-                13928
-            ],
-            "amount": [
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016835,
-            "fee": [],
-            "amount": []
-        },
-        {
-            "timestamp": 1696016895,
-            "fee": [
-                3
-            ],
-            "amount": [
-                1
-            ]
-        },
-        {
-            "timestamp": 1696016955,
-            "fee": [],
-            "amount": []
+            "timestamp": 1740758405
         }
     ],
-    "network_mempool_value_transfers_1696016115_1696017015_60": [
+    "network_mempool_value_transfers_1740756425_1740758425_60": [
         {
-            "timestamp": 1696016115,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756425
         },
         {
-            "timestamp": 1696016175,
-            "fee": [
-                96,
-                120
-            ],
-            "amount": [
-                1,
-                2
-            ]
-        },
-        {
-            "timestamp": 1696016235,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756485
         },
         {
-            "timestamp": 1696016295,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756545
         },
         {
-            "timestamp": 1696016355,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756605
         },
         {
-            "timestamp": 1696016415,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756665
         },
         {
-            "timestamp": 1696016475,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756725
         },
         {
-            "timestamp": 1696016535,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756785
         },
         {
-            "timestamp": 1696016595,
+            "amount": [],
             "fee": [],
-            "amount": []
+            "timestamp": 1740756845
         },
         {
-            "timestamp": 1696016655,
-            "fee": [
-                120
-            ],
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756905
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756965
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757025
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757085
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757145
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757205
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757265
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757325
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757385
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757445
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757505
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757565
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757625
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757685
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757745
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757805
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757865
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757925
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757985
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758045
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758105
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758165
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758225
+        },
+        {
             "amount": [
                 1
-            ]
+            ],
+            "fee": [
+                1
+            ],
+            "timestamp": 1740758285
         },
         {
-            "timestamp": 1696016715,
-            "fee": [
-                98
-            ],
-            "amount": [
-                1
-            ]
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758345
         },
         {
-            "timestamp": 1696016775,
-            "fee": [
-                119
-            ],
-            "amount": [
-                1
-            ]
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758405
+        }
+    ],
+    "network_mempool_stakes_1740756425_1740758425_60": [
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756425
         },
         {
-            "timestamp": 1696016835,
-            "fee": [
-                120
-            ],
-            "amount": [
-                1
-            ]
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756485
         },
         {
-            "timestamp": 1696016895,
-            "fee": [
-                77
-            ],
-            "amount": [
-                1
-            ]
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756545
         },
         {
-            "timestamp": 1696016955,
-            "fee": [
-                57
-            ],
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756605
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756665
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756725
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756785
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756845
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756905
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756965
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757025
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757085
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757145
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757205
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757265
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757325
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757385
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757445
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757505
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757565
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757625
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757685
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757745
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757805
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757865
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757925
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757985
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758045
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758105
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758165
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758225
+        },
+        {
             "amount": [
                 1
-            ]
+            ],
+            "fee": [
+                1
+            ],
+            "timestamp": 1740758285
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758345
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758405
+        }
+    ],
+    "network_mempool_unstakes_1740756425_1740758425_60": [
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756425
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756485
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756545
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756605
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756665
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756725
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756785
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756845
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756905
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740756965
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757025
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757085
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757145
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757205
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757265
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757325
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757385
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757445
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757505
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757565
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757625
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757685
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757745
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757805
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757865
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757925
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740757985
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758045
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758105
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758165
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758225
+        },
+        {
+            "amount": [
+                1
+            ],
+            "fee": [
+                7
+            ],
+            "timestamp": 1740758285
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758345
+        },
+        {
+            "amount": [],
+            "fee": [],
+            "timestamp": 1740758405
         }
     ]
 }

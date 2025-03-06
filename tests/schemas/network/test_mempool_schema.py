@@ -53,7 +53,7 @@ def test_network_mempool_args_failure_not_one_of():
         NetworkMempoolArgs().load(data)
     assert (
         err_info.value.messages["transaction_type"][0]
-        == "Must be one of: data_requests, value_transfers."
+        == "Must be one of: data_requests, value_transfers, stakes, unstakes."
     )
 
 

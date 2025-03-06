@@ -89,7 +89,7 @@ class NetworkMempool(MethodView):
                 abort(
                     404,
                     message="Incorrect format for mempool statistics.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
             try:
@@ -102,7 +102,7 @@ class NetworkMempool(MethodView):
         else:
             logger.info(f"Found {key} in memcached cache")
 
-        return mempool, 200, {"X-Version": "1.0.0"}
+        return mempool, 200, {"X-Version": "2.0.0"}
 
 
 def get_historical_mempool(
@@ -117,6 +117,8 @@ def get_historical_mempool(
     table_mapping = {
         "data_requests": "data_request_mempool",
         "value_transfers": "value_transfer_mempool",
+        "stakes": "stake_mempool",
+        "unstakes": "unstake_mempool",
     }
 
     # Get lists between the required timestamps

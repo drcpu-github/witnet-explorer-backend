@@ -15,6 +15,8 @@ class NetworkMempoolArgs(Schema):
             [
                 "data_requests",
                 "value_transfers",
+                "stakes",
+                "unstakes",
             ]
         ),
     )
