@@ -15,9 +15,11 @@ def block():
         "commits": 2,
         "reveals": 3,
         "tallies": 4,
-        "fees": 5,
-        "epoch": 6,
-        "timestamp": 7,
+        "stakes": 5,
+        "unstakes": 6,
+        "fees": 7,
+        "epoch": 8,
+        "timestamp": 9,
         "confirmed": True,
     }
 
@@ -38,6 +40,7 @@ def test_blockchain_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         BlockchainBlock().load(data)
+    assert len(err_info.value.messages) == 13
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["miner"][0] == "Missing data for required field."
     assert (
@@ -51,6 +54,8 @@ def test_blockchain_block_failure_missing():
     assert err_info.value.messages["commits"][0] == "Missing data for required field."
     assert err_info.value.messages["reveals"][0] == "Missing data for required field."
     assert err_info.value.messages["tallies"][0] == "Missing data for required field."
+    assert err_info.value.messages["stakes"][0] == "Missing data for required field."
+    assert err_info.value.messages["unstakes"][0] == "Missing data for required field."
     assert err_info.value.messages["fees"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["timestamp"][0] == "Missing data for required field."

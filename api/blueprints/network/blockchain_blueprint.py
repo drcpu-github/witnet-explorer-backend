@@ -8,7 +8,6 @@ from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.blockchain_schema import NetworkBlockchainResponse
 from util.blockchain_functions import (
-    calculate_block_reward,
     calculate_current_epoch,
     calculate_timestamp_from_epoch,
 )
@@ -61,7 +60,7 @@ class NetworkBlockchain(MethodView):
         if blockchain:
             logger.info(f"Found {cache_key} in memcached cache")
             pagination_parameters.item_count = blockchain["total_epochs"]
-            return blockchain, 200, {"X-Version": "1.0.0"}
+            return blockchain, 200, {"X-Version": "2.0.0"}
 
         logger.info(f"Could not find {cache_key} in memcached cache")
 
@@ -106,10 +105,10 @@ class NetworkBlockchain(MethodView):
             abort(
                 404,
                 message="Incorrect message format for blockchain response.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
-        return blockchain, 200, {"X-Version": "1.0.0"}
+        return blockchain, 200, {"X-Version": "2.0.0"}
 
 
 def get_blockchain_details(database, last_epoch, start, stop):
@@ -122,10 +121,12 @@ def get_blockchain_details(database, last_epoch, start, stop):
             blocks.commit,
             blocks.reveal,
             blocks.tally,
+            blocks.stake,
+            blocks.unstake,
+            blocks.txns_fees,
             blocks.confirmed,
             blocks.reverted,
-            mint_txns.miner,
-            mint_txns.output_values
+            mint_txns.miner
         FROM
             blocks
         LEFT JOIN
@@ -145,24 +146,24 @@ def get_blockchain_details(database, last_epoch, start, stop):
     blockchain = []
     for block in blocks:
         # Reverted block
-        if block[8]:
+        if block[11]:
             continue
 
-        timestamp = calculate_timestamp_from_epoch(block[1])
-        block_reward = calculate_block_reward(block[1])
         blockchain.append(
             {
                 "hash": block[0].hex(),
                 "epoch": block[1],
-                "timestamp": timestamp,
+                "timestamp": calculate_timestamp_from_epoch(block[1]),
                 "value_transfers": block[2],
                 "data_requests": block[3],
                 "commits": block[4],
                 "reveals": block[5],
                 "tallies": block[6],
-                "confirmed": block[7],
-                "miner": block[9],
-                "fees": sum(block[10]) - block_reward,
+                "stakes": block[7],
+                "unstakes": block[8],
+                "fees": block[9],
+                "confirmed": block[10],
+                "miner": block[12],
             }
         )
 

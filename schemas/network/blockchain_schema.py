@@ -16,6 +16,8 @@ class BlockchainBlock(Schema):
     commits = fields.Int(required=True, validate=validate.Range(min=0))
     reveals = fields.Int(required=True, validate=validate.Range(min=0))
     tallies = fields.Int(required=True, validate=validate.Range(min=0))
+    stakes = fields.Int(required=True, validate=validate.Range(min=0))
+    unstakes = fields.Int(required=True, validate=validate.Range(min=0))
     fees = fields.Int(required=True, validate=validate.Range(min=0))
     epoch = fields.Int(required=True, validate=validate.Range(min=0))
     timestamp = fields.Int(required=True, validate=validate.Range(min=0))
