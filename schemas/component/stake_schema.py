@@ -16,7 +16,7 @@ class StakeTransactionForApi(BaseApiTransaction):
         validate=is_valid_address, allow_none=True, required=True
     )
     change_value = fields.Int(
-        validate=validate.Range(min=1), allow_none=True, required=True
+        validate=validate.Range(min=0), allow_none=True, required=True
     )
     validator = fields.Str(validate=is_valid_address, required=True)
     withdrawer = fields.Str(validate=is_valid_address, required=True)
@@ -68,7 +68,7 @@ class StakeTransactionForExplorer(BaseTransaction, InputUtxoList):
         validate=is_valid_address, allow_none=True, required=True
     )
     change_value = fields.Int(
-        validate=validate.Range(min=1), allow_none=True, required=True
+        validate=validate.Range(min=0), allow_none=True, required=True
     )
     fee = fields.Int(validate=validate.Range(min=0), required=True)
     weight = fields.Int(validate=validate.Range(min=1), required=True)

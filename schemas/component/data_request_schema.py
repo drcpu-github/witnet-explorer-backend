@@ -68,7 +68,7 @@ class DataRequestTransactionForBlock(BaseTransaction):
 
 class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
     input_values = fields.List(
-        fields.Int(validate=validate.Range(min=1)), required=True
+        fields.Int(validate=validate.Range(min=0)), required=True
     )
     output_address = fields.Str(
         validate=is_valid_address, allow_none=True, required=True
