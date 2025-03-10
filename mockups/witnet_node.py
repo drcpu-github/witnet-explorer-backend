@@ -78,7 +78,7 @@ class MockWitnetNode(object):
         return {"result": priority}
 
     def get_stakes(self, validator, withdrawer):
-        stakes = json.load(open("mockups/data/query_stakes.json"))
+        stakes = json.load(open("mockups/data/query_stakes.json"))["rpc"]
         if validator and withdrawer:
             for stake in stakes:
                 if (

@@ -26,6 +26,9 @@ mock_config = {
                 "version": {
                     "timeout": 10,
                 },
+                "stakes": {
+                    "timeout": 10,
+                },
             },
             "scripts": {
                 "network_stats": {
@@ -35,6 +38,9 @@ mock_config = {
                     "timeout": 10,
                 },
                 "data_request_reports": {
+                    "timeout": 10,
+                },
+                "stakes": {
                     "timeout": 10,
                 },
             },

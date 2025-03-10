@@ -205,6 +205,16 @@ cron = "*/5 * * * *"
 level_file = "info"
 log_file = "/path/to/logs/tapi_list.log"
 
+# cron: specify the crontab timing configuration
+# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
+# log_file: specify logging file name
+# timeout: specify the memcached timeout (in seconds) after which the data is invalidated
+[api.caching.scripts.stakes]
+cron = "* * * * *"
+level_file = "info"
+log_file = "/path/to/logs/stakes.log"
+timeout = 60
+
 # timeout: configure timeout (in seconds) for the hash view function
 [api.caching.views.hash]
 timeout = 86400 # 1 day

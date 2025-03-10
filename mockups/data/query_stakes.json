@@ -1,114 +1,294 @@
-[
-    {
-        "key": {
-            "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
-            "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
+{
+    "api": {
+        "all": {
+            "stakes": [
+                {
+                    "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 10270791591933587,
+                    "time_weighted_stake": 0,
+                    "nonce": 53951,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
+                    "withdrawer": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
+                    "current_stake": 10184820217875455,
+                    "time_weighted_stake": 0,
+                    "nonce": 2406,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 9636213087148406,
+                    "time_weighted_stake": 0,
+                    "nonce": 2078,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
+                    "withdrawer": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
+                    "current_stake": 9259690985259875,
+                    "time_weighted_stake": 0,
+                    "nonce": 98584,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76",
+                    "withdrawer": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76",
+                    "current_stake": 8897602412366118,
+                    "time_weighted_stake": 0,
+                    "nonce": 52610,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r",
+                    "withdrawer": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r",
+                    "current_stake": 8770188814456999,
+                    "time_weighted_stake": 0,
+                    "nonce": 52610,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                    "withdrawer": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                    "current_stake": 8729397615087843,
+                    "time_weighted_stake": 0,
+                    "nonce": 208,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le",
+                    "withdrawer": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le",
+                    "current_stake": 8550553817497503,
+                    "time_weighted_stake": 0,
+                    "nonce": 213,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                }
+            ],
+            "last_updated": 1742937457
         },
-        "value": {
-            "coins": 10270791591933587,
-            "epochs": {
-                "mining": 111828,
-                "witnessing": 111545
-            },
-            "nonce": 53951
+        "validator=twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp": {
+            "stakes": [
+                {
+                    "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 10270791591933587,
+                    "time_weighted_stake": 0,
+                    "nonce": 53951,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                }
+            ],
+            "last_updated": 1742937457
+        },
+        "withdrawer=twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp": {
+            "stakes": [
+                {
+                    "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 10270791591933587,
+                    "time_weighted_stake": 0,
+                    "nonce": 53951,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                },
+                {
+                    "validator": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 9636213087148406,
+                    "time_weighted_stake": 0,
+                    "nonce": 2078,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                }
+            ],
+            "last_updated": 1742937457
+        },
+        "validator=twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp_withdrawer=twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp": {
+            "stakes": [
+                {
+                    "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                    "current_stake": 10270791591933587,
+                    "time_weighted_stake": 0,
+                    "nonce": 53951,
+                    "blocks": 0,
+                    "rewards": 0,
+                    "data_requests": 0,
+                    "lies": 0,
+                    "genesis": 0,
+                    "last_active": 0
+                }
+            ],
+            "last_updated": 1742937457
         }
     },
-    {
-        "key": {
-            "validator": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
-            "withdrawer": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6"
-        },
-        "value": {
-            "coins": 10184820217875455,
-            "epochs": {
-                "mining": 111824,
-                "witnessing": 53728
+    "rpc": [
+        {
+            "key": {
+                "validator": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
             },
-            "nonce": 2406
-        }
-    },
-    {
-        "key": {
-            "validator": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
-            "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
+            "value": {
+                "coins": 10270791591933587,
+                "epochs": {
+                    "mining": 111828,
+                    "witnessing": 111545
+                },
+                "nonce": 53951
+            }
         },
-        "value": {
-            "coins": 9636213087148406,
-            "epochs": {
-                "mining": 111827,
-                "witnessing": 111446
+        {
+            "key": {
+                "validator": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6",
+                "withdrawer": "twit1w9vaa7we6h8qyc3uawdwnp9n40602hdgsxkzf6"
             },
-            "nonce": 2078
-        }
-    },
-    {
-        "key": {
-            "validator": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
-            "withdrawer": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
+            "value": {
+                "coins": 10184820217875455,
+                "epochs": {
+                    "mining": 111824,
+                    "witnessing": 53728
+                },
+                "nonce": 2406
+            }
         },
-        "value": {
-            "coins": 9259690985259875,
-            "epochs": {
-                "mining": 111825,
-                "witnessing": 111529
+        {
+            "key": {
+                "validator": "twit1najvm34rta4vnkpfax8kk0vhpntg5lgdz8wc33",
+                "withdrawer": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
             },
-            "nonce": 98584
-        }
-    },
-    {
-        "key": {
-            "validator": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76",
-            "withdrawer": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76"
+            "value": {
+                "coins": 9636213087148406,
+                "epochs": {
+                    "mining": 111827,
+                    "witnessing": 111446
+                },
+                "nonce": 2078
+            }
         },
-        "value": {
-            "coins": 8897602412366118,
-            "epochs": {
-                "mining": 111828,
-                "witnessing": 81736
+        {
+            "key": {
+                "validator": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l",
+                "withdrawer": "twit1yyx8ll4ykyk0fugv3apefzlszlf8a9jxxr398l"
             },
-            "nonce": 52610
-        }
-    },
-    {
-        "key": {
-            "validator": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r",
-            "withdrawer": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r"
+            "value": {
+                "coins": 9259690985259875,
+                "epochs": {
+                    "mining": 111825,
+                    "witnessing": 111529
+                },
+                "nonce": 98584
+            }
         },
-        "value": {
-            "coins": 8770188814456999,
-            "epochs": {
-                "mining": 111830,
-                "witnessing": 82017
+        {
+            "key": {
+                "validator": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76",
+                "withdrawer": "twit1t2srhf0cj3ffep0fv2krpdkpffkwzp6qzj8f76"
             },
-            "nonce": 52610
-        }
-    },
-    {
-        "key": {
-            "validator": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
-            "withdrawer": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77"
+            "value": {
+                "coins": 8897602412366118,
+                "epochs": {
+                    "mining": 111828,
+                    "witnessing": 81736
+                },
+                "nonce": 52610
+            }
         },
-        "value": {
-            "coins": 8729397615087843,
-            "epochs": {
-                "mining": 111829,
-                "witnessing": 55483
+        {
+            "key": {
+                "validator": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r",
+                "withdrawer": "twit1w5n5v0mu8erpdf9uj32ekke07kgggpxcvg8v5r"
             },
-            "nonce": 208
-        }
-    },
-    {
-        "key": {
-            "validator": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le",
-            "withdrawer": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le"
+            "value": {
+                "coins": 8770188814456999,
+                "epochs": {
+                    "mining": 111830,
+                    "witnessing": 82017
+                },
+                "nonce": 52610
+            }
         },
-        "value": {
-            "coins": 8550553817497503,
-            "epochs": {
-                "mining": 111829,
-                "witnessing": 55596
+        {
+            "key": {
+                "validator": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "withdrawer": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77"
             },
-            "nonce": 213
+            "value": {
+                "coins": 8729397615087843,
+                "epochs": {
+                    "mining": 111829,
+                    "witnessing": 55483
+                },
+                "nonce": 208
+            }
+        },
+        {
+            "key": {
+                "validator": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le",
+                "withdrawer": "twit13gxf4w8xv8f9tcka0e9qgs0evvpz90g5gs50le"
+            },
+            "value": {
+                "coins": 8550553817497503,
+                "epochs": {
+                    "mining": 111829,
+                    "witnessing": 55596
+                },
+                "nonce": 213
+            }
         }
-    }
-]
+    ]
+}

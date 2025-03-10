@@ -238,6 +238,11 @@ def version():
 
 
 @pytest.fixture
+def network_stakes():
+    return json.load(open("mockups/data/query_stakes.json"))["api"]
+
+
+@pytest.fixture
 def database():
     return MockDatabase()
 
