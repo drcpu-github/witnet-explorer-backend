@@ -23,6 +23,9 @@ mock_config = {
                 "hash": {
                     "timeout": 10,
                 },
+                "version": {
+                    "timeout": 10,
+                },
             },
             "scripts": {
                 "network_stats": {

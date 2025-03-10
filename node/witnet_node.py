@@ -161,6 +161,12 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "priority", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
+    def get_protocol_info(self):
+        if self.logger:
+            self.logger.info("get_protocol_info()")
+        request = {"jsonrpc": "2.0", "method": "protocol", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def get_stakes(self, validator, withdrawer):
         if self.logger:
             self.logger.info(f"get_stakes({validator}, {withdrawer})")

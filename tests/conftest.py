@@ -233,6 +233,11 @@ def tapi():
 
 
 @pytest.fixture
+def version():
+    return json.load(open("mockups/data/network_versions.json"))["api"]
+
+
+@pytest.fixture
 def database():
     return MockDatabase()
 

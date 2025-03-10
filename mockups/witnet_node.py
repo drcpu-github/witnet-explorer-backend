@@ -115,6 +115,10 @@ class MockWitnetNode(object):
         else:
             return {"result": stakes}
 
+    def get_protocol_info(self):
+        versions = json.load(open("mockups/data/network_versions.json"))
+        return {"result": versions["rpc"]}
+
     def get_current_epoch(self):
         blockchain = self.get_blockchain(-1, -1)
         if "error" not in blockchain:

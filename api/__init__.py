@@ -28,6 +28,7 @@ from api.blueprints.network.reputation_blueprint import network_reputation_bluep
 from api.blueprints.network.statistics_blueprint import network_statistics_blueprint
 from api.blueprints.network.supply_blueprint import network_supply_blueprint
 from api.blueprints.network.tapi_blueprint import network_tapi_blueprint
+from api.blueprints.network.version_blueprint import network_version_blueprint
 from api.blueprints.search.epoch_blueprint import search_epoch_blueprint
 from api.blueprints.search.hash_blueprint import search_hash_blueprint
 from api.blueprints.transaction.mempool_blueprint import transaction_mempool_blueprint
@@ -144,6 +145,7 @@ def create_app(config, mockup=False):
     network_blueprint.register_blueprint(network_statistics_blueprint)
     network_blueprint.register_blueprint(network_supply_blueprint)
     network_blueprint.register_blueprint(network_tapi_blueprint)
+    network_blueprint.register_blueprint(network_version_blueprint)
     api.register_blueprint(network_blueprint, url_prefix="/api/network")
 
     search_blueprint.register_blueprint(search_epoch_blueprint)

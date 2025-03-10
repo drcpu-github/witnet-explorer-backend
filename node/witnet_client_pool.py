@@ -95,6 +95,10 @@ class WitnetClientPool(Queue):
         with self.reserve() as witnet_node:
             return witnet_node.get_stakes(validator, withdrawer)
 
+    def get_protocol_info(self):
+        with self.reserve() as witnet_node:
+            return witnet_node.get_protocol_info()
+
     def get_current_epoch(self):
         with self.reserve() as witnet_node:
             return witnet_node.get_current_epoch()

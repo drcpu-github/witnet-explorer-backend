@@ -39,6 +39,13 @@ class MockCache(object):
             for key, value in data.items():
                 self.cache[f"{address}_{key}"] = value
 
+        network_versions = json.load(open("mockups/data/network_versions.json"))["api"]
+        self.cache["network_version_all"] = network_versions
+        self.cache["network_version_current"] = {
+            "current_version": network_versions["current_version"],
+            "current_epoch": network_versions["current_epoch"],
+        }
+
     def init_app(self, app):
         app.extensions = getattr(app, "extensions", {})
         if "cache" not in app.extensions:

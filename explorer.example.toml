@@ -228,3 +228,7 @@ timeout = 15
 # timeout: configure timeout (in seconds) for the network stats view function
 [api.caching.views.network_stats]
 timeout = 900
+
+# timeout: configure timeout (in seconds) for the version view function
+[api.caching.views.version]
+timeout = 15
