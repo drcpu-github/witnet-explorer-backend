@@ -43,6 +43,6 @@ mock_config = {
         "error_retry": 10,
     },
     "explorer": {
-        "mempool_interval": 15,
+        "poll_interval": 15,
     },
 }

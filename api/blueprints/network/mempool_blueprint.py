@@ -62,7 +62,7 @@ class NetworkMempool(MethodView):
             timestamp_stop = calculate_timestamp_from_epoch(args["stop_epoch"])
 
         granularity = args["granularity"]
-        sample_rate = int(granularity / config["explorer"]["mempool_interval"])
+        sample_rate = int(granularity / config["explorer"]["poll_interval"])
 
         transaction_type = args["transaction_type"]
         logger.info(
