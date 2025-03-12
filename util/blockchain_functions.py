@@ -27,6 +27,9 @@ def calculate_priority(fee, weight, round_priority=False):
     else:
         return fee / weight
 
+def get_activatation_epoch_wit2():
+    return BlockchainConfig.wip.get_activation_epoch("wit/2") or 1e99
+
 def calculate_start_timestamp_wit2():
     consensus_constants = BlockchainConfig.consensus_constants
     checkpoint_zero_timestamp = consensus_constants.checkpoint_zero_timestamp

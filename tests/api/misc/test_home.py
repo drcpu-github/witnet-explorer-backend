@@ -69,6 +69,14 @@ def test_home_cached_unstakes(client, home):
     assert json.loads(response.data) == {"latest_unstakes": home["latest_unstakes"]}
 
 
+def test_home_cached_total_staked(client, home):
+    assert client.application.extensions["cache"].get("home") is not None
+    response = client.get("/api/home?key=total_staked")
+    assert response.status_code == 200
+    assert response.headers["x-version"] == "2.0.0"
+    assert json.loads(response.data) == {"total_staked": home["total_staked"]}
+
+
 def test_home_not_cached(client):
     client.application.extensions["cache"].delete("home")
     assert client.application.extensions["cache"].get("home") is None

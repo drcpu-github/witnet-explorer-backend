@@ -1,12 +1,13 @@
 {
     "network_stats": {
+        "validators": 9001,
         "epochs": 118,
-        "num_blocks": 118,
-        "num_data_requests": 470,
-        "num_value_transfers": 749,
-        "num_stakes": 16,
-        "num_unstakes": 9,
-        "num_pending_requests": 5
+        "blocks": 118,
+        "data_requests": 470,
+        "value_transfers": 749,
+        "stakes": 16,
+        "unstakes": 9,
+        "pending_requests": 5
     },
     "supply_info": {
         "blocks_minted": 60205,
@@ -557,6 +558,48 @@
             "hash": "01c7371aee95a77fbccd24d4121675b7cc66d52473d0a2d657b0b28f9842328b",
             "timestamp": 1738237385,
             "confirmed": true
+        }
+    ],
+    "total_staked": [
+        {
+            "staked": 125144451446666001,
+            "timestamp": 1739881825
+        },
+        {
+            "staked": 125149451446666001,
+            "timestamp": 1739883825
+        },
+        {
+            "staked": 125154451446666001,
+            "timestamp": 1739885825
+        },
+        {
+            "staked": 125159451446666001,
+            "timestamp": 1739887825
+        },
+        {
+            "staked": 125164451446666001,
+            "timestamp": 1739889825
+        },
+        {
+            "staked": 125169451446666001,
+            "timestamp": 1739891825
+        },
+        {
+            "staked": 125174451446666001,
+            "timestamp": 1739893825
+        },
+        {
+            "staked": 125179451446666001,
+            "timestamp": 1739895825
+        },
+        {
+            "staked": 125184451446666001,
+            "timestamp": 1739897825
+        },
+        {
+            "staked": 125189451446666001,
+            "timestamp": 1739899825
         }
     ],
     "last_updated": 1695992895

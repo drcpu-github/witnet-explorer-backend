@@ -57,7 +57,7 @@ class Home(MethodView):
 
         if key == "full":
             return home, 200, {"X-Version": "2.0.0"}
-        elif key in ("network_stats", "supply_info"):
+        elif key in ("network_stats", "supply_info", "total_staked"):
             return {key: home[key]}, 200, {"X-Version": "2.0.0"}
         elif key in (
             "blocks",

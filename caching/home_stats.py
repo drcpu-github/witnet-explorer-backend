@@ -9,11 +9,22 @@ from blockchain.config import BlockchainConfig
 from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.wip import WIP
 from caching.client import Client
-from schemas.misc.home_schema import HomeBlock, HomeNetworkStats, HomeTransaction, HomeResponse
+from schemas.misc.home_schema import (
+    HomeBlock,
+    HomeNetworkStats,
+    HomeTransaction,
+    HomeResponse,
+)
 from schemas.network.supply_schema import NetworkSupply
-from util.blockchain_functions import calculate_current_epoch, calculate_timestamp_from_epoch
+from util.blockchain_functions import (
+    calculate_current_epoch,
+    calculate_epoch_from_timestamp,
+    calculate_timestamp_from_epoch,
+    get_activatation_epoch_wit2,
+)
 from util.data_transformer import re_sql
 from util.logger import configure_logger
+
 
 class HomeStats(Client):
     def __init__(self):
@@ -27,14 +38,26 @@ class HomeStats(Client):
         # Initialize previous variables
         self.current_epoch = calculate_current_epoch()
 
+        self.default_supply_info = None
+        self.last_saved_validators = 0
+        self.last_saved_stakes = 0
+        self.last_saved_unstakes = 0
+        self.last_saved_pending_requests = 0
+        self.last_saved_total_staked = 0
         last_saved_home = self.memcached_client.get("home")
         if last_saved_home:
             self.default_supply_info = last_saved_home["supply_info"]
-            if "num_stakes" in last_saved_home["network_stats"]:
-                self.last_saved_num_stakes = last_saved_home["network_stats"]["num_stakes"]
-            if "num_unstakes" in last_saved_home["network_stats"]:
-                self.last_saved_num_unstakes = last_saved_home["network_stats"]["num_unstakes"]
-            self.last_saved_num_pending_requests = last_saved_home["network_stats"]["num_pending_requests"]
+            network_stats = last_saved_home["network_stats"]
+            if "validators" in network_stats:
+                self.last_saved_validators = network_stats["validators"]
+            if "stakes" in network_stats:
+                self.last_saved_stakes = network_stats["stakes"]
+            if "unstakes" in last_saved_home["network_stats"]:
+                self.last_saved_unstakes = network_stats["unstakes"]
+            if "pending_requests" in network_stats:
+                self.last_saved_pending_requests = network_stats["pending_requests"]
+            if "total_staked" in last_saved_home:
+                self.last_saved_total_staked = last_saved_home["total_staked"]
 
     def collect_home_stats(self):
         start = time.perf_counter()
@@ -46,45 +69,74 @@ class HomeStats(Client):
         start_inner = time.perf_counter()
         self.logger.info("Collecting network statistics")
         self.home_stats["network_stats"] = self.get_network_stats()
-        self.logger.info(f"Collected network statistics in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected network statistics in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting supply info")
         self.home_stats["supply_info"] = self.get_supply_info()
-        self.logger.info(f"Collected supply info in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected supply info in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting latest blocks")
         self.home_stats["latest_blocks"] = self.get_latest_blocks()
-        self.logger.info(f"Collected latest blocks in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected latest blocks in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting latest data requests")
         self.home_stats["latest_data_requests"] = self.get_latest_data_requests()
-        self.logger.info(f"Collected latest data requests in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected latest data requests in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting latest value transfers")
         self.home_stats["latest_value_transfers"] = self.get_latest_value_transfers()
-        self.logger.info(f"Collected latest value transfers in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected latest value transfers in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting latest stakes")
         self.home_stats["latest_stakes"] = self.get_latest_stakes()
-        self.logger.info(f"Collected latest stakes in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected latest stakes in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         start_inner = time.perf_counter()
         self.logger.info("Collecting latest unstakes")
         self.home_stats["latest_unstakes"] = self.get_latest_unstakes()
-        self.logger.info(f"Collected latest unstakes in {time.perf_counter() - start_inner:.2f}s")
+        self.logger.info(
+            f"Collected latest unstakes in {time.perf_counter() - start_inner:.2f}s"
+        )
+
+        start_inner = time.perf_counter()
+        self.logger.info("Collecting total staked")
+        self.home_stats["total_staked"] = self.get_total_staked()
+        self.logger.info(
+            f"Collected total staked in {time.perf_counter() - start_inner:.2f}s"
+        )
 
         self.home_stats["last_updated"] = int(time.time())
 
         HomeResponse().load(self.home_stats)
 
-        self.logger.info(f"Collected home statistics in {time.perf_counter() - start:.2f}s")
+        self.logger.info(
+            f"Collected home statistics in {time.perf_counter() - start:.2f}s"
+        )
 
     def get_network_stats(self):
+        stakes = self.witnet_node.get_stakes(None, None)
+        if "error" in stakes:
+            validators = self.last_saved_validators
+        else:
+            validators = len(stakes["result"])
+
         # Count the number of confirmed blocks
         sql = """
             SELECT
@@ -93,11 +145,11 @@ class HomeStats(Client):
             WHERE
                 confirmed=true
         """
-        num_blocks = self.database.sql_return_one(re_sql(sql))
-        if num_blocks:
-            num_blocks = num_blocks[0]
+        blocks = self.database.sql_return_one(re_sql(sql))
+        if blocks:
+            blocks = blocks[0]
         else:
-            num_blocks = 0
+            blocks = 0
 
         # Count the total number of data requests included in all confirmed blocks
         sql = """
@@ -107,11 +159,11 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_data_requests = self.database.sql_return_one(re_sql(sql))
-        if num_data_requests:
-            num_data_requests = num_data_requests[0]
+        data_requests = self.database.sql_return_one(re_sql(sql))
+        if data_requests:
+            data_requests = data_requests[0]
         else:
-            num_data_requests = 0
+            data_requests = 0
 
         # Count the total number of value transfers included in all confirmed blocks
         sql = """
@@ -121,11 +173,11 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_value_transfers = self.database.sql_return_one(re_sql(sql))
-        if num_value_transfers:
-            num_value_transfers = num_value_transfers[0]
+        value_transfers = self.database.sql_return_one(re_sql(sql))
+        if value_transfers:
+            value_transfers = value_transfers[0]
         else:
-            num_value_transfers = 0
+            value_transfers = 0
 
         # Count the total number of stakes included in all confirmed blocks
         sql = """
@@ -135,11 +187,11 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_stakes = self.database.sql_return_one(re_sql(sql))
-        if num_stakes:
-            num_stakes = num_stakes[0]
+        stakes = self.database.sql_return_one(re_sql(sql))
+        if stakes:
+            stakes = stakes[0]
         else:
-            num_stakes = 0
+            stakes = 0
 
         # Count the total number of unstakes included in all confirmed blocks
         sql = """
@@ -149,33 +201,39 @@ class HomeStats(Client):
             WHERE
                 blocks.confirmed=true
         """
-        num_unstakes = self.database.sql_return_one(re_sql(sql))
-        if num_unstakes:
-            num_unstakes = num_unstakes[0]
+        unstakes = self.database.sql_return_one(re_sql(sql))
+        if unstakes:
+            unstakes = unstakes[0]
         else:
-            num_unstakes = 0
+            unstakes = 0
 
         # Fetch the mempool from a witnet node
         # On error: use the previous pending requests
-        # On success: 
+        # On success:
         #   1) calculate the sum of all pending data requests and value transfers
         #   2) update the previous pending requests
         pending_requests = self.witnet_node.get_mempool()
         if "error" in pending_requests:
-            num_pending_requests = self.last_saved_num_pending_requests
+            pending_requests = self.last_saved_pending_requests
         else:
             pending_requests = pending_requests["result"]
-            num_pending_requests = len(pending_requests["data_request"]) + len(pending_requests["value_transfer"]) + len(pending_requests["stake"]) + len(pending_requests["unstake"])
+            pending_requests = (
+                len(pending_requests["data_request"])
+                + len(pending_requests["value_transfer"])
+                + len(pending_requests["stake"])
+                + len(pending_requests["unstake"])
+            )
 
         return HomeNetworkStats().load(
             {
+                "validators": validators,
                 "epochs": self.current_epoch,
-                "num_blocks": num_blocks,
-                "num_data_requests": num_data_requests,
-                "num_value_transfers": num_value_transfers,
-                "num_stakes": num_stakes,
-                "num_unstakes": num_unstakes,
-                "num_pending_requests": num_pending_requests,
+                "blocks": blocks,
+                "data_requests": data_requests,
+                "value_transfers": value_transfers,
+                "stakes": stakes,
+                "unstakes": unstakes,
+                "pending_requests": pending_requests,
             }
         )
 
@@ -195,9 +253,13 @@ class HomeStats(Client):
 
             del supply_info["maximum_supply"]
 
-            supply_info["current_staked_supply"] = supply_info_2["current_staked_supply"]
+            supply_info["current_staked_supply"] = supply_info_2[
+                "current_staked_supply"
+            ]
 
-            supply_info["current_supply"] = supply_info_2["initial_supply"] + supply_info_2["blocks_minted_reward"]
+            supply_info["current_supply"] = (
+                supply_info_2["initial_supply"] + supply_info_2["blocks_minted_reward"]
+            )
             supply_info["supply_burned_lies"] = supply_info_2["burnt_supply"]
 
             return NetworkSupply().load(supply_info)
@@ -224,7 +286,15 @@ class HomeStats(Client):
 
         # Add the number of data requests and value transfers and calculate the block timestamp
         blocks = []
-        for block_hash, data_request, value_transfer, stake, unstake, epoch, confirmed in result:
+        for (
+            block_hash,
+            data_request,
+            value_transfer,
+            stake,
+            unstake,
+            epoch,
+            confirmed,
+        ) in result:
             timestamp = calculate_timestamp_from_epoch(epoch)
             blocks.append(
                 HomeBlock().load(
@@ -390,6 +460,115 @@ class HomeStats(Client):
 
         return unstakes
 
+    def get_total_staked(self):
+        # Use the previously calculated last total staked if it exists
+        previous_processed_epoch = -1
+        if self.last_saved_total_staked:
+            previous_processed_epoch = calculate_epoch_from_timestamp(
+                self.last_saved_total_staked[-1]["timestamp"]
+            )
+
+        total_staked = {
+            epoch: {"timestamp": calculate_timestamp_from_epoch(epoch), "staked": 0}
+            for epoch in range(previous_processed_epoch + 1, self.current_epoch)
+        }
+
+        sql = """
+            SELECT
+                stake_txns.stake_value,
+                stake_txns.epoch
+            FROM
+                stake_txns
+            WHERE
+                epoch > %s
+            ORDER BY
+                epoch
+        """
+        stakes = self.database.sql_return_all(
+            re_sql(sql),
+            parameters=(previous_processed_epoch,),
+        )
+
+        sql = """
+            SELECT
+                -unstake_txns.unstake_value,
+                unstake_txns.epoch
+            FROM
+                unstake_txns
+            WHERE
+                epoch > %s
+            ORDER BY
+                epoch
+        """
+        unstakes = self.database.sql_return_all(
+            re_sql(sql),
+            parameters=(previous_processed_epoch,),
+        )
+
+        sql = """
+            SELECT
+                epoch
+            FROM
+                blocks
+            WHERE
+                epoch > %s
+            ORDER BY
+                epoch
+        """
+        blocks = self.database.sql_return_all(
+            re_sql(sql),
+            parameters=(max(previous_processed_epoch, get_activatation_epoch_wit2()),),
+        )
+
+        # Set stakes
+        transactions = sorted(stakes + unstakes, key=lambda l: l[1])
+        for value, epoch in transactions:
+            total_staked[epoch]["staked"] += value
+
+        block_reward = BlockchainConfig.consensus_constants.wit2_block_reward
+        for (epoch,) in blocks:
+            total_staked[epoch]["staked"] += block_reward
+
+        # Accumulate stakes
+        for epoch, staked in sorted(total_staked.items()):
+            if epoch == previous_processed_epoch + 1:
+                # Use the last staked amount from the previous iteration
+                if self.last_saved_total_staked:
+                    previous_stake = self.last_saved_total_staked[-1]["staked"]
+                # Or use 0 assuming this is the first epoch
+                else:
+                    previous_stake = 0
+            else:
+                previous_stake = total_staked[epoch - 1]["staked"]
+            total_staked[epoch]["staked"] = previous_stake + staked["staked"]
+
+        if self.last_saved_total_staked:
+            # Append every 100th epoch to the previous collected total staked if it exists
+            truncated_total_staked = self.last_saved_total_staked
+            time_diff = (
+                self.last_saved_total_staked[1]["timestamp"]
+                - self.last_saved_total_staked[0]["timestamp"]
+            )
+            for epoch, stake in total_staked.items():
+                if (
+                    calculate_timestamp_from_epoch(epoch)
+                    - truncated_total_staked[-1]["timestamp"]
+                    >= time_diff
+                ):
+                    truncated_total_staked.append(stake)
+            truncated_total_staked = truncated_total_staked[
+                len(truncated_total_staked) - 1000 :
+            ]
+        else:
+            # From the last 100k epochs, keep every 100th element
+            truncated_total_staked = [
+                stake
+                for epoch, stake in total_staked.items()
+                if epoch >= self.current_epoch - 100000 and epoch % 100 == 0
+            ]
+
+        return truncated_total_staked
+
     def save_home_stats(self):
         self.logger.info("Saving all data in the memcached instance")
 
@@ -397,11 +576,20 @@ class HomeStats(Client):
         try:
             self.memcached_client.set("home", self.home_stats)
         except pylibmc.TooBig as e:
-            self.logger.warning("Could not save items in cache because the item size exceeded 1MB")
+            self.logger.warning(
+                "Could not save items in cache because the item size exceeded 1MB"
+            )
+
 
 def main():
     parser = optparse.OptionParser()
-    parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file", help="Specify a configuration file")
+    parser.add_option(
+        "--config-file",
+        type="string",
+        default="explorer.toml",
+        dest="config_file",
+        help="Specify a configuration file",
+    )
     options, args = parser.parse_args()
 
     if options.config_file == None:
@@ -417,6 +605,7 @@ def main():
     home_cache = HomeStats()
     home_cache.collect_home_stats()
     home_cache.save_home_stats()
+
 
 if __name__ == "__main__":
     main()
