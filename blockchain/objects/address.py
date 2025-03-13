@@ -69,9 +69,10 @@ class Address(object):
 
         # Get staked amounts
         staked_validator = self.witnet_node.get_stakes(self.address, None)
-        if type(staked_validator) is dict and "error" in staked_validator:
-            if staked_validator["error"]["message"].startswith(
-                "Tried to query for a stake entry by validator"
+        if type(staked_validator) is dict and "reason" in staked_validator:
+            if (
+                staked_validator["reason"]
+                == f"Tried to query for a stake entry by validator ({self.address}) that is not registered in Stakes"
             ):
                 staked_validator = 0
             else:
@@ -82,9 +83,10 @@ class Address(object):
             )
 
         staked_withdrawer = self.witnet_node.get_stakes(None, self.address)
-        if type(staked_withdrawer) is dict and "error" in staked_withdrawer:
-            if staked_withdrawer["error"]["message"].startswith(
-                "Tried to query for a stake entry by withdrawer"
+        if type(staked_withdrawer) is dict and "reason" in staked_withdrawer:
+            if (
+                staked_withdrawer["reason"]
+                == f"Tried to query for a stake entry by withdrawer ({self.address}) that is not registered in Stakes"
             ):
                 staked_withdrawer = 0
             else:

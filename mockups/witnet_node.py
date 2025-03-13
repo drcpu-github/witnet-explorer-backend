@@ -95,9 +95,7 @@ class MockWitnetNode(object):
                 return {"result": selected_stakes}
             else:
                 return {
-                    "error": {
-                        "message": "Tried to query for a stake entry by validator"
-                    }
+                    "reason": f"Tried to query for a stake entry by validator ({validator}) that is not registered in Stakes"
                 }
         elif withdrawer:
             selected_stakes = []
@@ -108,9 +106,7 @@ class MockWitnetNode(object):
                 return {"result": selected_stakes}
             else:
                 return {
-                    "error": {
-                        "message": "Tried to query for a stake entry by withdrawer"
-                    }
+                    "reason": f"Tried to query for a stake entry by withdrawer ({withdrawer}) that is not registered in Stakes"
                 }
         else:
             return {"result": stakes}
