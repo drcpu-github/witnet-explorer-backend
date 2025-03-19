@@ -619,7 +619,6 @@ class Address(object):
                 stake_txns.epoch,
                 stake_txns.input_addresses,
                 stake_txns.input_values,
-                stake_txns.change_address,
                 stake_txns.change_value,
                 stake_txns.validator,
                 stake_txns.withdrawer,
@@ -650,7 +649,6 @@ class Address(object):
                     epoch,
                     input_addresses,
                     input_values,
-                    change_address,
                     change_value,
                     validator,
                     withdrawer,
@@ -660,13 +658,11 @@ class Address(object):
 
                 fee = sum(input_values) - stake_value - (change_value or 0)
 
-                value = -fee
+                # Add all inputs from this address (if any)
+                value = 0
                 for input_address, input_value in zip(input_addresses, input_values):
                     if input_address == self.address:
                         value += input_value
-
-                if change_address == self.address:
-                    value -= change_value
 
                 if validator == self.address:
                     direction = "in"
@@ -682,6 +678,7 @@ class Address(object):
                         "validator": validator,
                         "withdrawer": withdrawer,
                         "input_value": value,
+                        "fee": fee,
                         "stake_value": stake_value,
                         "confirmed": confirmed,
                     }

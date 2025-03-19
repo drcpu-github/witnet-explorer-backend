@@ -14,7 +14,8 @@ def stake_view():
         "direction": "in",
         "validator": "wit100000000000000000000000000000000r0v4g2",
         "withdrawer": "wit100000000000000000000000000000000r0v4g2",
-        "input_value": 50000000000,
+        "input_value": 100000001000,
+        "fee": 1000,
         "stake_value": 100000000000,
         "confirmed": True,
     }
@@ -43,7 +44,7 @@ def test_stake_view_failure_required():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         StakeView().load(data)
-    assert len(err_info.value.messages) == 9
+    assert len(err_info.value.messages) == 10
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["timestamp"][0] == "Missing data for required field."
@@ -55,6 +56,7 @@ def test_stake_view_failure_required():
     assert (
         err_info.value.messages["input_value"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["stake_value"][0] == "Missing data for required field."
     )
