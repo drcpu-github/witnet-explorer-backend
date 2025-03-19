@@ -14,6 +14,7 @@ def unstake_view():
         "direction": "in",
         "validator": "wit100000000000000000000000000000000r0v4g2",
         "withdrawer": "wit100000000000000000000000000000000r0v4g2",
+        "fee": 1,
         "unstake_value": 50000000000,
         "confirmed": True,
     }
@@ -42,7 +43,7 @@ def test_unstake_view_failure_required():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         UnstakeView().load(data)
-    assert len(err_info.value.messages) == 8
+    assert len(err_info.value.messages) == 9
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["timestamp"][0] == "Missing data for required field."
@@ -51,6 +52,7 @@ def test_unstake_view_failure_required():
     assert (
         err_info.value.messages["withdrawer"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["unstake_value"][0]
         == "Missing data for required field."

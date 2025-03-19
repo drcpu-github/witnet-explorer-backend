@@ -693,6 +693,7 @@ class Address(object):
                 unstake_txns.epoch,
                 unstake_txns.validator,
                 unstake_txns.withdrawer,
+                unstake_txns.fee,
                 unstake_txns.unstake_value,
                 blocks.confirmed
             FROM
@@ -719,6 +720,7 @@ class Address(object):
                     epoch,
                     validator,
                     withdrawer,
+                    fee,
                     unstake_value,
                     confirmed,
                 ) = unstake
@@ -736,6 +738,7 @@ class Address(object):
                         "direction": direction,
                         "validator": validator,
                         "withdrawer": withdrawer,
+                        "fee": fee,
                         "unstake_value": unstake_value,
                         "confirmed": confirmed,
                     }

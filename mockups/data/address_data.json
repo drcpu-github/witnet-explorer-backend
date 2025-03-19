@@ -499,6 +499,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -509,6 +510,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -519,6 +521,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -529,6 +532,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -539,6 +543,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -549,6 +554,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -559,6 +565,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -569,6 +576,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -579,6 +587,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             },
@@ -589,6 +598,7 @@
                 "direction": "in",
                 "validator": "twit1pc8jzqph4t0md02e6fgwgsw26yll20p98c3pgh",
                 "withdrawer": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "fee": 1000000,
                 "unstake_value": 150000000000000,
                 "confirmed": true
             }
