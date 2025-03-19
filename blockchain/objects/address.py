@@ -665,7 +665,10 @@ class Address(object):
                         value += input_value
 
                 if validator == self.address:
-                    direction = "in"
+                    if validator in input_addresses:
+                        direction = "self"
+                    else:
+                        direction = "in"
                 else:
                     direction = "out"
 
@@ -726,7 +729,10 @@ class Address(object):
                 ) = unstake
 
                 if validator == self.address:
-                    direction = "out"
+                    if validator == withdrawer:
+                        direction = "self"
+                    else:
+                        direction = "out"
                 else:
                     direction = "in"
 

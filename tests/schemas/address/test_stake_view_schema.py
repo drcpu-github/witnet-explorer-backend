@@ -29,7 +29,7 @@ def test_stake_view_failure_direction(stake_view):
     stake_view["direction"] = "inout"
     with pytest.raises(ValidationError) as err_info:
         StakeView().load(stake_view)
-    assert err_info.value.messages["direction"][0] == "Must be one of: in, out."
+    assert err_info.value.messages["direction"][0] == "Must be one of: in, out, self."
 
 
 def test_stake_view_failure_address(stake_view):

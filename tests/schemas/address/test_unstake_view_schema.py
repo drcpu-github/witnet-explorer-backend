@@ -28,7 +28,7 @@ def test_unstake_view_failure_direction(unstake_view):
     unstake_view["direction"] = "inout"
     with pytest.raises(ValidationError) as err_info:
         UnstakeView().load(unstake_view)
-    assert err_info.value.messages["direction"][0] == "Must be one of: in, out."
+    assert err_info.value.messages["direction"][0] == "Must be one of: in, out, self."
 
 
 def test_unstake_view_failure_address(unstake_view):
