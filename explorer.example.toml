@@ -71,7 +71,7 @@ log_file = "/path/to/logs/node-2.log"
 # path: path to explorer directory
 # poll_interval: time between querying the witnet nodes for new data
 [explorer]
-path = "/home/witnet/explorer"
+path = "/path/to/explorer"
 poll_interval = 60
 
 # log_file: specify logging file name
