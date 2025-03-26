@@ -24,7 +24,6 @@ from api.blueprints.misc.status_blueprint import status_blueprint
 from api.blueprints.network.balances_blueprint import network_balances_blueprint
 from api.blueprints.network.blockchain_blueprint import network_blockchain_blueprint
 from api.blueprints.network.mempool_blueprint import network_mempool_blueprint
-from api.blueprints.network.reputation_blueprint import network_reputation_blueprint
 from api.blueprints.network.stakes_blueprint import network_stakes_blueprint
 from api.blueprints.network.statistics_blueprint import network_statistics_blueprint
 from api.blueprints.network.supply_blueprint import network_supply_blueprint
@@ -142,7 +141,6 @@ def create_app(config, mockup=False):
     network_blueprint.register_blueprint(network_balances_blueprint)
     network_blueprint.register_blueprint(network_blockchain_blueprint)
     network_blueprint.register_blueprint(network_mempool_blueprint)
-    network_blueprint.register_blueprint(network_reputation_blueprint)
     network_blueprint.register_blueprint(network_stakes_blueprint)
     network_blueprint.register_blueprint(network_statistics_blueprint)
     network_blueprint.register_blueprint(network_supply_blueprint)

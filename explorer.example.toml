@@ -180,14 +180,6 @@ cache_time_warning = 40
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # log_file: specify logging file name
-[api.caching.scripts.reputation_list]
-cron = "* * * * *"
-level_file = "info"
-log_file = "/path/to/logs/reputation_list.log"
-
-# cron: specify the crontab timing configuration
-# level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
-# log_file: specify logging file name
 # timeout: specify the memcached timeout (in seconds) after which the data is invalidated
 # node_timeout: overwrite the default node timeout to fetch big amounts of data from a node
 [api.caching.scripts.balance_list]
