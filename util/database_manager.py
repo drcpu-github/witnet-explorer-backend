@@ -22,9 +22,9 @@ class DatabaseManager(object):
     def connect(self, custom_types):
         try:
             if self.db_pass:
-                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass, prepare_threshold=None)
             else:
-                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, prepare_threshold=None)
 
             for ct in custom_types:
                 self.register_type(ct)

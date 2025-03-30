@@ -34,6 +34,7 @@ class DatabasePool(object):
                 conninfo=self.connection_str,
                 min_size=self.min_connections,
                 open=True,
+                kwargs={"prepare_threshold": None},
             )
         except psycopg.OperationalError as e:
             if self.logger:
