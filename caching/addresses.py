@@ -224,14 +224,14 @@ class Addresses(object):
                     if len(removed_addresses) > 0:
                         # Remove all cached views
                         for address in removed_addresses:
-                            memcached_client.delete(f"{address}-utxos")
-                            memcached_client.delete(f"{address}-blocks")
-                            memcached_client.delete(f"{address}-mints")
-                            memcached_client.delete(f"{address}-value-transfers")
-                            memcached_client.delete(f"{address}-data-requests-solved")
-                            memcached_client.delete(f"{address}-data-requests-created")
-                            memcached_client.delete(f"{address}-stakes")
-                            memcached_client.delete(f"{address}-unstakes")
+                            memcached_client.delete(f"{address}_utxos")
+                            memcached_client.delete(f"{address}_blocks")
+                            memcached_client.delete(f"{address}_mints")
+                            memcached_client.delete(f"{address}_value-transfers")
+                            memcached_client.delete(f"{address}_data-requests-solved")
+                            memcached_client.delete(f"{address}_data-requests-created")
+                            memcached_client.delete(f"{address}_stakes")
+                            memcached_client.delete(f"{address}_unstakes")
                             logger.info(f"Removed all cached views for {address}")
 
                 # Data in the cache should timeout after some time to prevent stale data
@@ -301,7 +301,7 @@ class Addresses(object):
                     ]
                     for function in all_functions:
                         data = memcached_client.get(f"{addresses[0]}_{function}")
-                        if not data:
+                        if data is None:
                             logger.debug(f"{function} for {addresses[0]} not found in cache")
                             functions.append(function)
                         else:
