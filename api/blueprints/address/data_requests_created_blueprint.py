@@ -61,7 +61,7 @@ class AddressDataRequestsCreated(MethodView):
         # Try to fetch the result from the cache
         cached_data_requests_created = cache.get(f"{arg_address}_data-requests-created")
         # Return cached version if found (fast)
-        if cached_data_requests_created:
+        if cached_data_requests_created is not None:
             logger.info(
                 f"Found {len(cached_data_requests_created)} data requests created for {arg_address} in cache"
             )

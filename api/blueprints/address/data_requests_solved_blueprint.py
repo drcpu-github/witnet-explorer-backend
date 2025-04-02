@@ -61,7 +61,7 @@ class AddressDataRequestsSolved(MethodView):
         # Try to fetch the result from the cache
         cached_data_requests_solved = cache.get(f"{arg_address}_data-requests-solved")
         # Return cached version if found (fast)
-        if cached_data_requests_solved:
+        if cached_data_requests_solved is not None:
             logger.info(
                 f"Found {len(cached_data_requests_solved)} data requests solved for {arg_address} in cache"
             )

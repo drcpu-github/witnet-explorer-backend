@@ -61,7 +61,7 @@ class AddressBlocks(MethodView):
         # Try to fetch the result from the cache
         cached_blocks = cache.get(f"{arg_address}_blocks")
         # Return cached version if found (fast)
-        if cached_blocks:
+        if cached_blocks is not None:
             logger.info(f"Found {len(cached_blocks)} blocks for {arg_address} in cache")
             pagination_parameters.item_count = len(cached_blocks)
             return cached_blocks[start:stop], 200, {"X-Version": "1.0.0"}

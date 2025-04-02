@@ -61,7 +61,7 @@ class AddressStakes(MethodView):
         # Try to fetch the result from the cache
         cached_stakes = cache.get(f"{arg_address}_stakes")
         # Return cached version if found (fast)
-        if cached_stakes:
+        if cached_stakes is not None:
             logger.info(f"Found {len(cached_stakes)} stakes for {arg_address} in cache")
             pagination_parameters.item_count = len(cached_stakes)
             return cached_stakes[start:stop], 200, {"X-Version": "1.0.0"}

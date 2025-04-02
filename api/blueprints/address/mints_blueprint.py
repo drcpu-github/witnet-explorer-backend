@@ -61,7 +61,7 @@ class AddressMints(MethodView):
         # Try to fetch the result from the cache
         cached_mints = cache.get(f"{arg_address}_mints")
         # Return cached version if found (fast)
-        if cached_mints:
+        if cached_mints is not None:
             logger.info(
                 f"Found {len(cached_mints)} mint transactions for {arg_address} in cache"
             )

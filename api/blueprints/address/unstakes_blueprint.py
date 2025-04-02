@@ -61,7 +61,7 @@ class AddressUnstakes(MethodView):
         # Try to fetch the result from the cache
         cached_unstakes = cache.get(f"{arg_address}_unstakes")
         # Return cached version if found (fast)
-        if cached_unstakes:
+        if cached_unstakes is not None:
             logger.info(
                 f"Found {len(cached_unstakes)} unstakes for {arg_address} in cache"
             )

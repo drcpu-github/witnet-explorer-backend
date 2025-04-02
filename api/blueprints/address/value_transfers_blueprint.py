@@ -61,7 +61,7 @@ class AddressValueTransfers(MethodView):
         # Try to fetch the result from the cache
         cached_value_transfers = cache.get(f"{arg_address}_value-transfers")
         # Return cached version if found (fast)
-        if cached_value_transfers:
+        if cached_value_transfers is not None:
             logger.info(
                 f"Found {len(cached_value_transfers)} value transfers for {arg_address} in cache"
             )
