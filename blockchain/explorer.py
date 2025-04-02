@@ -23,7 +23,10 @@ from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.value_transfer import ValueTransfer
 from blockchain.witnet_database import WitnetDatabase
 from node.witnet_node import WitnetNode
-from util.blockchain_functions import calculate_current_epoch
+from util.blockchain_functions import (
+    calculate_current_epoch,
+    get_activatation_epoch_wit2,
+)
 from util.common_sql import sql_last_confirmed_block
 from util.socket_manager import SocketManager
 
@@ -126,15 +129,16 @@ class BlockExplorer(object):
         self.try_send_request(logger, caching_server, request)
 
         # Update the mint transaction cached view for the addresses which received (part of) the mint transaction using the caching server
-        mint_addresses = block_json["transactions"]["mint"]["output_addresses"]
-        request = {
-            "method": "update",
-            "epoch": epoch,
-            "function": "mints",
-            "addresses": mint_addresses,
-            "id": 2,
-        }
-        self.try_send_request(logger, caching_server, request)
+        if epoch < get_activatation_epoch_wit2():
+            mint_addresses = block_json["transactions"]["mint"]["output_addresses"]
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "mints",
+                "addresses": mint_addresses,
+                "id": 2,
+            }
+            self.try_send_request(logger, caching_server, request)
 
         # Update all value transfer cached views for all addresses involved in value transfers
         value_transfer_addresses = set()
@@ -181,6 +185,37 @@ class BlockExplorer(object):
             }
             self.try_send_request(logger, caching_server, request)
 
+        # Update the stakes cached view for all addresses in all stakes
+        stake_addresses = set()
+        for stake in block_json["transactions"]["stake"]:
+            stake_addresses.update(set(stake["input_addresses"]))
+            stake_addresses.add(stake["validator"])
+            stake_addresses.add(stake["withdrawer"])
+        if len(stake_addresses) > 0:
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "stakes",
+                "addresses": list(stake_addresses),
+                "id": 6,
+            }
+            self.try_send_request(logger, caching_server, request)
+
+        # Update the unstakes cached view for all addresses in all unstakes
+        unstake_addresses = set()
+        for unstake in block_json["transactions"]["unstake"]:
+            unstake_addresses.add(unstake["validator"])
+            unstake_addresses.add(unstake["withdrawer"])
+        if len(unstake_addresses) > 0:
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "unstakes",
+                "addresses": list(unstake_addresses),
+                "id": 7,
+            }
+            self.try_send_request(logger, caching_server, request)
+
         # Update the utxos for all addresses which were involved in a UTXO consuming / generating transaction
         utxo_addresses = set()
         utxo_addresses.update(
@@ -191,13 +226,15 @@ class BlockExplorer(object):
         for commit in block_json["transactions"]["commit"]:
             utxo_addresses.add(commit["address"])
         utxo_addresses.update(tally_addresses)
+        utxo_addresses.update(stake_addresses)
+        utxo_addresses.update(unstake_addresses)
         if len(utxo_addresses) > 0:
             request = {
                 "method": "update",
                 "epoch": epoch,
                 "function": "utxos",
                 "addresses": list(utxo_addresses),
-                "id": 6,
+                "id": 8,
             }
             self.try_send_request(logger, caching_server, request)
 
