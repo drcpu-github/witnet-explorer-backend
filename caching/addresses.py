@@ -187,14 +187,14 @@ class Addresses(object):
 
                 # A request always needs to specify a method to execute
                 if "method" not in request:
-                    logger.warning("Missing argument 'method' in request")
+                    logger.error("Missing argument 'method' in request")
                     continue
                 method = request["method"]
 
                 # Most requests need to specify the addresses argument
                 if method not in ("confirm", "revert"):
                     if "addresses" not in request:
-                        logger.warning(f"Missing argument 'addresses' in {method} request")
+                        logger.error(f"Missing argument 'addresses' in {method} request")
                         continue
                     addresses = request["addresses"]
 
@@ -211,7 +211,7 @@ class Addresses(object):
 
                     # Check if we recently received a request for this address
                     if memcached_client.get(f"{address}"):
-                        logger.info(f"Received concurrent request for {address}")
+                        logger.debug(f"Received concurrent request for {address}")
                         continue
 
                     # Add this address to the memcache indicating we recently received a request for it
@@ -271,7 +271,7 @@ class Addresses(object):
                 # Update cached address data on receiving a request from the explorer
                 elif method == "confirm" or method == "revert":
                     if "epoch" not in request:
-                        logger.warning(f"Missing argument 'epoch' in {method} request")
+                        logger.error(f"Missing argument 'epoch' in {method} request")
                         continue
                     epoch = request["epoch"]
 
@@ -308,7 +308,7 @@ class Addresses(object):
                             logger.debug(f"{function} for {addresses[0]} are still cached")
                     monitor_addresses = addresses * len(functions)
                 else:
-                    logger.info(f"Unknown request method received: {method}")
+                    logger.error(f"Unknown request method received: {method}")
                     continue
 
                 for function, m_address in zip(functions, monitor_addresses):
@@ -321,39 +321,39 @@ class Addresses(object):
                     try:
                         # Execute requested method asynchronously
                         if function == "blocks":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
                             func_args = (logging_queue, "blocks", address, address.get_blocks, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "mints":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for mints")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for mints")
                             func_args = (logging_queue, "mints", address, address.get_mints, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "value-transfers":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
                             func_args = (logging_queue, "value transfers", address, address.get_value_transfers, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-solved":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
                             func_args = (logging_queue, "data requests solved", address, address.get_data_requests_solved, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-created":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
                             func_args = (logging_queue, "data requests created", address, address.get_data_requests_created, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "stakes":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for stakes")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for stakes")
                             func_args = (logging_queue, "stakes", address, address.get_stakes, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "unstakes":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for unstakes")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for unstakes")
                             func_args = (logging_queue, "unstakes", address, address.get_unstakes, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
                             func_args = (logging_queue, "utxos", address, address.get_utxos, utxos_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         else:
-                            logger.warning(f"Unknown request method {function}")
+                            logger.error(f"Unknown request method {function}")
                     except AttributeError:
                         logger.debug("Manager shared manager Pool failure: this is a known Python bug, check for a fix in the next Python release (> 3.10).")
 
@@ -368,17 +368,23 @@ class Addresses(object):
     def update_address_stack(self, logger, address_stack, cache_size, address):
         removed_addresses = []
 
+        logger.debug(f"Cache size is: {cache_size}")
+
         if len(address_stack) < cache_size:
             if address in address_stack:
                 address_stack.remove(address)
             address_stack.append(address)
+            logger.debug(f"Added address {address} to stack")
         else:
             if address in address_stack:
                 address_stack.remove(address)
                 address_stack.append(address)
+                logger.debug(f"Updated LRU position of address {address}")
             else:
                 removed_addresses.append(address_stack.pop(0))
                 address_stack.append(address)
+                logger.debug(f"Removed address {removed_addresses[-1]} and replaced it with address {address}")
+
         logger.debug(f"New stack of addresses to monitor is: {address_stack}")
 
         return removed_addresses
