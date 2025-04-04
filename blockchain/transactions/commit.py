@@ -1,4 +1,7 @@
-from blockchain.transactions.data_request import DataRequest
+from blockchain.transactions.data_request import (
+    get_collateral_for_data_request,
+    get_commit_and_reveal_fee_for_data_request,
+)
 from blockchain.transactions.transaction import Transaction
 from schemas.component.commit_schema import (
     CommitTransactionForApi,
@@ -23,8 +26,9 @@ class Commit(Transaction):
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
         # Get the reward for the miner of this transaction
-        fee = DataRequest().get_commit_and_reveal_fee_for_data_request(
-            self.txn_details["data_request"]
+        fee = get_commit_and_reveal_fee_for_data_request(
+            self.database,
+            self.txn_details["data_request"],
         )
         if "fee" in fee:
             self.txn_details["fee"] = fee["fee"]
@@ -36,8 +40,9 @@ class Commit(Transaction):
             )
 
         # Fetch collateral from database since we cannot use output / input difference anymore to calculate it
-        collateral = DataRequest().get_collateral_for_data_request(
-            self.txn_details["data_request"]
+        collateral = get_collateral_for_data_request(
+            self.database,
+            self.txn_details["data_request"],
         )
         if "collateral" in collateral:
             self.txn_details["collateral"] = collateral["collateral"]

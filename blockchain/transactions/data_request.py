@@ -301,46 +301,6 @@ class DataRequest(Transaction):
         else:
             return {"error": "transaction not found"}
 
-    def get_commit_and_reveal_fee_for_data_request(self, data_request_hash):
-        sql = """
-            SELECT
-                data_request_txns.commit_and_reveal_fee
-            FROM
-                data_request_txns
-            WHERE
-                data_request_txns.txn_hash=%s
-            LIMIT 1
-        """
-        result = self.database.sql_return_one(
-            sql,
-            parameters=[bytearray.fromhex(data_request_hash)],
-        )
-
-        if result:
-            return {"fee": result[0]}
-        else:
-            return {"error": "transaction not found"}
-
-    def get_collateral_for_data_request(self, data_request_hash):
-        sql = """
-            SELECT
-                data_request_txns.collateral
-            FROM
-                data_request_txns
-            WHERE
-                data_request_txns.txn_hash=%s
-            LIMIT 1
-        """
-        result = self.database.sql_return_one(
-            sql,
-            parameters=[bytearray.fromhex(data_request_hash)],
-        )
-
-        if result:
-            return {"collateral": result[0]}
-        else:
-            return {"error": "transaction not found"}
-
     def calculate_fees(
         self,
         witnesses,
@@ -358,6 +318,48 @@ class DataRequest(Transaction):
         # This fee is divided by the transaction weight and determines the priority for being executed (included in a block)
         miner_fee = sum(input_values) - (output_value or 0) - dro_fee
         return dro_fee, miner_fee
+
+
+def get_commit_and_reveal_fee_for_data_request(database, data_request_hash):
+    sql = """
+        SELECT
+            data_request_txns.commit_and_reveal_fee
+        FROM
+            data_request_txns
+        WHERE
+            data_request_txns.txn_hash=%s
+        LIMIT 1
+    """
+    result = database.sql_return_one(
+        sql,
+        parameters=[bytearray.fromhex(data_request_hash)],
+    )
+
+    if result:
+        return {"fee": result[0]}
+    else:
+        return {"error": "transaction not found"}
+
+
+def get_collateral_for_data_request(database, data_request_hash):
+    sql = """
+        SELECT
+            data_request_txns.collateral
+        FROM
+            data_request_txns
+        WHERE
+            data_request_txns.txn_hash=%s
+        LIMIT 1
+    """
+    result = database.sql_return_one(
+        sql,
+        parameters=[bytearray.fromhex(data_request_hash)],
+    )
+
+    if result:
+        return {"collateral": result[0]}
+    else:
+        return {"error": "transaction not found"}
 
 
 def build_retrieval(kinds, urls, all_headers, bodies, scripts):
