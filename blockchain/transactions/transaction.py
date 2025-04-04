@@ -47,14 +47,14 @@ class Transaction(object):
         else:
             self.logger = None
 
-        # Connect to the witnet node pool
+        # If a witnet node pool connection was passed through, save it here for later use
+        self.witnet_node = None
         if witnet_node is not None:
             self.witnet_node = witnet_node
-        else:
-            if network_type == "pytest":
-                self.witnet_node = MockWitnetNode()
-            else:
-                self.witnet_node = WitnetNode(logger=self.logger)
+        # Creating a mockup node is not expensive
+        elif network_type == "pytest":
+            self.witnet_node = MockWitnetNode()
+        # Defer creating a node pool connection until we need it in get_transaction_from_node
 
         # Create address generator
         address_prefix = None
@@ -227,6 +227,10 @@ class Transaction(object):
         return output_addresses, output_values, timelocks
 
     def get_transaction_from_node(self, txn_hash):
+        # Connect to the witnet node pool if no connection exists yet
+        if self.witnet_node is None:
+            self.witnet_node = WitnetNode(logger=self.logger)
+
         transaction = self.witnet_node.get_transaction(txn_hash)
         while "error" in transaction:
             # All our nodes in the pool were busy, retry as soon as possible

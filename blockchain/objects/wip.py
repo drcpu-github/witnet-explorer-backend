@@ -24,13 +24,13 @@ class WIP(object):
             self.db_mngr = DatabaseManager()
         self.fetch_wips()
 
+        # Copy the node connection or create a mockup node
         self.witnet_node = None
         if witnet_node is not None:
             self.witnet_node = witnet_node
         elif mockup:
             self.witnet_node = MockWitnetNode()
-        else:
-            self.witnet_node = WitnetNode()
+        # Defer creating a node pool connection until we need it in process_tapi
 
     def fetch_wips(self):
         sql = """
@@ -238,6 +238,10 @@ class WIP(object):
                 epoch, block_hash, tapi_signals, confirmed = db_block
                 if confirmed and tapi_signals is None:
                     print(f"Fetching TAPI signal for epoch {epoch}")
+
+                    # Create a connection to the node pool if it does not exist yet
+                    if self.witnet_node is None:
+                        self.witnet_node = WitnetNode()
 
                     block = self.witnet_node.get_block(bytes(block_hash).hex())
                     if type(block) is dict and "error" in block:
