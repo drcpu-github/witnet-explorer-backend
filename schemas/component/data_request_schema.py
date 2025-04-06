@@ -31,7 +31,7 @@ class DataRequestRetrieval(Schema):
         validate=validate.OneOf(["HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]),
         required=True,
     )
-    url = fields.URL(allow_none=True, required=True)
+    url = fields.Str(allow_none=True, required=True)
     headers = fields.List(fields.Str(), required=True)
     body = fields.String(required=True)
     script = fields.String(required=True)
@@ -80,7 +80,7 @@ class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
         fields.Str(validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"])),
         required=True,
     )
-    urls = fields.List(fields.URL(allow_none=True), required=True)
+    urls = fields.List(fields.Str(allow_none=True), required=True)
     headers = fields.List(fields.List(fields.Str()), required=True)
     bodies = fields.List(BytearrayField(), required=True)
     scripts = fields.List(BytearrayField(), required=True)

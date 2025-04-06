@@ -337,17 +337,6 @@ def test_data_request_transaction_for_explorer_failure_kind(
     )
 
 
-def test_data_request_transaction_for_explorer_failure_url(
-    data_request_transaction_for_explorer,
-):
-    data_request_transaction_for_explorer["urls"] = [
-        "data.gateapi.io/api2/1/ticker/wit_usdt"
-    ]
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
-    assert err_info.value.messages["urls"][0][0] == "Not a valid URL."
-
-
 def test_data_request_transaction_for_explorer_failure_bytearray_field(
     data_request_transaction_for_explorer,
 ):
@@ -472,13 +461,6 @@ def test_data_request_retrieval_failure_kind(data_request_retrieval):
         err_info.value.messages["kind"][0]
         == "Must be one of: HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
-
-
-def test_data_request_retrieval_failure_url(data_request_retrieval):
-    data_request_retrieval["url"] = "data.gateapi.io/api2/1/ticker/wit_usdt"
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestRetrieval().load(data_request_retrieval)
-    assert err_info.value.messages["url"][0] == "Not a valid URL."
 
 
 def test_data_request_retrieval_failure_missing():
