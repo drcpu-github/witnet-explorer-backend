@@ -333,7 +333,7 @@ def test_data_request_transaction_for_explorer_failure_kind(
         DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
     assert (
         err_info.value.messages["kinds"][0][0]
-        == "Must be one of: HTTP-GET, HTTP-POST, RNG."
+        == "Must be one of: Unknown, HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
 
 
@@ -459,7 +459,7 @@ def test_data_request_retrieval_failure_kind(data_request_retrieval):
         DataRequestRetrieval().load(data_request_retrieval)
     assert (
         err_info.value.messages["kind"][0]
-        == "Must be one of: HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
+        == "Must be one of: Unknown, HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
 
 

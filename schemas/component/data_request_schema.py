@@ -28,7 +28,9 @@ class DataRequest(BaseTransaction):
 
 class DataRequestRetrieval(Schema):
     kind = fields.Str(
-        validate=validate.OneOf(["HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]),
+        validate=validate.OneOf(
+            ["Unknown", "HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]
+        ),
         required=True,
     )
     url = fields.Str(allow_none=True, required=True)
@@ -77,7 +79,11 @@ class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
         validate=validate.Range(min=0), allow_none=True, required=True
     )
     kinds = fields.List(
-        fields.Str(validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"])),
+        fields.Str(
+            validate=validate.OneOf(
+                ["Unknown", "HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]
+            )
+        ),
         required=True,
     )
     urls = fields.List(fields.Str(allow_none=True), required=True)
