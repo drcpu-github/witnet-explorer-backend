@@ -632,13 +632,15 @@ class Address(object):
                 stake_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
             OR
                 stake_txns.validator=%s
+            OR
+                stake_txns.withdrawer=%s
             ORDER BY
                 stake_txns.epoch
             DESC
         """
         result = self.db_mngr.sql_return_all(
             SQL(re_sql(sql)).format(length=Literal(len(self.address))),
-            parameters=[self.address, self.address],
+            parameters=[self.address, self.address, self.address],
         )
 
         stakes = []
@@ -669,6 +671,8 @@ class Address(object):
                         direction = "self"
                     else:
                         direction = "in"
+                elif withdrawer == self.address:
+                    direction = "in"
                 else:
                     direction = "out"
 
