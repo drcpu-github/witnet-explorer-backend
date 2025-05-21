@@ -74,7 +74,7 @@ class MockWitnetNode(object):
         return {"result": 1}
 
     def get_priority(self):
-        priority = json.load(open("mockups/data/priority.json"))
+        priority = json.load(open("mockups/data/priority.json"))["rpc"]
         return {"result": priority}
 
     def get_stakes(self, validator, withdrawer):

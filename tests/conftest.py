@@ -177,7 +177,7 @@ def mempool():
 
 @pytest.fixture
 def priority():
-    return json.load(open("mockups/data/priority.json"))
+    return json.load(open("mockups/data/priority.json"))["api"]
 
 
 @pytest.fixture

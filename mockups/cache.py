@@ -12,7 +12,7 @@ class MockCache(object):
 
         self.cache["transaction_mempool"] = json.load(open("mockups/data/mempool.json"))
 
-        self.cache["priority"] = json.load(open("mockups/data/priority.json"))
+        self.cache["priority"] = json.load(open("mockups/data/priority.json"))["api"]
 
         reputation = json.load(open("mockups/data/reputation.json"))
         self.cache["reputation"] = reputation["cache"]
