@@ -218,12 +218,12 @@ def translate_reveal(txn_hash, reveal):
     else:
         translation = str(translation)
 
-    # If the translation starts with 'Tag(39, ' there was a RADON error
-    if translation.startswith("Tag(39, "):
+    # If the translation starts with 'CBORTag(39, ' there was a RADON error
+    if translation.startswith("CBORTag(39, "):
         success = False
         try:
             # Extract the array containing the error code and potentially some extra metadata
-            translation_error_data = translation[8:-1]
+            translation_error_data = translation[12:-1]
             # Replace the quotes in the potentially included metadata
             translation_error_data = translation_error_data.replace('"', "")
             translation_error_data = translation_error_data.replace("'", '"')
