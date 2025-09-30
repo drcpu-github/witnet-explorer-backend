@@ -76,6 +76,9 @@ class BlockExplorer(object):
             log_label="db-pending",
         )
 
+        # Track data requests which are almost finished
+        self.data_request_reveal_addresses = {}
+
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
         root = logging.getLogger(label)
@@ -155,12 +158,33 @@ class BlockExplorer(object):
             }
             self.try_send_request(logger, caching_server, request)
 
+        # Update the data requests solved cached view for all addresses involved in a reveal transaction
+        # at the moment that the associated tally transaction is found.
+        # This is a necessary addition because since wit/2, there are no tally outputs for honest solvers
+        # anymore which results in their views not being updated.
+        # Note that validators which do not reveal their committed value will not be included here, but
+        # they will be part of the liar_addresses array in the associated tally transaction later on.
+        for reveal in block_json["transactions"]["reveal"]:
+            data_request_txn = reveal["data_request"]
+            if data_request_txn not in self.data_request_reveal_addresses:
+                self.data_request_reveal_addresses[data_request_txn] = []
+            self.data_request_reveal_addresses[data_request_txn].append(
+                reveal["address"]
+            )
+
         # Update the data requests solved cached view for all addresses in all tallies
         tally_addresses = set()
         for tally in block_json["transactions"]["tally"]:
             tally_addresses.update(tally["output_addresses"])
             tally_addresses.update(tally["error_addresses"])
             tally_addresses.update(tally["liar_addresses"])
+            # Update the tally addresses set with honest validators since wit/2 tally transactions do not
+            # contain an output for those validators anymore.
+            if tally["data_request"] in self.data_request_reveal_addresses:
+                tally_addresses.update(
+                    self.data_request_reveal_addresses[tally["data_request"]]
+                )
+                del self.data_request_reveal_addresses[tally["data_request"]]
         if len(tally_addresses) > 0:
             request = {
                 "method": "update",
