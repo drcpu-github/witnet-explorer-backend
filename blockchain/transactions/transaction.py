@@ -19,6 +19,7 @@ class Transaction(object):
     def __init__(
         self,
         database=None,
+        transaction_batch=None,
         logger=None,
         witnet_node=None,
     ):
@@ -40,6 +41,8 @@ class Transaction(object):
                 self.database = DatabaseManager(
                     logger=logger, custom_types=["utxo", "filter"]
                 )
+
+        self.transaction_batch = transaction_batch
 
         # Set up logger
         if logger:
@@ -119,8 +122,25 @@ class Transaction(object):
             hash_bytes = bytearray.fromhex(input_hash)
             input_utxos.append((hash_bytes, input_index))
 
+            # Try to find the transaction input value in the transactions batch if it exists
+            if (
+                self.transaction_batch is not None
+                and input_hash in self.transaction_batch
+            ):
+                transaction = self.transaction_batch[input_hash]
+                if "output_value" in transaction:
+                    input_values.append(transaction["output_value"])
+                elif "change_value" in transaction:
+                    input_values.append(transaction["change_value"])
+                elif "unstake_value" in transaction:
+                    input_values.append(transaction["unstake_value"])
+                else:
+                    outputs = transaction["output_values"]
+                    input_values.append(outputs[input_index])
+
+                continue
+
             # Try to find the transaction input value in the database
-            outputs = None
             sql = """
                 SELECT
                     type
@@ -170,50 +190,50 @@ class Transaction(object):
                     )
 
                 outputs = self.database.sql_return_one(sql, parameters=[hash_bytes])
-                if outputs:
-                    if type(outputs[0]) is int:
-                        input_values.append(outputs[0])
-                    else:
-                        input_values.append(outputs[0][input_index])
+                if type(outputs[0]) is int:
+                    input_values.append(outputs[0])
+                else:
+                    input_values.append(outputs[0][input_index])
+
+                continue
 
             # Fall back: transaction not found in database, fetch it from the node
-            if not outputs:
+            if self.logger:
+                self.logger.info(
+                    f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database"
+                )
+            # Get the transaction
+            input_txn = self.get_transaction_from_node(input_hash)
+            if "error" in input_txn:
                 if self.logger:
-                    self.logger.info(
-                        f"Could not find input {txn_input['output_pointer']} for transaction {self.txn_hash} in database"
+                    self.logger.error(
+                        f"Could not fetch all inputs for transaction: {input_txn['error']}"
                     )
-                # Get the transaction
-                input_txn = self.get_transaction_from_node(input_hash)
-                if "error" in input_txn:
-                    if self.logger:
-                        self.logger.error(
-                            f"Could not fetch all inputs for transaction: {input_txn['error']}"
-                        )
-                    return [], []
+                return [], []
 
                 # Figure out the transaction type as the parsing depends on that
-                txn_type = list(input_txn["transaction"].keys())[0]
-                if txn_type in ("Tally", "Mint"):
-                    outputs = input_txn["transaction"][txn_type]["outputs"]
-                    # Append the correct output to the list of input_values
-                    input_values.append(outputs[input_index]["value"])
-                elif txn_type in ("DataRequest", "Commit", "ValueTransfer"):
-                    outputs = input_txn["transaction"][txn_type]["body"]["outputs"]
-                    # Append the correct output to the list of input_values
-                    input_values.append(outputs[input_index]["value"])
-                elif txn_type == "Stake":
-                    output = input_txn["transaction"][txn_type]["body"]["change"]
-                    # The stake output is not an array
-                    input_values.append(output["value"])
-                elif txn_type == "Unstake":
-                    output = input_txn["transaction"][txn_type]["body"]["withdrawal"]
-                    # The unstake output is not an array
-                    input_values.append(output["value"])
-                else:
-                    if self.logger:
-                        self.logger.error(
-                            "Unexpected transaction type when querying ValueTransfer inputs"
-                        )
+            txn_type = list(input_txn["transaction"].keys())[0]
+            if txn_type in ("Tally", "Mint"):
+                outputs = input_txn["transaction"][txn_type]["outputs"]
+                # Append the correct output to the list of input_values
+                input_values.append(outputs[input_index]["value"])
+            elif txn_type in ("DataRequest", "Commit", "ValueTransfer"):
+                outputs = input_txn["transaction"][txn_type]["body"]["outputs"]
+                # Append the correct output to the list of input_values
+                input_values.append(outputs[input_index]["value"])
+            elif txn_type == "Stake":
+                output = input_txn["transaction"][txn_type]["body"]["change"]
+                # The stake output is not an array
+                input_values.append(output["value"])
+            elif txn_type == "Unstake":
+                output = input_txn["transaction"][txn_type]["body"]["withdrawal"]
+                # The unstake output is not an array
+                input_values.append(output["value"])
+            else:
+                if self.logger:
+                    self.logger.error(
+                        "Unexpected transaction type when querying ValueTransfer inputs"
+                    )
 
         return input_utxos, input_values
 

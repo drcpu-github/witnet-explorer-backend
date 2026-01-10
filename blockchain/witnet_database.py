@@ -345,14 +345,22 @@ class WitnetDatabase(object):
         """
         self.db_mngr.sql_execute_many(sql, addresses)
 
-    def finalize(self, epoch=-1):
-        if epoch == -1:
-            epoch = self.last_epoch
+    def finalize(self, epochs=None):
+        if epochs is None:
+            epochs = [self.last_epoch]
         else:
-            self.last_epoch = epoch
-        self.finalize_insert(epoch)
+            if isinstance(epochs, list):
+                self.last_epoch = max(epochs)
+            else:
+                self.last_epoch = epochs
+                epochs = [epochs]
+        self.finalize_insert(epochs)
 
-    def finalize_insert(self, epoch):
+    def finalize_insert(self, epochs):
+        if len(epochs) == 1:
+            epoch_str = f"{epochs[0]}"
+        else:
+            epoch_str = ", ".join([str(epoch) for epoch in epochs])
         # insert all hashes
         if len(self.hashes) > 0:
             sql = """
@@ -369,7 +377,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.hashes)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.hashes)} hashes for epoch {epoch}"
+                    f"Inserted {len(self.hashes)} hashes for epoch(s) {epoch_str}"
                 )
         self.hashes = []
 
@@ -402,7 +410,9 @@ class WitnetDatabase(object):
             """
             self.db_mngr.sql_execute_many(sql, self.blocks)
             if self.logger:
-                self.logger.info(f"Inserted {len(self.blocks)} block for epoch {epoch}")
+                self.logger.info(
+                    f"Inserted {len(self.blocks)} block for epoch(s) {epoch_str}"
+                )
         self.blocks = []
 
         # insert mint transactions
@@ -422,7 +432,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.mints)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.mints)} mint transaction for epoch {epoch}"
+                    f"Inserted {len(self.mints)} mint transaction for epoch(s) {epoch_str}"
                 )
         self.mints = []
 
@@ -451,7 +461,7 @@ class WitnetDatabase(object):
             )
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.value_transfers)} value transfer transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.value_transfers)} value transfer transaction(s) for epoch(s) {epoch_str}"
                 )
         self.value_transfers = []
 
@@ -495,7 +505,7 @@ class WitnetDatabase(object):
             )
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.data_requests)} data request transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.data_requests)} data request transaction(s) for epoch(s) {epoch_str}"
                 )
         self.data_requests = []
 
@@ -518,7 +528,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.commits)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.commits)} commit transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.commits)} commit transaction(s) for epoch(s) {epoch_str}"
                 )
         self.commits = []
 
@@ -543,7 +553,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.reveals)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.reveals)} reveal transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.reveals)} reveal transaction(s) for epoch(s) {epoch_str}"
                 )
         self.reveals = []
 
@@ -575,7 +585,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.tallies)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.tallies)} tally transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.tallies)} tally transaction(s) for epoch(s) {epoch_str}"
                 )
         self.tallies = []
 
@@ -603,7 +613,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.stakes)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.stakes)} stake transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.stakes)} stake transaction(s) for epoch(s) {epoch_str}"
                 )
         self.stakes = []
 
@@ -628,7 +638,7 @@ class WitnetDatabase(object):
             self.db_mngr.sql_execute_many(sql, self.unstakes)
             if self.logger:
                 self.logger.info(
-                    f"Inserted {len(self.unstakes)} unstake transaction(s) for epoch {epoch}"
+                    f"Inserted {len(self.unstakes)} unstake transaction(s) for epoch(s) {epoch_str}"
                 )
         self.unstakes = []
 

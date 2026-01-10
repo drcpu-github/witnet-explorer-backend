@@ -29,6 +29,7 @@ class Commit(Transaction):
         fee = get_commit_and_reveal_fee_for_data_request(
             self.database,
             self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
         )
         if "fee" in fee:
             self.txn_details["fee"] = fee["fee"]
@@ -43,6 +44,7 @@ class Commit(Transaction):
         collateral = get_collateral_for_data_request(
             self.database,
             self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
         )
         if "collateral" in collateral:
             self.txn_details["collateral"] = collateral["collateral"]

@@ -33,6 +33,7 @@ class Reveal(Transaction):
         fee = get_commit_and_reveal_fee_for_data_request(
             self.database,
             self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
         )
         if "fee" in fee:
             self.txn_details["fee"] = fee["fee"]

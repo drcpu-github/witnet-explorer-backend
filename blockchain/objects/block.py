@@ -28,6 +28,7 @@ class Block(object):
         database=None,
         tapi_periods=None,
         witnet_node=None,
+        transaction_batch=None,
     ):
         self.block = block
         self.block_hash = block_hash
@@ -68,6 +69,8 @@ class Block(object):
         self.block_json = None
 
         self.tapi_periods = tapi_periods
+
+        self.transaction_batch = transaction_batch
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -228,6 +231,7 @@ class Block(object):
         if len(self.block["txns_hashes"]["value_transfer"]) > 0:
             value_transfer = ValueTransfer(
                 database=self.database,
+                transaction_batch=self.transaction_batch,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
             )
@@ -251,6 +255,7 @@ class Block(object):
         if len(self.block["txns_hashes"]["data_request"]) > 0:
             data_request = DataRequest(
                 database=self.database,
+                transaction_batch=self.transaction_batch,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
             )
@@ -274,6 +279,7 @@ class Block(object):
         if len(self.block["txns_hashes"]["commit"]) > 0:
             commit = Commit(
                 database=self.database,
+                transaction_batch=self.transaction_batch,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
             )
@@ -288,6 +294,7 @@ class Block(object):
         if len(self.block["txns_hashes"]["reveal"]) > 0:
             reveal = Reveal(
                 database=self.database,
+                transaction_batch=self.transaction_batch,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
             )
@@ -319,6 +326,7 @@ class Block(object):
         ):
             stake = Stake(
                 database=self.database,
+                transaction_batch=self.transaction_batch,
                 logger=self.logger,
                 witnet_node=self.witnet_node,
             )

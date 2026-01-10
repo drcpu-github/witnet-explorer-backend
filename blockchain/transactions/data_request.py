@@ -320,46 +320,62 @@ class DataRequest(Transaction):
         return dro_fee, miner_fee
 
 
-def get_commit_and_reveal_fee_for_data_request(database, data_request_hash):
-    sql = """
-        SELECT
-            data_request_txns.commit_and_reveal_fee
-        FROM
-            data_request_txns
-        WHERE
-            data_request_txns.txn_hash=%s
-        LIMIT 1
-    """
-    result = database.sql_return_one(
-        sql,
-        parameters=[bytearray.fromhex(data_request_hash)],
-    )
-
-    if result:
-        return {"fee": result[0]}
+def get_commit_and_reveal_fee_for_data_request(
+    database,
+    data_request_hash,
+    transaction_batch=None,
+):
+    if transaction_batch is not None and data_request_hash in transaction_batch:
+        data_request_txn = transaction_batch[data_request_hash]
+        return {"fee": data_request_txn["commit_and_reveal_fee"]}
     else:
-        return {"error": "transaction not found"}
+        sql = """
+            SELECT
+                data_request_txns.commit_and_reveal_fee
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"fee": result[0]}
+        else:
+            return {"error": "transaction not found"}
 
 
-def get_collateral_for_data_request(database, data_request_hash):
-    sql = """
-        SELECT
-            data_request_txns.collateral
-        FROM
-            data_request_txns
-        WHERE
-            data_request_txns.txn_hash=%s
-        LIMIT 1
-    """
-    result = database.sql_return_one(
-        sql,
-        parameters=[bytearray.fromhex(data_request_hash)],
-    )
-
-    if result:
-        return {"collateral": result[0]}
+def get_collateral_for_data_request(
+    database,
+    data_request_hash,
+    transaction_batch=None,
+):
+    if transaction_batch is not None and data_request_hash in transaction_batch:
+        data_request_txn = transaction_batch[data_request_hash]
+        return {"collateral": data_request_txn["collateral"]}
     else:
-        return {"error": "transaction not found"}
+        sql = """
+            SELECT
+                data_request_txns.collateral
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"collateral": result[0]}
+        else:
+            return {"error": "transaction not found"}
 
 
 def build_retrieval(kinds, urls, all_headers, bodies, scripts):

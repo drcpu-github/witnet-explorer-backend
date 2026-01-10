@@ -69,9 +69,11 @@ master_key = "/path/to/node/key/node-2.key"
 log_file = "/path/to/logs/node-2.log"
 
 # path: path to explorer directory
+# batch_size: fall back to batch inserting of blocks when synchronizing the blockchain
 # poll_interval: time between querying the witnet nodes for new data
 [explorer]
 path = "/path/to/explorer"
+batch_size = 1000
 poll_interval = 60
 
 # log_file: specify logging file name

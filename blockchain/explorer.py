@@ -36,6 +36,7 @@ class BlockExplorer(object):
         # Get some configuration parameters
         self.config = BlockchainConfig.config
         self.poll_interval = self.config["explorer"]["poll_interval"]
+        self.batch_size = self.config["explorer"]["batch_size"]
         self.addresses_config = self.config["api"]["caching"]["scripts"]["addresses"]
 
         # Set up logger
@@ -116,6 +117,52 @@ class BlockExplorer(object):
         database.finalize(epoch)
 
         return block_json
+
+    def batch_insert_blocks(self, database, block_hashes, blocks, epochs, tapi_periods):
+        addresses = {}
+        batched_transactions = {}
+        for block_hash, block, epoch in zip(block_hashes, blocks, epochs):
+            # Create block object and parse it to a JSON object
+            block = Block(
+                block=block,
+                block_hash=block_hash,
+                log_queue=self.log_queue,
+                database=self.insert_blocks_database,
+                tapi_periods=tapi_periods,
+                witnet_node=self.insert_blocks_node,
+                transaction_batch=batched_transactions,
+            )
+            block_json = block.process_block("explorer")
+
+            # Insert block
+            database.insert_block(block_json)
+
+            # Insert transactions
+            transactions = self.insert_transactions(database, block_json, epoch)
+            batched_transactions.update(transactions)
+
+            # Insert address data
+            block_addresses = block.process_addresses(as_dict=True)
+            for address, data in block_addresses.items():
+                if address not in addresses:
+                    addresses[address] = [address, epoch] + data
+                else:
+                    addresses[address][1] = epoch
+                    addresses[address][2] += data[0]
+                    addresses[address][3] += data[1]
+                    addresses[address][4] += data[2]
+                    addresses[address][5] += data[3]
+                    addresses[address][6] += data[4]
+                    addresses[address][7] += data[5]
+                    addresses[address][8] += data[6]
+                    addresses[address][9] += data[7]
+                    addresses[address][10] += data[8]
+
+        # Insert all address data
+        database.insert_addresses(list(addresses.values()))
+
+        # Finalize insertions and updates on every block
+        database.finalize(epochs)
 
     def update_cached_views(self, block_json, logger, caching_server):
         epoch = block_json["details"]["epoch"]
@@ -263,36 +310,49 @@ class BlockExplorer(object):
             self.try_send_request(logger, caching_server, request)
 
     def insert_transactions(self, database, block_json, epoch):
+        transactions = {}
+
         # Insert mint transaction
-        database.insert_mint_txn(block_json["transactions"]["mint"], epoch)
+        mint_txn = block_json["transactions"]["mint"]
+        database.insert_mint_txn(mint_txn, epoch)
+        transactions[mint_txn["hash"]] = mint_txn
 
         # Insert value transfer transactions
         for txn_details in block_json["transactions"]["value_transfer"]:
             database.insert_value_transfer_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert data request transactions
         for txn_details in block_json["transactions"]["data_request"]:
             database.insert_data_request_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert commit transactions
         for txn_details in block_json["transactions"]["commit"]:
             database.insert_commit_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert reveal transactions
         for txn_details in block_json["transactions"]["reveal"]:
             database.insert_reveal_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert tally transactions
         for txn_details in block_json["transactions"]["tally"]:
             database.insert_tally_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert tally transactions
         for txn_details in block_json["transactions"]["stake"]:
             database.insert_stake_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert tally transactions
         for txn_details in block_json["transactions"]["unstake"]:
             database.insert_unstake_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
+
+        return transactions
 
     def insert_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
         # Set up logger
@@ -347,8 +407,9 @@ class BlockExplorer(object):
             else:
                 blockchain = blockchain["result"]
 
+            block_hashes, blocks, epochs = [], [], []
             for epoch, block_hash_hex_str in blockchain:
-                logger.info(f"Inserting data for epoch {epoch}")
+                logger.info(f"Fetching data for epoch {epoch}")
 
                 block = self.insert_blocks_node.get_block(block_hash_hex_str)
                 # The database entries related to this block have not been modified yet
@@ -361,16 +422,33 @@ class BlockExplorer(object):
                 block = block["result"]
 
                 # Insert block
-                block_json = self.insert_block(
-                    self.insert_blocks_database,
-                    block_hash_hex_str,
-                    block,
-                    epoch,
-                    tapi_periods,
-                )
+                if len(blockchain) < self.batch_size:
+                    block_json = self.insert_block(
+                        self.insert_blocks_database,
+                        block_hash_hex_str,
+                        block,
+                        epoch,
+                        tapi_periods,
+                    )
 
-                # Update all cached views
-                self.update_cached_views(block_json, logger, caching_server)
+                    # Update all cached views
+                    self.update_cached_views(block_json, logger, caching_server)
+                # Batch insert block if they older than the batch size
+                else:
+                    block_hashes.append(block_hash_hex_str)
+                    blocks.append(block)
+                    epochs.append(epoch)
+                    if len(block_hashes) == self.batch_size:
+                        self.batch_insert_blocks(
+                            self.insert_blocks_database,
+                            block_hashes,
+                            blocks,
+                            epochs,
+                            tapi_periods,
+                        )
+                        block_hashes = []
+                        blocks = []
+                        epochs = []
 
                 # Check if the block is confirmed and if it isn't track the hash
                 confirmed = block["confirmed"]
