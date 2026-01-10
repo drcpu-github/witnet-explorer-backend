@@ -199,7 +199,9 @@ def create_tables(config, connection, cursor):
             data_request INT,
             commit INT,
             reveal INT,
-            tally INT
+            tally INT,
+            stake INT,
+            unstake INT
         );""",
         """CREATE TABLE IF NOT EXISTS hashes (
             hash BYTEA PRIMARY KEY,

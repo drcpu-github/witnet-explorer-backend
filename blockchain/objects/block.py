@@ -391,18 +391,18 @@ class Block(object):
         else:
             return None
 
-    def process_addresses(self):
+    def process_addresses(self, as_dict=False):
         address_dict = {}
 
         transactions = self.block_json["transactions"]
 
         # Add block miner
-        address_dict[transactions["mint"]["miner"]] = [1, 0, 0, 0, 0, 0, 0]
+        address_dict[transactions["mint"]["miner"]] = [1, 0, 0, 0, 0, 0, 0, 0, 0]
 
         # Add all addresses from the mint transaction
         for address in transactions["mint"]["output_addresses"]:
             if address not in address_dict:
-                address_dict[address] = [0, 1, 0, 0, 0, 0, 0]
+                address_dict[address] = [0, 1, 0, 0, 0, 0, 0, 0, 0]
             else:
                 address_dict[address][1] += 1
 
@@ -410,7 +410,7 @@ class Block(object):
         for value_transfer in transactions["value_transfer"]:
             for address in set(value_transfer["input_addresses"]):
                 if address not in address_dict:
-                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
+                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0, 0, 0]
                 else:
                     address_dict[address][2] += 1
             true_output_addresses = set(value_transfer["output_addresses"]) - set(
@@ -418,7 +418,7 @@ class Block(object):
             )
             for address in true_output_addresses:
                 if address not in address_dict:
-                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0]
+                    address_dict[address] = [0, 0, 1, 0, 0, 0, 0, 0, 0]
                 else:
                     address_dict[address][2] += 1
 
@@ -426,7 +426,7 @@ class Block(object):
         for data_request_txn in transactions["data_request"]:
             for address in set(data_request_txn["input_addresses"]):
                 if address not in address_dict:
-                    address_dict[address] = [0, 0, 0, 1, 0, 0, 0]
+                    address_dict[address] = [0, 0, 0, 1, 0, 0, 0, 0, 0]
                 else:
                     address_dict[address][3] += 1
 
@@ -434,7 +434,7 @@ class Block(object):
         for commit in transactions["commit"]:
             address = commit["address"]
             if address not in address_dict:
-                address_dict[address] = [0, 0, 0, 0, 1, 0, 0]
+                address_dict[address] = [0, 0, 0, 0, 1, 0, 0, 0, 0]
             else:
                 address_dict[address][4] += 1
 
@@ -442,7 +442,7 @@ class Block(object):
         for reveal in transactions["reveal"]:
             address = reveal["address"]
             if address not in address_dict:
-                address_dict[address] = [0, 0, 0, 0, 0, 1, 0]
+                address_dict[address] = [0, 0, 0, 0, 0, 1, 0, 0, 0]
             else:
                 address_dict[address][5] += 1
 
@@ -455,14 +455,40 @@ class Block(object):
             )
             for address in address_set:
                 if address not in address_dict:
-                    address_dict[address] = [0, 0, 0, 0, 0, 0, 1]
+                    address_dict[address] = [0, 0, 0, 0, 0, 0, 1, 0, 0]
                 else:
                     address_dict[address][6] += 1
 
-        return [
-            [address, self.block_epoch] + address_dict[address]
-            for address in address_dict
-        ]
+        # Add all addresses which are used as stake inputs or change output
+        for stake in transactions["stake"]:
+            input_addresses = set(stake["input_addresses"])
+            for address in input_addresses:
+                if address not in address_dict:
+                    address_dict[address] = [0, 0, 0, 0, 0, 0, 0, 1, 0]
+                else:
+                    address_dict[address][7] += 1
+            change_address = stake["change_address"]
+            if change_address is not None and change_address not in input_addresses:
+                if change_address not in address_dict:
+                    address_dict[change_address] = [0, 0, 0, 0, 0, 0, 0, 1, 0]
+                else:
+                    address_dict[change_address][7] += 1
+
+        # Add all addresses which are used in unstake transactions
+        for unstake in transactions["unstake"]:
+            withdrawer = unstake["withdrawer"]
+            if withdrawer not in address_dict:
+                address_dict[withdrawer] = [0, 0, 0, 0, 0, 0, 0, 0, 1]
+            else:
+                address_dict[withdrawer][8] += 1
+
+        if as_dict:
+            return address_dict
+        else:
+            return [
+                [address, self.block_epoch] + address_dict[address]
+                for address in address_dict
+            ]
 
     def return_block_error(self, message):
         if self.logger:

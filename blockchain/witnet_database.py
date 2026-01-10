@@ -323,8 +323,10 @@ class WitnetDatabase(object):
                 data_request,
                 commit,
                 reveal,
-                tally
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                tally,
+                stake,
+                unstake
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT ON CONSTRAINT
                 addresses_pkey
             DO UPDATE SET
@@ -335,7 +337,9 @@ class WitnetDatabase(object):
                 data_request = addresses.data_request + EXCLUDED.data_request,
                 commit = addresses.commit + EXCLUDED.commit,
                 reveal = addresses.reveal + EXCLUDED.reveal,
-                tally = addresses.tally + EXCLUDED.tally
+                tally = addresses.tally + EXCLUDED.tally,
+                stake = addresses.stake + EXCLUDED.stake,
+                unstake = addresses.unstake + EXCLUDED.unstake
             WHERE
                 addresses.active < EXCLUDED.active
         """
