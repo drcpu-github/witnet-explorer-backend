@@ -468,11 +468,6 @@ class HomeStats(Client):
                 self.last_saved_total_staked[-1]["timestamp"]
             )
 
-        total_staked = {
-            epoch: {"timestamp": calculate_timestamp_from_epoch(epoch), "staked": 0}
-            for epoch in range(previous_processed_epoch + 1, self.current_epoch)
-        }
-
         sql = """
             SELECT
                 stake_txns.stake_value,
@@ -519,6 +514,12 @@ class HomeStats(Client):
             re_sql(sql),
             parameters=(max(previous_processed_epoch, get_activatation_epoch_wit2()),),
         )
+
+        # Initialize total staked structure with all missing data since the last execution of this script
+        total_staked = {
+            epoch: {"timestamp": calculate_timestamp_from_epoch(epoch), "staked": 0}
+            for epoch in range(previous_processed_epoch + 1, max(blocks)[0] + 1)
+        }
 
         # Set stakes
         transactions = sorted(stakes + unstakes, key=lambda l: l[1])
