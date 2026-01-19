@@ -35,6 +35,8 @@ class HomeStats(Client):
 
         super().__init__(BlockchainConfig.config)
 
+        self.staking_lookback = h_cfg["staking_lookback"]
+
         # Initialize previous variables
         self.current_epoch = calculate_current_epoch()
 
@@ -558,14 +560,14 @@ class HomeStats(Client):
                 ):
                     truncated_total_staked.append(stake)
             truncated_total_staked = truncated_total_staked[
-                len(truncated_total_staked) - 1000 :
+                len(truncated_total_staked) - int(self.staking_lookback / 100) :
             ]
         else:
             # From the last 100k epochs, keep every 100th element
             truncated_total_staked = [
                 stake
                 for epoch, stake in total_staked.items()
-                if epoch >= self.current_epoch - 100000 and epoch % 100 == 0
+                if epoch >= self.current_epoch - self.staking_lookback and epoch % 100 == 0
             ]
 
         return truncated_total_staked

@@ -150,10 +150,12 @@ timeout = 86400 # 1 day
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
 # log_file: specify logging file name
+# staking_lookback: amount of epochs for which to build the staked overview on the home page
 [api.caching.scripts.home_stats]
 cron = "* * * * *"
 level_file = "info"
 log_file = "/path/to/logs/home_stats.log"
+staking_lookback = 10000
 
 # cron: specify the crontab timing configuration
 # level_file: log to the file with the specified logging level (debug, info, warning, error or critical)
