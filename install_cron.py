@@ -43,7 +43,7 @@ def main():
             f"# Execute the {cache_process} caching process {time_indication}. Use flock to prevent concurrent execution."
         )
         cron_lines.append(
-            f"{cron} cd {path_to_explorer} && flock -n {path_to_explorer}/caching/.{cache_process}.lock {path_to_explorer}/env/bin/python3 -m caching.{cache_process} --config-file {path_to_explorer}/{options.config_file}\n"
+            f"{cron} cd {path_to_explorer} && flock -n caching/.{cache_process}.lock ./env/bin/python3 -m caching.{cache_process} --config-file {options.config_file}\n"
         )
 
     f = open("crontabs.txt", "w+")
