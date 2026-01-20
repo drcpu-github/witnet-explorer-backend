@@ -1,3 +1,4 @@
+from blockchain.config import BlockchainConfig
 from mockups.cache import MockCache
 from mockups.database import MockDatabase
 from mockups.socket_manager import MockSocketManager
@@ -8,11 +9,11 @@ from util.memcached import MemcachedPool
 from util.socket_manager import SocketManager
 
 
-def create_address_caching_server(config, mock=False):
-    if mock:
+def create_address_caching_server(mockup=False):
+    if mockup:
         address_caching_server = MockSocketManager()
     else:
-        caching_config = config["api"]["caching"]
+        caching_config = BlockchainConfig.config["api"]["caching"]
         address_caching_server = SocketManager(
             caching_config["scripts"]["addresses"]["host"],
             caching_config["scripts"]["addresses"]["port"],
@@ -21,32 +22,46 @@ def create_address_caching_server(config, mock=False):
     return address_caching_server
 
 
-def create_cache(config, mock=False):
-    if mock:
+def send_address_caching_request(logger, caching_server, request):
+    try:
+        caching_server.send_request(request)
+    except ConnectionRefusedError:
+        logger.warning(
+            f"Could not send {request['method']} request to address caching server"
+        )
+        try:
+            caching_server.recreate_socket()
+            caching_server.send_request(request)
+        except ConnectionRefusedError:
+            logger.warning(
+                f"Could not recreate socket, will try again next {request['method']} request"
+            )
+
+
+def create_cache(mockup=False):
+    if mockup:
         cache = MockCache()
     else:
-        caching_config = config["api"]["caching"]
+        caching_config = BlockchainConfig.config["api"]["caching"]
         cache = MemcachedPool(
             caching_config["server"].split(","),
-            caching_config["user"],
-            caching_config["password"],
             caching_config["threads"],
             caching_config["blocking"],
         )
     return cache
 
 
-def create_database(config, mock=False):
-    if mock:
+def create_database(mockup=False):
+    if mockup:
         database = MockDatabase()
     else:
-        database = DatabasePool(config["database"])
+        database = DatabasePool()
     return database
 
 
-def create_witnet_node(config, mock=False):
-    if mock:
+def create_witnet_node(mockup=False):
+    if mockup:
         witnet_node = MockWitnetNode()
     else:
-        witnet_node = WitnetClientPool(config["node-pool"])
+        witnet_node = WitnetClientPool()
     return witnet_node

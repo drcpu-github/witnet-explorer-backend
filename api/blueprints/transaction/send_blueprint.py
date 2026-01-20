@@ -6,22 +6,22 @@ from marshmallow import INCLUDE, ValidationError
 from schemas.include.post_transaction_schema import PostTransaction
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
-from schemas.transaction.send_schema import ValueTransferArgs, ValueTransferResponse
+from schemas.transaction.send_schema import SendArgs, SendResponse
 
 transaction_send_blueprint = Blueprint(
     "transaction send",
     "transaction send",
-    description="Send a value transfer transaction.",
+    description="Send a transaction.",
 )
 
 
 @transaction_send_blueprint.route("/send")
 class TransactionSend(MethodView):
-    # ValueTransferArgs does not include the actual transaction as an argument
+    # SendArgs does not include the actual transaction as an argument
     # The API does require the argument to be present (see test below)
     # But not testing it as part of the argument allows for custom error messages
     @transaction_send_blueprint.arguments(
-        ValueTransferArgs(unknown=INCLUDE),
+        SendArgs(unknown=INCLUDE),
         examples={
             "Value transfer transaction": {
                 "description": "Example of an expected request body format to send a value transfer transaction.",
@@ -38,7 +38,11 @@ class TransactionSend(MethodView):
                             "signatures": [
                                 {
                                     "public_key": {"bytes": "string", "compressed": 0},
-                                    "signature": None,
+                                    "signature": {
+                                        "Secp256k1": {
+                                            "der": "string",
+                                        },
+                                    },
                                 }
                             ],
                         },
@@ -50,7 +54,40 @@ class TransactionSend(MethodView):
                 "value": {
                     "test": False,
                     "transaction": {
-                        "Stake": {},
+                        "Stake": {
+                            "body": {
+                                "inputs": [{"output_pointer": "string"}],
+                                "output": {
+                                    "authorization": {
+                                        "public_key": {
+                                            "bytes": "string",
+                                            "compressed": 0,
+                                        },
+                                        "signature": {
+                                            "Secp256k1": {
+                                                "der": "string",
+                                            },
+                                        },
+                                    },
+                                    "key": {
+                                        "validator": "address",
+                                        "withdrawer": "address",
+                                    },
+                                    "value": 0,
+                                },
+                                "change": {"pkh": "string", "time_lock": 0, "value": 1},
+                            },
+                            "signatures": [
+                                {
+                                    "public_key": {"bytes": "string", "compressed": 0},
+                                    "signature": {
+                                        "Secp256k1": {
+                                            "der": "string",
+                                        },
+                                    },
+                                }
+                            ],
+                        },
                     },
                 },
             },
@@ -59,7 +96,26 @@ class TransactionSend(MethodView):
                 "value": {
                     "test": False,
                     "transaction": {
-                        "Unstake": {},
+                        "Unstake": {
+                            "body": {
+                                "operator": "address",
+                                "withdrawal": {
+                                    "pkh": "string",
+                                    "time_lock": 0,
+                                    "value": 1,
+                                },
+                                "nonce": 1,
+                                "fee": 1,
+                            },
+                            "signature": {
+                                "public_key": {"bytes": "string", "compressed": 0},
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": "string",
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -67,8 +123,8 @@ class TransactionSend(MethodView):
     )
     @transaction_send_blueprint.response(
         201,
-        ValueTransferResponse,
-        description="Returns whether the value transfer was valid.",
+        SendResponse,
+        description="Returns whether the transaction was valid.",
         headers={
             "X-Version": {
                 "description": "Version of this API endpoint.",
@@ -83,9 +139,9 @@ class TransactionSend(MethodView):
         example={
             "message": [
                 "Missing transaction argument.",
-                "Failed to validate value transfer.",
-                "Could not send value transfer: {reason}.",
-                "Unexpectedly could not send value transfer.",
+                "Failed to validate transaction.",
+                "Could not send transaction: {reason}.",
+                "Unexpectedly could not send transaction.",
             ]
         },
     )
@@ -100,7 +156,7 @@ class TransactionSend(MethodView):
             abort(
                 404,
                 message="Missing transaction argument.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
         prefix = "Testing" if args["test"] else "Sending"
         logger.info(f"{prefix} transaction: {args['transaction']}")
@@ -108,41 +164,37 @@ class TransactionSend(MethodView):
         try:
             transaction = PostTransaction().load(args["transaction"])
         except ValidationError as err_info:
-            logger.error(f"Failed to validate value transfer: {err_info}")
+            logger.error(f"Failed to validate transaction: {err_info}")
             abort(
                 404,
-                message="Failed to validate value transfer.",
-                headers={"X-Version": "1.0.0"},
+                message="Failed to validate transaction.",
+                headers={"X-Version": "2.0.0"},
             )
 
         if args["test"]:
             return (
-                ValueTransferResponse().load({"result": "Value transfer is valid."}),
+                SendResponse().load({"result": "Transaction is valid."}),
                 201,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )
         else:
-            response = witnet_node.send_vtt({"transaction": transaction})
+            response = witnet_node.send_transaction({"transaction": transaction})
             if "reason" in response:
-                logger.error(
-                    f"Could not send value transfer: {response['reason']['message']}"
-                )
+                logger.error(f"Could not send transaction: {response['reason']}")
                 abort(
                     404,
-                    message=f"Could not send value transfer: {response['reason']['message']}.",
-                    headers={"X-Version": "1.0.0"},
+                    message=f"Could not send transaction: {response['reason']}.",
+                    headers={"X-Version": "2.0.0"},
                 )
             else:
                 if "result" in response and response["result"]:
                     return (
-                        ValueTransferResponse().load(
-                            {"result": "Succesfully sent value transfer."}
+                        SendResponse().load(
+                            {"result": "Succesfully sent transaction."}
                         ),
                         201,
-                        {"X-Version": "1.0.0"},
+                        {"X-Version": "2.0.0"},
                     )
                 else:
-                    logger.error(
-                        f"Unexpectedly could not send value transfer: {response}"
-                    )
-                    abort(404, message="Unexpectedly could not send value transfer.")
+                    logger.error(f"Unexpectedly could not send transaction: {response}")
+                    abort(404, message="Unexpectedly could not send transaction.")

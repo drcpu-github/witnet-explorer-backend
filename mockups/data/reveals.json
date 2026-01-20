@@ -1,30 +1,564 @@
 {
-    "63f3715662464a26ba98dceaf765df4024170424b5a50ed320d6d3eec6052c62": {
-        "response_type": "reveal",
-        "reveal": {
-            "hash": "63f3715662464a26ba98dceaf765df4024170424b5a50ed320d6d3eec6052c62",
-            "block": "3d95e669702c08a977c08a16b8edf34e0201473ac95b607472016d27862a87c7",
-            "address": "wit1xj4mre4x927m2ventw2ukak86q86tmjtd8mm22",
-            "reveal": "25922.59505",
-            "success": true,
-            "epoch": 2024097,
-            "timestamp": 1693750410,
-            "confirmed": true,
-            "reverted": false
+    "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae": {
+        "processed": {
+            "api": {
+                "hash": "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae",
+                "epoch": 103,
+                "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "data_request": "c27d2f18ca35482faf0f5cdf219920ec4bd2f5e4d33daafd828c4d69398dbbb4",
+                "fee": 1,
+                "reveal": "104216.17485000001",
+                "success": true
+            },
+            "database": {
+                "hash": "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae",
+                "block": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "reveal": "104216.17485000001",
+                "success": true,
+                "epoch": 103,
+                "timestamp": 1738185435,
+                "confirmed": true,
+                "reverted": false
+            },
+            "explorer": {
+                "hash": "6f25aab90ce784f61c2093fd98b7939036b87f056af2702fcf82b1cf09d30bae",
+                "epoch": 103,
+                "address": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                "data_request": "c27d2f18ca35482faf0f5cdf219920ec4bd2f5e4d33daafd828c4d69398dbbb4",
+                "fee": 1,
+                "reveal": [
+                    251,
+                    64,
+                    249,
+                    113,
+                    130,
+                    204,
+                    47,
+                    131,
+                    124
+                ],
+                "success": true
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 103,
+                "blockHash": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "confirmed": true,
+                "transaction": {
+                    "Reveal": {
+                        "body": {
+                            "dr_pointer": "c27d2f18ca35482faf0f5cdf219920ec4bd2f5e4d33daafd828c4d69398dbbb4",
+                            "pkh": "twit19m2w2lhzwwmt7zn8y5xzrq4qxt40xu8r3ycd77",
+                            "reveal": [
+                                251,
+                                64,
+                                249,
+                                113,
+                                130,
+                                204,
+                                47,
+                                131,
+                                124
+                            ]
+                        },
+                        "signatures": [
+                            {
+                                "public_key": {
+                                    "bytes": [
+                                        12,
+                                        41,
+                                        31,
+                                        56,
+                                        75,
+                                        131,
+                                        45,
+                                        229,
+                                        124,
+                                        188,
+                                        34,
+                                        152,
+                                        114,
+                                        188,
+                                        254,
+                                        109,
+                                        166,
+                                        122,
+                                        80,
+                                        226,
+                                        181,
+                                        189,
+                                        84,
+                                        10,
+                                        22,
+                                        116,
+                                        80,
+                                        121,
+                                        122,
+                                        51,
+                                        109,
+                                        113
+                                    ],
+                                    "compressed": 3
+                                },
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": [
+                                            48,
+                                            68,
+                                            2,
+                                            32,
+                                            8,
+                                            204,
+                                            100,
+                                            51,
+                                            38,
+                                            217,
+                                            20,
+                                            223,
+                                            188,
+                                            59,
+                                            82,
+                                            73,
+                                            118,
+                                            249,
+                                            248,
+                                            226,
+                                            112,
+                                            0,
+                                            205,
+                                            73,
+                                            222,
+                                            37,
+                                            245,
+                                            89,
+                                            31,
+                                            45,
+                                            171,
+                                            4,
+                                            28,
+                                            212,
+                                            156,
+                                            12,
+                                            2,
+                                            32,
+                                            4,
+                                            114,
+                                            112,
+                                            20,
+                                            149,
+                                            57,
+                                            184,
+                                            3,
+                                            58,
+                                            155,
+                                            23,
+                                            249,
+                                            211,
+                                            41,
+                                            111,
+                                            225,
+                                            80,
+                                            198,
+                                            7,
+                                            210,
+                                            179,
+                                            83,
+                                            35,
+                                            189,
+                                            117,
+                                            182,
+                                            185,
+                                            137,
+                                            66,
+                                            29,
+                                            79,
+                                            179
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "weight": 0
+            }
         }
     },
-    "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac": {
-        "response_type": "reveal",
-        "reveal": {
-            "address": "wit1054dh7c34yp5vafncucrzpjqnxh93aw3yeeppp",
-            "block": "3f30fa2621f81597e6e434fb96164b8e5db6303445ee8956c9d7c9a9e286c370",
-            "confirmed": true,
-            "epoch": 2024099,
-            "hash": "0e7ea734b1ad24e69406f2059888041e353cb9fabe1b4f1345fe230c3dbbc9ac",
-            "reveal": "6016465",
-            "reverted": false,
-            "success": true,
-            "timestamp": 1693750500
+    "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea": {
+        "processed": {
+            "api": {
+                "hash": "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea",
+                "epoch": 103,
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "fee": 1,
+                "reveal": "104209.7479",
+                "success": true
+            },
+            "database": {
+                "hash": "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea",
+                "block": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "reveal": "104209.7479",
+                "success": true,
+                "epoch": 103,
+                "timestamp": 1738185435,
+                "confirmed": true,
+                "reverted": false
+            },
+            "explorer": {
+                "hash": "f166999c90c109349cb6fa2fa26cd9eca21ed5726cf94e1962b9b4f7ad17c8ea",
+                "epoch": 103,
+                "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                "data_request": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                "fee": 1,
+                "reveal": [
+                    251,
+                    64,
+                    249,
+                    113,
+                    27,
+                    247,
+                    101,
+                    253,
+                    139
+                ],
+                "success": true
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 103,
+                "blockHash": "a89c04ff368f322367ac39954a8928aedb60627302ab5808155d364c01f39b20",
+                "confirmed": true,
+                "transaction": {
+                    "Reveal": {
+                        "body": {
+                            "dr_pointer": "d05b3d4622dd7f5bbb54fb597f944343d6d1367286fcef53e071c48531a2caac",
+                            "pkh": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
+                            "reveal": [
+                                251,
+                                64,
+                                249,
+                                113,
+                                27,
+                                247,
+                                101,
+                                253,
+                                139
+                            ]
+                        },
+                        "signatures": [
+                            {
+                                "public_key": {
+                                    "bytes": [
+                                        151,
+                                        219,
+                                        165,
+                                        155,
+                                        54,
+                                        89,
+                                        58,
+                                        102,
+                                        45,
+                                        232,
+                                        47,
+                                        106,
+                                        132,
+                                        95,
+                                        67,
+                                        129,
+                                        109,
+                                        151,
+                                        134,
+                                        162,
+                                        55,
+                                        67,
+                                        198,
+                                        139,
+                                        250,
+                                        185,
+                                        128,
+                                        204,
+                                        243,
+                                        241,
+                                        56,
+                                        112
+                                    ],
+                                    "compressed": 2
+                                },
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": [
+                                            48,
+                                            69,
+                                            2,
+                                            33,
+                                            0,
+                                            234,
+                                            87,
+                                            98,
+                                            101,
+                                            196,
+                                            165,
+                                            213,
+                                            66,
+                                            160,
+                                            98,
+                                            84,
+                                            132,
+                                            44,
+                                            3,
+                                            26,
+                                            222,
+                                            179,
+                                            69,
+                                            10,
+                                            163,
+                                            1,
+                                            107,
+                                            245,
+                                            240,
+                                            219,
+                                            202,
+                                            107,
+                                            129,
+                                            222,
+                                            171,
+                                            242,
+                                            26,
+                                            2,
+                                            32,
+                                            18,
+                                            127,
+                                            197,
+                                            148,
+                                            162,
+                                            11,
+                                            32,
+                                            181,
+                                            201,
+                                            206,
+                                            237,
+                                            2,
+                                            122,
+                                            14,
+                                            220,
+                                            26,
+                                            252,
+                                            149,
+                                            63,
+                                            133,
+                                            3,
+                                            159,
+                                            7,
+                                            238,
+                                            141,
+                                            60,
+                                            171,
+                                            164,
+                                            140,
+                                            27,
+                                            203,
+                                            115
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "weight": 0
+            }
+        }
+    },
+    "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3": {
+        "processed": {
+            "api": {
+                "hash": "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3",
+                "epoch": 582,
+                "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "fee": 1,
+                "reveal": "104213.15030000001",
+                "success": true
+            },
+            "database": {
+                "hash": "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3",
+                "block": "352817e548d5a308eca11a001d637e06a8deec97a00f36e307c8f8be6be582fb",
+                "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "reveal": "104213.15030000001",
+                "success": true,
+                "epoch": 582,
+                "timestamp": 1738199465,
+                "confirmed": true,
+                "reverted": false
+            },
+            "explorer": {
+                "hash": "c89abed45222f550aa0129938150632d4ec5d01c533ec63129be1440a6ae59c3",
+                "epoch": 582,
+                "address": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                "data_request": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                "fee": 1,
+                "reveal": [
+                    251,
+                    64,
+                    249,
+                    113,
+                    82,
+                    103,
+                    160,
+                    249,
+                    10
+                ],
+                "success": true
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 582,
+                "blockHash": "352817e548d5a308eca11a001d637e06a8deec97a00f36e307c8f8be6be582fb",
+                "confirmed": true,
+                "transaction": {
+                    "Reveal": {
+                        "body": {
+                            "dr_pointer": "3bf3a7d038ecc3ca3da27083919653453ddce9f1e06a8be10fc360893cd87919",
+                            "pkh": "twit1f0am8c97q2ygkz3q6jyd2x29s8zaxqlxcqltxx",
+                            "reveal": [
+                                251,
+                                64,
+                                249,
+                                113,
+                                82,
+                                103,
+                                160,
+                                249,
+                                10
+                            ]
+                        },
+                        "signatures": [
+                            {
+                                "public_key": {
+                                    "bytes": [
+                                        74,
+                                        67,
+                                        207,
+                                        21,
+                                        181,
+                                        136,
+                                        107,
+                                        155,
+                                        237,
+                                        70,
+                                        33,
+                                        171,
+                                        165,
+                                        185,
+                                        242,
+                                        229,
+                                        248,
+                                        22,
+                                        47,
+                                        100,
+                                        248,
+                                        170,
+                                        105,
+                                        228,
+                                        16,
+                                        218,
+                                        44,
+                                        43,
+                                        199,
+                                        63,
+                                        87,
+                                        35
+                                    ],
+                                    "compressed": 3
+                                },
+                                "signature": {
+                                    "Secp256k1": {
+                                        "der": [
+                                            48,
+                                            68,
+                                            2,
+                                            32,
+                                            32,
+                                            236,
+                                            204,
+                                            55,
+                                            38,
+                                            177,
+                                            0,
+                                            192,
+                                            171,
+                                            48,
+                                            223,
+                                            211,
+                                            239,
+                                            220,
+                                            87,
+                                            24,
+                                            35,
+                                            109,
+                                            39,
+                                            20,
+                                            144,
+                                            199,
+                                            76,
+                                            189,
+                                            42,
+                                            251,
+                                            67,
+                                            218,
+                                            34,
+                                            183,
+                                            163,
+                                            48,
+                                            2,
+                                            32,
+                                            93,
+                                            142,
+                                            150,
+                                            178,
+                                            24,
+                                            253,
+                                            211,
+                                            163,
+                                            235,
+                                            199,
+                                            8,
+                                            37,
+                                            62,
+                                            59,
+                                            164,
+                                            143,
+                                            111,
+                                            165,
+                                            170,
+                                            212,
+                                            236,
+                                            254,
+                                            61,
+                                            156,
+                                            70,
+                                            125,
+                                            196,
+                                            67,
+                                            120,
+                                            72,
+                                            153,
+                                            142
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "weight": 0
+            }
         }
     }
 }

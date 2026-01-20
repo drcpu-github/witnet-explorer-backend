@@ -28,9 +28,12 @@ class DataRequest(BaseTransaction):
 
 class DataRequestRetrieval(Schema):
     kind = fields.Str(
-        validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"]), required=True
+        validate=validate.OneOf(
+            ["Unknown", "HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]
+        ),
+        required=True,
     )
-    url = fields.URL(allow_none=True, required=True)
+    url = fields.Str(allow_none=True, required=True)
     headers = fields.List(fields.Str(), required=True)
     body = fields.String(required=True)
     script = fields.String(required=True)
@@ -54,24 +57,20 @@ class DataRequestTransactionForApi(BaseApiTransaction, DataRequest, TimestampCom
             raise ValidationError(errors)
 
 
-class DataRequestTransactionForBlock(DataRequest):
-    kinds = fields.List(
-        fields.Str(validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"])),
-        required=True,
+class DataRequestTransactionForBlock(BaseTransaction):
+    requester = fields.Str(validate=is_valid_address, required=True)
+    witnesses = fields.Int(validate=validate.Range(min=0, max=125), required=True)
+    witness_reward = fields.Int(validate=validate.Range(min=0), required=True)
+    consensus_percentage = fields.Int(
+        validate=validate.Range(min=50, max=100), required=True
     )
-    urls = fields.List(fields.URL(allow_none=True), required=True)
-    headers = fields.List(fields.List(fields.Str()), required=True)
-    bodies = fields.List(fields.Str(), required=True)
-    scripts = fields.List(fields.Str(), required=True)
-    aggregate_filters = fields.Str(required=True)
-    aggregate_reducer = fields.Str(required=True)
-    tally_filters = fields.Str(required=True)
-    tally_reducer = fields.Str(required=True)
+    miner_fee = fields.Int(validate=validate.Range(min=0), required=True)
+    collateral = fields.Int(validate=validate.Range(min=1000000000), required=True)
 
 
 class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
     input_values = fields.List(
-        fields.Int(validate=validate.Range(min=1)), required=True
+        fields.Int(validate=validate.Range(min=0)), required=True
     )
     output_address = fields.Str(
         validate=is_valid_address, allow_none=True, required=True
@@ -80,10 +79,14 @@ class DataRequestTransactionForExplorer(DataRequest, InputUtxoList):
         validate=validate.Range(min=0), allow_none=True, required=True
     )
     kinds = fields.List(
-        fields.Str(validate=validate.OneOf(["HTTP-GET", "HTTP-POST", "RNG"])),
+        fields.Str(
+            validate=validate.OneOf(
+                ["Unknown", "HTTP-GET", "HTTP-HEAD", "HTTP-POST", "RNG"]
+            )
+        ),
         required=True,
     )
-    urls = fields.List(fields.URL(allow_none=True), required=True)
+    urls = fields.List(fields.Str(allow_none=True), required=True)
     headers = fields.List(fields.List(fields.Str()), required=True)
     bodies = fields.List(BytearrayField(), required=True)
     scripts = fields.List(BytearrayField(), required=True)

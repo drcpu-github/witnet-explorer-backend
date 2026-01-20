@@ -1,22 +1,182 @@
 {
-    "eb88c7b07f771c4957c11a5c51947af7fe98b46b2639dfecd5b2fda6a72dba84": {
-        "response_type": "mint",
-        "mint": {
-            "hash": "eb88c7b07f771c4957c11a5c51947af7fe98b46b2639dfecd5b2fda6a72dba84",
-            "block": "ca11a4995df26659d4922d60e65832a1c46807dea0b8d4f4ba5760f009a2a798",
-            "output_addresses": [
-                "wit19mqh8xyx0lsqeyt940vtczthgyj8lsf03qsxda",
-                "wit17pxc4h7jqyqfjkpyd6yhxr5mqde8caq5lpsgzl"
+    "55b1e998e00e62a71664b52191450788fe0c4a62bab32cc995cf89281845998f": {
+        "processed": {
+            "api": {
+                "hash": "55b1e998e00e62a71664b52191450788fe0c4a62bab32cc995cf89281845998f",
+                "output_addresses": [
+                    "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+                ],
+                "output_values": [
+                    250000000000
+                ],
+                "epoch": 4,
+                "timestamp": 1738180980,
+                "miner": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+            },
+            "explorer": {
+                "hash": "55b1e998e00e62a71664b52191450788fe0c4a62bab32cc995cf89281845998f",
+                "output_addresses": [
+                    "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+                ],
+                "output_values": [
+                    250000000000
+                ],
+                "epoch": 4,
+                "miner": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+            },
+            "database": {
+                "hash": "55b1e998e00e62a71664b52191450788fe0c4a62bab32cc995cf89281845998f",
+                "block": "efbe6fbdabe9754441e424de95e540ef35da4087f407f0b9b968043ae1c4960a",
+                "output_addresses": [
+                    "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u"
+                ],
+                "output_values": [
+                    250000000000
+                ],
+                "epoch": 4,
+                "timestamp": 1738180980,
+                "miner": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u",
+                "confirmed": true,
+                "reverted": false
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 4,
+                "blockHash": "efbe6fbdabe9754441e424de95e540ef35da4087f407f0b9b968043ae1c4960a",
+                "confirmed": true,
+                "transaction": {
+                    "Mint": {
+                        "epoch": 4,
+                        "outputs": [
+                            {
+                                "pkh": "twit1jetddu4qxdmrnrex08rx65ul676ffg08vfy99u",
+                                "time_lock": 0,
+                                "value": 250000000000
+                            }
+                        ]
+                    }
+                },
+                "weight": 0
+            }
+        },
+        "block_signature": {
+            "bytes": [
+                4,
+                96,
+                195,
+                46,
+                209,
+                165,
+                110,
+                137,
+                102,
+                42,
+                102,
+                168,
+                224,
+                68,
+                58,
+                48,
+                84,
+                148,
+                84,
+                29,
+                52,
+                52,
+                143,
+                204,
+                116,
+                40,
+                30,
+                172,
+                210,
+                203,
+                210,
+                29
             ],
-            "output_values": [
-                25008000001,
-                225072000004
+            "compressed": 2
+        }
+    },
+    "ebda819d3e69db289ed43e66c58c8dfd155c3de1ece316f1bccceca47446e556": {
+        "processed": {
+            "api": {
+                "hash": "ebda819d3e69db289ed43e66c58c8dfd155c3de1ece316f1bccceca47446e556",
+                "output_addresses": [],
+                "output_values": [],
+                "epoch": 580,
+                "timestamp": 1738199425,
+                "miner": "twit1hhnz04x5tzpvszvj3jsfj6tcjzf32lh4lkkcjp"
+            },
+            "explorer": {
+                "hash": "ebda819d3e69db289ed43e66c58c8dfd155c3de1ece316f1bccceca47446e556",
+                "output_addresses": [],
+                "output_values": [],
+                "epoch": 580,
+                "miner": "twit1hhnz04x5tzpvszvj3jsfj6tcjzf32lh4lkkcjp"
+            },
+            "database": {
+                "hash": "ebda819d3e69db289ed43e66c58c8dfd155c3de1ece316f1bccceca47446e556",
+                "block": "40e8448d93d4e28e30e310cb1502918830343711bc673f6dd7d359c15d3442f6",
+                "output_addresses": [],
+                "output_values": [],
+                "epoch": 580,
+                "timestamp": 1738199425,
+                "miner": "twit1hhnz04x5tzpvszvj3jsfj6tcjzf32lh4lkkcjp",
+                "confirmed": true,
+                "reverted": false
+            }
+        },
+        "rpc": {
+            "result": {
+                "blockEpoch": 580,
+                "blockHash": "40e8448d93d4e28e30e310cb1502918830343711bc673f6dd7d359c15d3442f6",
+                "confirmed": true,
+                "transaction": {
+                    "Mint": {
+                        "epoch": 580,
+                        "outputs": []
+                    }
+                },
+                "weight": 0
+            }
+        },
+        "block_signature": {
+            "bytes": [
+                165,
+                159,
+                13,
+                153,
+                152,
+                247,
+                5,
+                121,
+                131,
+                21,
+                142,
+                99,
+                7,
+                187,
+                140,
+                244,
+                250,
+                146,
+                255,
+                8,
+                173,
+                86,
+                199,
+                250,
+                93,
+                175,
+                46,
+                14,
+                138,
+                139,
+                154,
+                11
             ],
-            "epoch": 1004126,
-            "timestamp": 1647851715,
-            "miner": "wit19mqh8xyx0lsqeyt940vtczthgyj8lsf03qsxda",
-            "confirmed": true,
-            "reverted": false
+            "compressed": 2
         }
     }
 }

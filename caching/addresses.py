@@ -22,12 +22,17 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Manager
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.address import Address
+from blockchain.objects.wip import WIP
 
 from schemas.address.block_view_schema import BlockView
 from schemas.address.data_request_view_schema import DataRequestCreatedView, DataRequestSolvedView
 from schemas.address.mint_view_schema import MintView
+from schemas.address.stake_view_schema import StakeView
 from schemas.address.value_transfer_view_schema import ValueTransferView
+from schemas.address.unstake_view_schema import UnstakeView
 
 from util.logger import create_logging_listener
 from util.logger import select_logging_level
@@ -182,14 +187,14 @@ class Addresses(object):
 
                 # A request always needs to specify a method to execute
                 if "method" not in request:
-                    logger.warning("Missing argument 'method' in request")
+                    logger.error("Missing argument 'method' in request")
                     continue
                 method = request["method"]
 
                 # Most requests need to specify the addresses argument
                 if method not in ("confirm", "revert"):
                     if "addresses" not in request:
-                        logger.warning(f"Missing argument 'addresses' in {method} request")
+                        logger.error(f"Missing argument 'addresses' in {method} request")
                         continue
                     addresses = request["addresses"]
 
@@ -202,11 +207,11 @@ class Addresses(object):
                     # Create cache client
                     cache_config = self.config["api"]["caching"]
                     servers = cache_config["server"].split(",")
-                    memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
+                    memcached_client = pylibmc.Client(servers, binary=True, behaviors={"tcp_nodelay": True, "ketama": True})
 
                     # Check if we recently received a request for this address
                     if memcached_client.get(f"{address}"):
-                        logger.info(f"Received concurrent request for {address}")
+                        logger.debug(f"Received concurrent request for {address}")
                         continue
 
                     # Add this address to the memcache indicating we recently received a request for it
@@ -219,12 +224,14 @@ class Addresses(object):
                     if len(removed_addresses) > 0:
                         # Remove all cached views
                         for address in removed_addresses:
-                            memcached_client.delete(f"{address}-utxos")
-                            memcached_client.delete(f"{address}-blocks")
-                            memcached_client.delete(f"{address}-mints")
-                            memcached_client.delete(f"{address}-value-transfers")
-                            memcached_client.delete(f"{address}-data-requests-solved")
-                            memcached_client.delete(f"{address}-data-requests-created")
+                            memcached_client.delete(f"{address}_utxos")
+                            memcached_client.delete(f"{address}_blocks")
+                            memcached_client.delete(f"{address}_mints")
+                            memcached_client.delete(f"{address}_value-transfers")
+                            memcached_client.delete(f"{address}_data-requests-solved")
+                            memcached_client.delete(f"{address}_data-requests-created")
+                            memcached_client.delete(f"{address}_stakes")
+                            memcached_client.delete(f"{address}_unstakes")
                             logger.info(f"Removed all cached views for {address}")
 
                 # Data in the cache should timeout after some time to prevent stale data
@@ -264,7 +271,7 @@ class Addresses(object):
                 # Update cached address data on receiving a request from the explorer
                 elif method == "confirm" or method == "revert":
                     if "epoch" not in request:
-                        logger.warning(f"Missing argument 'epoch' in {method} request")
+                        logger.error(f"Missing argument 'epoch' in {method} request")
                         continue
                     epoch = request["epoch"]
 
@@ -288,23 +295,25 @@ class Addresses(object):
                         "value-transfers",
                         "data-requests-solved",
                         "data-requests-created",
+                        "stakes",
+                        "unstakes",
                         "utxos",
                     ]
                     for function in all_functions:
                         data = memcached_client.get(f"{addresses[0]}_{function}")
-                        if not data:
+                        if data is None:
                             logger.debug(f"{function} for {addresses[0]} not found in cache")
                             functions.append(function)
                         else:
                             logger.debug(f"{function} for {addresses[0]} are still cached")
                     monitor_addresses = addresses * len(functions)
                 else:
-                    logger.info(f"Unknown request method received: {method}")
+                    logger.error(f"Unknown request method received: {method}")
                     continue
 
                 for function, m_address in zip(functions, monitor_addresses):
                     # Create address object
-                    address = Address(m_address, config, logger=logger, connect=False)
+                    address = Address(m_address, logger=logger, connect=False)
 
                     # Complete the request
                     # This block of code is surrounded with a try-except to catch a known Python bug with the Manager multi-processing Pool
@@ -312,31 +321,39 @@ class Addresses(object):
                     try:
                         # Execute requested method asynchronously
                         if function == "blocks":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for blocks")
                             func_args = (logging_queue, "blocks", address, address.get_blocks, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "mints":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for mints")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for mints")
                             func_args = (logging_queue, "mints", address, address.get_mints, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "value-transfers":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for value transfers")
                             func_args = (logging_queue, "value transfers", address, address.get_value_transfers, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-solved":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for solved data requests")
                             func_args = (logging_queue, "data requests solved", address, address.get_data_requests_solved, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "data-requests-created":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for created data requests")
                             func_args = (logging_queue, "data requests created", address, address.get_data_requests_created, views_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
+                        elif function == "stakes":
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for stakes")
+                            func_args = (logging_queue, "stakes", address, address.get_stakes, views_timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
+                        elif function == "unstakes":
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {views_timeout}) for unstakes")
+                            func_args = (logging_queue, "unstakes", address, address.get_unstakes, views_timeout)
+                            func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         elif function == "utxos":
-                            logger.info(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
+                            logger.debug(f"Queueing execution of cache_address_data({m_address}, {utxos_timeout}) for utxos")
                             func_args = (logging_queue, "utxos", address, address.get_utxos, utxos_timeout)
                             func_pool.apply_async(self.cache_address_data, args=func_args, callback=self.log_completed)
                         else:
-                            logger.warning(f"Unknown request method {function}")
+                            logger.error(f"Unknown request method {function}")
                     except AttributeError:
                         logger.debug("Manager shared manager Pool failure: this is a known Python bug, check for a fix in the next Python release (> 3.10).")
 
@@ -351,17 +368,23 @@ class Addresses(object):
     def update_address_stack(self, logger, address_stack, cache_size, address):
         removed_addresses = []
 
+        logger.debug(f"Cache size is: {cache_size}")
+
         if len(address_stack) < cache_size:
             if address in address_stack:
                 address_stack.remove(address)
             address_stack.append(address)
+            logger.debug(f"Added address {address} to stack")
         else:
             if address in address_stack:
                 address_stack.remove(address)
                 address_stack.append(address)
+                logger.debug(f"Updated LRU position of address {address}")
             else:
                 removed_addresses.append(address_stack.pop(0))
                 address_stack.append(address)
+                logger.debug(f"Removed address {removed_addresses[-1]} and replaced it with address {address}")
+
         logger.debug(f"New stack of addresses to monitor is: {address_stack}")
 
         return removed_addresses
@@ -406,6 +429,10 @@ class Addresses(object):
                     DataRequestSolvedView(many=True).load(address_data)
                 elif label == "data requests created":
                     DataRequestCreatedView(many=True).load(address_data)
+                elif label == "stakes":
+                    StakeView(many=True).load(address_data)
+                elif label == "unstakes":
+                    UnstakeView(many=True).load(address_data)
             except ValidationError:
                 logger.error(f"Could not save {label} data for {identity} because it did not conform with the Marshmallow format")
 
@@ -414,7 +441,7 @@ class Addresses(object):
         # Create memcached client
         cache_config = self.config["api"]["caching"]
         servers = cache_config["server"].split(",")
-        memcached_client = pylibmc.Client(servers, binary=True, username=cache_config["user"], password=cache_config["password"], behaviors={"tcp_nodelay": True, "ketama": True})
+        memcached_client = pylibmc.Client(servers, binary=True, behaviors={"tcp_nodelay": True, "ketama": True})
 
         # Attempt to cache the address data
         try:
@@ -432,6 +459,10 @@ def main():
 
     # Load config file
     config = toml.load(options.config_file)
+
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.wip = WIP()
+    BlockchainConfig.consensus_constants = ConsensusConstants()
 
     # Start logging process
     logging_queue = Manager().Queue()

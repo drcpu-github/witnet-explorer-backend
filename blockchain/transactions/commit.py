@@ -1,14 +1,19 @@
+from blockchain.transactions.data_request import (
+    get_collateral_for_data_request,
+    get_commit_and_reveal_fee_for_data_request,
+)
 from blockchain.transactions.transaction import Transaction
 from schemas.component.commit_schema import (
     CommitTransactionForApi,
     CommitTransactionForBlock,
     CommitTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 
 
 class Commit(Transaction):
     def process_transaction(self, call_from):
-        # If we create a DataRequest from the transaction RPC, we still have to get the sub-dictionary
+        # If we create a Commit from the transaction RPC, we still have to get the sub-dictionary
         if "transaction" in self.json_txn:
             self.json_txn = self.json_txn["transaction"]["Commit"]
 
@@ -20,13 +25,43 @@ class Commit(Transaction):
         # Data request transaction hash
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
 
-        # Collect input / output details
-        input_utxos, input_values = self.get_inputs(self.json_txn["body"]["collateral"])
-        _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
+        # Get the reward for the miner of this transaction
+        fee = get_commit_and_reveal_fee_for_data_request(
+            self.database,
+            self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
+        )
+        if "fee" in fee:
+            self.txn_details["fee"] = fee["fee"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find fee for commit transaction {hash_value} for data request {data_request}"
+            )
 
-        self.txn_details["collateral"] = sum(input_values) - sum(output_values)
+        # Fetch collateral from database since we cannot use output / input difference anymore to calculate it
+        collateral = get_collateral_for_data_request(
+            self.database,
+            self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
+        )
+        if "collateral" in collateral:
+            self.txn_details["collateral"] = collateral["collateral"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find collateral for commit transaction {hash_value} for data request {data_request}"
+            )
 
         if call_from == "explorer":
+            # Collect input / output details
+            input_utxos, input_values = self.get_inputs(
+                self.json_txn["body"]["collateral"]
+            )
+            _, output_values, _ = self.get_outputs(self.json_txn["body"]["outputs"])
+
             self.txn_details["input_utxos"] = input_utxos
             self.txn_details["input_values"] = input_values
 
@@ -101,8 +136,6 @@ class Commit(Transaction):
                 epoch,
             ) = commit
 
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
             if block_confirmed:
                 confirmed_epoch = epoch
                 found_confirmed = True
@@ -130,7 +163,7 @@ class Commit(Transaction):
                     "hash": txn_hash.hex(),
                     "address": txn_address,
                     "epoch": epoch,
-                    "timestamp": timestamp,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -187,8 +220,6 @@ class Commit(Transaction):
                     }
                 )
 
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
-
             return CommitTransactionForApi().load(
                 {
                     "hash": txn_hash,
@@ -197,7 +228,7 @@ class Commit(Transaction):
                     "input_utxos": input_utxo_values,
                     "output_value": output_value,
                     "epoch": epoch,
-                    "timestamp": txn_time,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }

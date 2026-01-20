@@ -2,17 +2,25 @@ import json
 
 import cbor2
 
+from blockchain.transactions.data_request import (
+    get_commit_and_reveal_fee_for_data_request,
+)
 from blockchain.transactions.transaction import Transaction
 from schemas.component.reveal_schema import (
     RevealTransactionForApi,
     RevealTransactionForBlock,
     RevealTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
 class Reveal(Transaction):
     def process_transaction(self, call_from):
+        # If we create a Reveal from the transaction RPC, we still have to get the sub-dictionary
+        if "transaction" in self.json_txn:
+            self.json_txn = self.json_txn["transaction"]["Reveal"]
+
         # Calculate transaction addresses
         addresses = self.calculate_addresses(self.json_txn["signatures"])
         assert len(list(set(addresses))) == 1
@@ -20,6 +28,21 @@ class Reveal(Transaction):
 
         # Data request transaction hash
         self.txn_details["data_request"] = self.json_txn["body"]["dr_pointer"]
+
+        # Get the reward for the miner of this transaction
+        fee = get_commit_and_reveal_fee_for_data_request(
+            self.database,
+            self.txn_details["data_request"],
+            transaction_batch=self.transaction_batch,
+        )
+        if "fee" in fee:
+            self.txn_details["fee"] = fee["fee"]
+        else:
+            hash_value = self.txn_details["hash"]
+            data_request = self.txn_details["data_request"]
+            raise Exception(
+                f"Could not find fee for reveal transaction {hash_value} for data request {data_request}"
+            )
 
         # Translate revealed value
         success, reveal_translation = translate_reveal(
@@ -116,8 +139,6 @@ class Reveal(Transaction):
 
             success, reveal_result = translate_reveal(txn_hash.hex(), reveal_result)
 
-            timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
             reveals.append(
                 {
                     "block": block_hash.hex(),
@@ -128,7 +149,7 @@ class Reveal(Transaction):
                     "error": not success,
                     "liar": False,
                     "epoch": epoch,
-                    "timestamp": timestamp,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -168,7 +189,7 @@ class Reveal(Transaction):
                 epoch,
             ) = result
 
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
+            txn_time = calculate_timestamp_from_epoch(epoch)
 
             success, reveal_result = translate_reveal(txn_hash, reveal_result)
 
@@ -198,12 +219,12 @@ def translate_reveal(txn_hash, reveal):
     else:
         translation = str(translation)
 
-    # If the translation starts with 'Tag(39, ' there was a RADON error
-    if translation.startswith("Tag(39, "):
+    # If the translation starts with 'CBORTag(39, ' there was a RADON error
+    if translation.startswith("CBORTag(39, "):
         success = False
         try:
             # Extract the array containing the error code and potentially some extra metadata
-            translation_error_data = translation[8:-1]
+            translation_error_data = translation[12:-1]
             # Replace the quotes in the potentially included metadata
             translation_error_data = translation_error_data.replace('"', "")
             translation_error_data = translation_error_data.replace("'", '"')

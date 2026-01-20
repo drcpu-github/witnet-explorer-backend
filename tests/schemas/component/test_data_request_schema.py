@@ -8,6 +8,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -37,12 +38,10 @@ def test_data_request_success(data_request):
 
 
 def test_data_request_failure_address(data_request):
-    data_request["input_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    with pytest.raises(ValidationError) as err_info:
-        DataRequest().load(data_request)
-    assert (
-        err_info.value.messages["input_addresses"][0][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        data_request,
+        (("input_addresses",),),
+        DataRequest,
     )
 
 
@@ -110,7 +109,7 @@ def test_data_request_failure_missing():
 def data_request_transaction_for_api(data_request):
     data_request.update(
         {
-            "timestamp": 1602666090,
+            "timestamp": 1_738_180_845,
             "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
             "confirmed": True,
             "reverted": False,
@@ -214,19 +213,15 @@ def test_data_request_transaction_for_api_failure_missing():
 
 @pytest.fixture
 def data_request_transaction_for_block(data_request):
+    del data_request["input_addresses"]
+    del data_request["commit_and_reveal_fee"]
+    del data_request["dro_fee"]
+    del data_request["RAD_bytes_hash"]
+    del data_request["DRO_bytes_hash"]
+    del data_request["weight"]
     data_request.update(
         {
-            "kinds": ["HTTP-GET"],
-            "urls": ["https://data.gateapi.io/api2/1/ticker/wit_usdt"],
-            "headers": [[""]],
-            "bodies": [""],
-            "scripts": [
-                "StringParseJSONMap().MapGetFloat(last).FloatMultiply(1000000).FloatRound()"
-            ],
-            "aggregate_filters": "filter(DeviationStandard, 1.4)",
-            "aggregate_reducer": "reduce(AverageMedian)",
-            "tally_filters": "filter(DeviationStandard, 2.5)",
-            "tally_reducer": "reduce(AverageMedian)",
+            "requester": "wit100000000000000000000000000000000r0v4g2",
         }
     )
     return data_request
@@ -236,84 +231,27 @@ def test_data_request_transaction_for_block_success(data_request_transaction_for
     DataRequestTransactionForBlock().load(data_request_transaction_for_block)
 
 
-def test_data_request_transaction_for_block_success_none(
-    data_request_transaction_for_block,
-):
-    data_request_transaction_for_block["urls"] = [None]
-    DataRequestTransactionForBlock().load(data_request_transaction_for_block)
-
-
-def test_data_request_transaction_for_block_failure_kind(
-    data_request_transaction_for_block,
-):
-    data_request_transaction_for_block["kinds"] = ["RN"]
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestTransactionForBlock().load(data_request_transaction_for_block)
-    assert (
-        err_info.value.messages["kinds"][0][0]
-        == "Must be one of: HTTP-GET, HTTP-POST, RNG."
-    )
-
-
 def test_data_request_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         DataRequestTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 22
-    assert err_info.value.messages["kinds"][0] == "Missing data for required field."
-    assert err_info.value.messages["urls"][0] == "Missing data for required field."
-    assert err_info.value.messages["headers"][0] == "Missing data for required field."
-    assert err_info.value.messages["bodies"][0] == "Missing data for required field."
-    assert err_info.value.messages["scripts"][0] == "Missing data for required field."
-    assert (
-        err_info.value.messages["aggregate_filters"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["aggregate_reducer"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["tally_filters"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["tally_reducer"][0]
-        == "Missing data for required field."
-    )
+    assert len(err_info.value.messages) == 8
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
-    assert (
-        err_info.value.messages["input_addresses"][0]
-        == "Missing data for required field."
-    )
+    assert err_info.value.messages["requester"][0] == "Missing data for required field."
     assert err_info.value.messages["witnesses"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["witness_reward"][0]
         == "Missing data for required field."
     )
     assert (
-        err_info.value.messages["commit_and_reveal_fee"][0]
-        == "Missing data for required field."
-    )
-    assert (
         err_info.value.messages["consensus_percentage"][0]
         == "Missing data for required field."
     )
-    assert err_info.value.messages["dro_fee"][0] == "Missing data for required field."
     assert err_info.value.messages["miner_fee"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["collateral"][0] == "Missing data for required field."
     )
-    assert (
-        err_info.value.messages["RAD_bytes_hash"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["DRO_bytes_hash"][0]
-        == "Missing data for required field."
-    )
-    assert err_info.value.messages["weight"][0] == "Missing data for required field."
 
 
 @pytest.fixture
@@ -380,14 +318,10 @@ def test_data_request_transaction_for_explorer_success_none(
 def test_data_request_transaction_for_explorer_failure_address(
     data_request_transaction_for_explorer,
 ):
-    data_request_transaction_for_explorer["output_address"] = (
-        "wit100000000000000000000000000000000r0v4g"
-    )
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
-    assert (
-        err_info.value.messages["output_address"][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        data_request_transaction_for_explorer,
+        ("output_address",),
+        DataRequestTransactionForExplorer,
     )
 
 
@@ -399,19 +333,8 @@ def test_data_request_transaction_for_explorer_failure_kind(
         DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
     assert (
         err_info.value.messages["kinds"][0][0]
-        == "Must be one of: HTTP-GET, HTTP-POST, RNG."
+        == "Must be one of: Unknown, HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
-
-
-def test_data_request_transaction_for_explorer_failure_url(
-    data_request_transaction_for_explorer,
-):
-    data_request_transaction_for_explorer["urls"] = [
-        "data.gateapi.io/api2/1/ticker/wit_usdt"
-    ]
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestTransactionForExplorer().load(data_request_transaction_for_explorer)
-    assert err_info.value.messages["urls"][0][0] == "Not a valid URL."
 
 
 def test_data_request_transaction_for_explorer_failure_bytearray_field(
@@ -536,15 +459,8 @@ def test_data_request_retrieval_failure_kind(data_request_retrieval):
         DataRequestRetrieval().load(data_request_retrieval)
     assert (
         err_info.value.messages["kind"][0]
-        == "Must be one of: HTTP-GET, HTTP-POST, RNG."
+        == "Must be one of: Unknown, HTTP-GET, HTTP-HEAD, HTTP-POST, RNG."
     )
-
-
-def test_data_request_retrieval_failure_url(data_request_retrieval):
-    data_request_retrieval["url"] = "data.gateapi.io/api2/1/ticker/wit_usdt"
-    with pytest.raises(ValidationError) as err_info:
-        DataRequestRetrieval().load(data_request_retrieval)
-    assert err_info.value.messages["url"][0] == "Not a valid URL."
 
 
 def test_data_request_retrieval_failure_missing():

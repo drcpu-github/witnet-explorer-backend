@@ -5,23 +5,34 @@ import sys
 import time
 import toml
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
+from blockchain.objects.wip import WIP
 from caching.client import Client
 from caching.network_stats_functions import aggregate_nodes, read_from_database
-from blockchain.objects.wip import WIP
-
+from util.blockchain_functions import (
+    calculate_block_reward,
+    calculate_timestamp_from_epoch,
+)
+from util.database_manager import DatabaseManager
 from util.data_transformer import re_sql
-from util.common_functions import calculate_block_reward
 from util.logger import configure_logger
 
 class NetworkStats(Client):
-    def __init__(self, config, reset):
-        # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["network_stats"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["network_stats"]["level_file"]
-        self.logger = configure_logger("network", log_filename, log_level)
+    def __init__(self, reset):
+        ns_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["network_stats"]
 
-        timeout = config["api"]["caching"]["scripts"]["network_stats"]["node_timeout"]
-        super().__init__(config, node_timeout=timeout, named_cursor=True)
+        # Setup logger
+        self.logger = configure_logger("network", ns_cfg["log_file"], ns_cfg["level_file"])
+
+        super().__init__(BlockchainConfig.config, node_timeout=ns_cfg["node_timeout"], named_cursor=True)
+
+        # Also create a database client without a named cursor
+        self.database_client = DatabaseManager(
+            named_cursor=False,
+            logger=self.logger,
+            custom_types=["utxo", "filter"],
+        )
 
         # Assign some of the consensus constants
         self.start_time = self.consensus_constants.checkpoint_zero_timestamp
@@ -30,9 +41,7 @@ class NetworkStats(Client):
         self.initial_block_reward = self.consensus_constants.initial_block_reward
 
         # Granularity at which network statistics are aggregated
-        self.aggregation_epochs = config["api"]["caching"]["scripts"]["network_stats"]["aggregation_epochs"]
-
-        self.wips = WIP(database_config=config["database"], node_config=config["node-pool"])
+        self.aggregation_epochs = ns_cfg["aggregation_epochs"]
 
         self.last_update_time = int(time.time())
 
@@ -152,7 +161,7 @@ class NetworkStats(Client):
             # If there is a gap of more than 1 epoch between two consecutive blocks, we mark it as a rollback
             if epoch > previous_epoch + 1:
                 # Calculate the timestamp of the rollback and its boundaries
-                timestamp = self.start_time + (previous_epoch + 1) * self.epoch_period
+                timestamp = calculate_timestamp_from_epoch(previous_epoch)
                 self.rollbacks.append([timestamp, previous_epoch + 1, epoch - 1, epoch - previous_epoch - 1])
             previous_epoch = epoch
 
@@ -602,12 +611,12 @@ class NetworkStats(Client):
                         next_aggregation_period = int(e / self.aggregation_epochs + 1) * self.aggregation_epochs
                         per_period_key = (next_aggregation_period - self.aggregation_epochs, next_aggregation_period)
 
-                    block_reward = calculate_block_reward(epoch, self.halving_period, self.initial_block_reward)
+                    block_reward = calculate_block_reward(epoch)
                     self.burn_rate_period[per_period_key][0] += block_reward
 
             previous_epoch = epoch
 
-            if not self.wips.is_wip0027_active(epoch):
+            if not BlockchainConfig.wip.is_wip0027_active(epoch):
                 continue
 
             # Check if the next aggregation period was reached
@@ -794,10 +803,12 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.consensus_constants = ConsensusConstants()
+    BlockchainConfig.wip = WIP()
 
     # Create network cache
-    network_cache = NetworkStats(config, options.reset)
+    network_cache = NetworkStats(options.reset)
     network_cache.build_network_stats(options.reset)
     network_cache.save_network()
 

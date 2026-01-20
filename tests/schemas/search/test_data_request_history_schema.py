@@ -13,7 +13,7 @@ from schemas.search.data_request_history_schema import (
 def data_request_history_entry():
     return {
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "success": True,
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "witnesses": 10,

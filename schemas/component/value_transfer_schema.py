@@ -11,7 +11,7 @@ from schemas.include.validation_functions import is_valid_address
 
 class AddressOutput(Schema):
     address = fields.Str(validate=is_valid_address, required=True)
-    value = fields.Int(validate=validate.Range(min=1), required=True)
+    value = fields.Int(validate=validate.Range(min=0), required=True)
     timelock = fields.Int(validate=validate.Range(min=0), required=True)
     locked = fields.Boolean(required=True)
 
@@ -22,7 +22,7 @@ class ValueTransferTransactionForApi(BaseApiTransaction):
     inputs_merged = fields.List(fields.Nested(InputUtxo), required=True)
     output_addresses = fields.List(fields.Str(validate=is_valid_address), required=True)
     output_values = fields.List(
-        fields.Int(validate=validate.Range(min=1)), required=True
+        fields.Int(validate=validate.Range(min=0)), required=True
     )
     timelocks = fields.List(fields.Int(validate=validate.Range(min=0)), required=True)
     utxos = fields.List(fields.Nested(AddressOutput), required=True)
@@ -89,11 +89,11 @@ class ValueTransferTransactionForBlock(BaseTransaction, TimestampComponent):
 class ValueTransferTransactionForExplorer(BaseTransaction, InputUtxoList):
     input_addresses = fields.List(fields.Str(validate=is_valid_address), required=True)
     input_values = fields.List(
-        fields.Int(validate=validate.Range(min=1)), required=True
+        fields.Int(validate=validate.Range(min=0)), required=True
     )
     output_addresses = fields.List(fields.Str(validate=is_valid_address), required=True)
     output_values = fields.List(
-        fields.Int(validate=validate.Range(min=1)), required=True
+        fields.Int(validate=validate.Range(min=0)), required=True
     )
     timelocks = fields.List(fields.Int(validate=validate.Range(min=0)), required=True)
     fee = fields.Int(validate=validate.Range(min=0), required=True)

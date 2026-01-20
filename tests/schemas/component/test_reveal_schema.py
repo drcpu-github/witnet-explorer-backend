@@ -14,7 +14,7 @@ def reveal_transaction_for_api():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -51,6 +51,7 @@ def reveal_transaction_for_block():
         "epoch": 1,
         "address": "wit100000000000000000000000000000000r0v4g2",
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
+        "fee": 1,
         "reveal": "124205",
         "success": True,
     }
@@ -75,13 +76,14 @@ def test_reveal_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         RevealTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 6
+    assert len(err_info.value.messages) == 7
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["address"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
     assert err_info.value.messages["reveal"][0] == "Missing data for required field."
     assert err_info.value.messages["success"][0] == "Missing data for required field."
 
@@ -91,7 +93,7 @@ def reveal_transaction_for_data_request():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "address": "wit100000000000000000000000000000000r0v4g2",
         "confirmed": True,
@@ -142,6 +144,7 @@ def reveal_transaction_for_explorer():
         "epoch": 1,
         "address": "wit100000000000000000000000000000000r0v4g2",
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
+        "fee": 1,
         "reveal": bytearray([26, 0, 1, 229, 45]),
         "success": True,
     }
@@ -175,12 +178,13 @@ def test_reveal_transaction_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         RevealTransactionForExplorer().load(data)
-    assert len(err_info.value.messages) == 6
+    assert len(err_info.value.messages) == 7
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["address"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
     assert err_info.value.messages["reveal"][0] == "Missing data for required field."
     assert err_info.value.messages["success"][0] == "Missing data for required field."

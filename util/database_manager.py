@@ -2,12 +2,16 @@ import psycopg
 from psycopg.types.composite import CompositeInfo, register_composite
 import sys
 
+from blockchain.config import BlockchainConfig
+
 class DatabaseManager(object):
-    def __init__(self, db_config, named_cursor=False, logger=None, custom_types=[]):
-        self.db_user = db_config["user"]
-        self.db_name = db_config["name"]
-        self.db_pass = db_config["password"]
-        self.fetch_rows = db_config["fetch_rows"]
+    def __init__(self, named_cursor=False, logger=None, custom_types=[]):
+        config = BlockchainConfig.config
+
+        self.db_user = config["database"]["user"]
+        self.db_name = f"{config['database']['name']}_{config['environment']['network']}"
+        self.db_pass = config["database"]["password"]
+        self.fetch_rows = config["database"]["fetch_rows"]
 
         self.named_cursor = named_cursor
 
@@ -18,9 +22,9 @@ class DatabaseManager(object):
     def connect(self, custom_types):
         try:
             if self.db_pass:
-                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, password=self.db_pass, prepare_threshold=None)
             else:
-                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name)
+                self.connection = psycopg.connect(user=self.db_user, dbname=self.db_name, prepare_threshold=None)
 
             for ct in custom_types:
                 self.register_type(ct)

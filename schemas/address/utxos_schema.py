@@ -12,9 +12,7 @@ class AddressUtxosArgs(AddressInfoArgs):
 class Utxo(OutputPointer):
     timelock = fields.Int(validate=validate.Range(min=0), required=True)
     utxo_mature = fields.Boolean(required=True)
-    value = fields.Int(
-        validate=validate.Range(min=1, max=2500000000000000000), required=True
-    )
+    value = fields.Int(validate=validate.Range(min=1), required=True)
 
 
 class AddressUtxosResponse(AddressSchema):

@@ -2,7 +2,7 @@ import psycopg
 import pylibmc
 import sys
 
-from node.consensus_constants import ConsensusConstants
+from blockchain.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.socket_manager import SocketManager
 from util.database_manager import DatabaseManager
@@ -15,7 +15,6 @@ class Client(object):
         # Connect to node pool
         try:
             self.witnet_node = WitnetNode(
-                config["node-pool"],
                 timeout=node_timeout,
                 logger=self.logger,
             )
@@ -26,18 +25,10 @@ class Client(object):
         # Connect to database
         try:
             self.database = DatabaseManager(
-                config["database"],
                 named_cursor=named_cursor,
                 logger=self.logger,
                 custom_types=["utxo", "filter"],
             )
-            if named_cursor:
-                self.database_client = DatabaseManager(
-                    config["database"],
-                    named_cursor=False,
-                    logger=self.logger,
-                    custom_types=["utxo", "filter"],
-                )
         except psycopg.OperationalError:
             self.logger.error("Could not connect to the database!")
             sys.exit(1)
@@ -48,8 +39,6 @@ class Client(object):
         self.memcached_client = pylibmc.Client(
             servers,
             binary=True,
-            username=cache_config["user"],
-            password=cache_config["password"],
             behaviors={"tcp_nodelay": True, "ketama": True},
         )
 
@@ -68,7 +57,6 @@ class Client(object):
             self.consensus_constants = ConsensusConstants(
                 database=self.database,
                 witnet_node=self.witnet_node,
-                error_retry=config["api"]["error_retry"],
             )
         except ConnectionRefusedError:
             self.logger.error("Could not connect to the node pool!")

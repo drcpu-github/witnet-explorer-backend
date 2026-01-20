@@ -1,10 +1,15 @@
 import time
 
+from psycopg.sql import SQL, Literal
+
 from blockchain.transactions.reveal import translate_reveal
 from blockchain.transactions.tally import translate_tally
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
-from util.common_functions import calculate_block_reward
+from util.blockchain_functions import (
+    calculate_block_reward,
+    calculate_timestamp_from_epoch,
+)
+from util.data_transformer import re_sql
 from util.database_manager import DatabaseManager
 
 
@@ -12,7 +17,6 @@ class Address(object):
     def __init__(
         self,
         address,
-        config,
         database=None,
         witnet_node=None,
         logger=None,
@@ -20,9 +24,6 @@ class Address(object):
     ):
         # Set address
         self.address = address.strip()
-
-        # Save config
-        self.config = config
 
         # Initialize database manager if provided
         self.db_mngr = None
@@ -48,24 +49,11 @@ class Address(object):
     def initialize_connections(self):
         # Connect to the database if necessary
         if self.db_mngr is None:
-            self.db_mngr = DatabaseManager(
-                self.config["database"], named_cursor=False, logger=self.logger
-            )
+            self.db_mngr = DatabaseManager(named_cursor=False, logger=self.logger)
 
         # Connect to node pool
         if self.witnet_node is None:
-            self.witnet_node = WitnetNode(self.config["node-pool"], logger=self.logger)
-
-        # Save consensus constants
-        consensus_constants = ConsensusConstants(
-            database=self.db_mngr,
-            witnet_node=self.witnet_node,
-            error_retry=self.config["api"]["error_retry"],
-        )
-        self.start_time = consensus_constants.checkpoint_zero_timestamp
-        self.epoch_period = consensus_constants.checkpoints_period
-        self.halving_period = consensus_constants.halving_period
-        self.initial_block_reward = consensus_constants.initial_block_reward
+            self.witnet_node = WitnetNode(logger=self.logger)
 
     def close_connections(self):
         self.db_mngr.terminate()
@@ -79,18 +67,34 @@ class Address(object):
         else:
             balance = balance["result"]["total"]
 
-        # Get reputation
-        reputation = self.witnet_node.get_reputation(self.address)
-        if type(reputation) is dict and "error" in reputation:
-            total_reputation = "Could not retrieve total reputation"
-            eligibility = "Could not retrieve eligibility"
-            reputation = "Could not retrieve reputation"
+        # Get staked amounts
+        staked_validator = self.witnet_node.get_stakes(self.address, None)
+        if type(staked_validator) is dict and "reason" in staked_validator:
+            if (
+                staked_validator["reason"]
+                == f"Tried to query for a stake entry by validator ({self.address}) that is not registered in Stakes"
+            ):
+                staked_validator = 0
+            else:
+                staked_validator = "Could not retrieve validator staked balance"
         else:
-            result = reputation["result"]
-            total_reputation = result["total_reputation"]
-            reputation = result["stats"][self.address]
-            eligibility = reputation["eligibility"]
-            reputation = reputation["reputation"]
+            staked_validator = sum(
+                [stake["value"]["coins"] for stake in staked_validator["result"]]
+            )
+
+        staked_withdrawer = self.witnet_node.get_stakes(None, self.address)
+        if type(staked_withdrawer) is dict and "reason" in staked_withdrawer:
+            if (
+                staked_withdrawer["reason"]
+                == f"Tried to query for a stake entry by withdrawer ({self.address}) that is not registered in Stakes"
+            ):
+                staked_withdrawer = 0
+            else:
+                staked_withdrawer = "Could not retrieve withdrawer staked balance"
+        else:
+            staked_withdrawer = sum(
+                [stake["value"]["coins"] for stake in staked_withdrawer["result"]]
+            )
 
         # Get label
         label = ""
@@ -111,9 +115,8 @@ class Address(object):
 
         return {
             "balance": balance,
-            "reputation": reputation,
-            "eligibility": eligibility,
-            "total_reputation": total_reputation,
+            "staked_validator": staked_validator,
+            "staked_withdrawer": staked_withdrawer,
             "label": label,
         }
 
@@ -121,7 +124,11 @@ class Address(object):
         value_transfers = []
         value_transfers.extend(self.get_value_transfers_in())
         value_transfers.extend(self.get_value_transfers_out())
-        return sorted(value_transfers, key=lambda vt: vt["epoch"], reverse=True)
+        return sorted(
+            value_transfers,
+            key=lambda vt: (vt["epoch"], vt["hash"]),
+            reverse=True,
+        )
 
     def get_value_transfers_in(self):
         # get value transfers arriving at our address
@@ -140,14 +147,14 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                output_addresses @> ARRAY[%s]::CHAR(42)[] AND
+                output_addresses @> ARRAY[%s]::CHAR({length})[] AND
                 NOT (%s = ANY(input_addresses))
             ORDER BY
                 blocks.epoch
             DESC
         """
         result = self.db_mngr.sql_return_all(
-            sql,
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
             parameters=[self.address, self.address],
         )
 
@@ -165,8 +172,6 @@ class Address(object):
                     txn_epoch,
                     block_confirmed,
                 ) = value_transfer
-
-                timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
                 total_value = 0
                 for output_address, output_value in zip(
@@ -196,7 +201,7 @@ class Address(object):
                     {
                         "hash": txn_hash.hex(),
                         "epoch": txn_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(txn_epoch),
                         "direction": "in",
                         "input_addresses": sorted(list(set(input_addresses))),
                         "output_addresses": sorted(list(set(output_addresses))),
@@ -228,12 +233,15 @@ class Address(object):
             LEFT JOIN blocks ON
                 value_transfer_txns.epoch=blocks.epoch
             WHERE
-                input_addresses @> ARRAY[%s]::CHAR(42)[]
+                input_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
                 blocks.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         value_transfers_out = []
         if result:
@@ -249,8 +257,6 @@ class Address(object):
                     txn_epoch,
                     block_confirmed,
                 ) = value_transfer
-
-                timestamp = self.start_time + (txn_epoch + 1) * self.epoch_period
 
                 total_value = 0
                 for output_address, output_value in zip(
@@ -289,7 +295,7 @@ class Address(object):
                     {
                         "hash": txn_hash.hex(),
                         "epoch": txn_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(txn_epoch),
                         "direction": direction,
                         "input_addresses": sorted(list(set(input_addresses))),
                         "output_addresses": sorted(output_addresses),
@@ -313,9 +319,11 @@ class Address(object):
                 blocks.commit,
                 blocks.reveal,
                 blocks.tally,
+                blocks.stake,
+                blocks.unstake,
+                blocks.txns_fees,
                 blocks.epoch,
-                blocks.confirmed,
-                mint_txns.output_values
+                blocks.confirmed
             FROM
                 blocks
             LEFT JOIN mint_txns ON
@@ -338,31 +346,28 @@ class Address(object):
                     commits,
                     reveals,
                     tallies,
+                    stakes,
+                    unstakes,
+                    txns_fees,
                     block_epoch,
                     block_confirmed,
-                    output_values,
                 ) = block
-
-                timestamp = self.start_time + (block_epoch + 1) * self.epoch_period
-
-                block_reward = sum(output_values)
-                block_fees = sum(output_values) - calculate_block_reward(
-                    block_epoch, self.halving_period, self.initial_block_reward
-                )
 
                 blocks_minted.append(
                     {
                         "hash": block_hash.hex(),
                         "miner": self.address,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(block_epoch),
                         "epoch": block_epoch,
-                        "block_reward": block_reward,
-                        "block_fees": block_fees,
+                        "block_reward": calculate_block_reward(block_epoch) + txns_fees,
+                        "block_fees": txns_fees,
                         "value_transfers": value_transfers,
                         "data_requests": data_requests,
                         "commits": commits,
                         "reveals": reveals,
                         "tallies": tallies,
+                        "stakes": stakes,
+                        "unstakes": unstakes,
                         "confirmed": block_confirmed,
                     }
                 )
@@ -383,12 +388,15 @@ class Address(object):
             LEFT JOIN blocks ON
                 mint_txns.epoch=blocks.epoch
             WHERE
-                mint_txns.output_addresses @> ARRAY[%s]::CHAR(42)[]
+                mint_txns.output_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
                 mint_txns.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         mints = []
         if result:
@@ -409,13 +417,11 @@ class Address(object):
                     if output_address == self.address:
                         value = output_value
 
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
                 mints.append(
                     {
                         "hash": txn_hash.hex(),
                         "epoch": epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
                         "miner": miner,
                         "output_value": value,
                         "confirmed": confirmed,
@@ -483,9 +489,6 @@ class Address(object):
                     success,
                 ) = data_request
 
-                # Calculate timestamp
-                timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
-
                 # Translate reveal value
                 if reveal_value:
                     _, translated_reveal = translate_reveal(
@@ -505,7 +508,7 @@ class Address(object):
                         "hash": data_request_hash.hex(),
                         "success": success,
                         "epoch": tally_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(tally_epoch),
                         "collateral": collateral,
                         "witness_reward": witness_reward,
                         "reveal": translated_reveal,
@@ -543,12 +546,15 @@ class Address(object):
             ON
                 tally_txns.epoch=blocks.epoch
             WHERE
-                data_request_txns.input_addresses @> ARRAY[%s]::CHAR(42)[]
+                data_request_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
             ORDER BY
-                data_request_txns.epoch
+                tally_txns.epoch
             DESC
         """
-        result = self.db_mngr.sql_return_all(sql, parameters=[self.address])
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address],
+        )
 
         data_requests_created = []
         if result:
@@ -574,9 +580,6 @@ class Address(object):
                 if any(dr is None for dr in data_request):
                     continue
 
-                # Calculate timestamp
-                timestamp = self.start_time + (tally_epoch + 1) * self.epoch_period
-
                 # Calculate total fee of the data request (witnesses * witness_reward + mining fees per transaction)
                 # Note that this is the sum of the DRO and miner fees to display how much that data request payed in total
                 total_fee = sum(input_values) - output_value
@@ -596,7 +599,7 @@ class Address(object):
                         "hash": data_request_hash.hex(),
                         "success": success,
                         "epoch": tally_epoch,
-                        "timestamp": timestamp,
+                        "timestamp": calculate_timestamp_from_epoch(tally_epoch),
                         "total_fee": total_fee,
                         "witnesses": witnesses,
                         "collateral": collateral,
@@ -608,6 +611,150 @@ class Address(object):
                 )
 
         return data_requests_created
+
+    def get_stakes(self):
+        sql = """
+            SELECT
+                stake_txns.txn_hash,
+                stake_txns.epoch,
+                stake_txns.input_addresses,
+                stake_txns.input_values,
+                stake_txns.change_value,
+                stake_txns.validator,
+                stake_txns.withdrawer,
+                stake_txns.stake_value,
+                blocks.confirmed
+            FROM
+                stake_txns
+            LEFT JOIN blocks ON
+                stake_txns.epoch=blocks.epoch
+            WHERE
+                stake_txns.input_addresses @> ARRAY[%s]::CHAR({length})[]
+            OR
+                stake_txns.validator=%s
+            OR
+                stake_txns.withdrawer=%s
+            ORDER BY
+                stake_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(
+            SQL(re_sql(sql)).format(length=Literal(len(self.address))),
+            parameters=[self.address, self.address, self.address],
+        )
+
+        stakes = []
+        if result:
+            for stake in result:
+                (
+                    txn_hash,
+                    epoch,
+                    input_addresses,
+                    input_values,
+                    change_value,
+                    validator,
+                    withdrawer,
+                    stake_value,
+                    confirmed,
+                ) = stake
+
+                fee = sum(input_values) - stake_value - (change_value or 0)
+
+                # Add all inputs from this address (if any)
+                value = 0
+                for input_address, input_value in zip(input_addresses, input_values):
+                    if input_address == self.address:
+                        value += input_value
+
+                if validator == self.address:
+                    if validator in input_addresses:
+                        direction = "self"
+                    else:
+                        direction = "in"
+                elif withdrawer == self.address:
+                    direction = "in"
+                else:
+                    direction = "out"
+
+                stakes.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": epoch,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
+                        "direction": direction,
+                        "validator": validator,
+                        "withdrawer": withdrawer,
+                        "input_value": value,
+                        "fee": fee,
+                        "stake_value": stake_value,
+                        "confirmed": confirmed,
+                    }
+                )
+
+        return stakes
+
+    def get_unstakes(self):
+        sql = """
+            SELECT
+                unstake_txns.txn_hash,
+                unstake_txns.epoch,
+                unstake_txns.validator,
+                unstake_txns.withdrawer,
+                unstake_txns.fee,
+                unstake_txns.unstake_value,
+                blocks.confirmed
+            FROM
+                unstake_txns
+            LEFT JOIN blocks ON
+                unstake_txns.epoch=blocks.epoch
+            WHERE
+                unstake_txns.validator=%s
+            OR
+                unstake_txns.withdrawer=%s
+            ORDER BY
+                unstake_txns.epoch
+            DESC
+        """
+        result = self.db_mngr.sql_return_all(
+            sql, parameters=[self.address, self.address]
+        )
+
+        unstakes = []
+        if result:
+            for unstake in result:
+                (
+                    txn_hash,
+                    epoch,
+                    validator,
+                    withdrawer,
+                    fee,
+                    unstake_value,
+                    confirmed,
+                ) = unstake
+
+                if validator == self.address:
+                    if validator == withdrawer:
+                        direction = "self"
+                    else:
+                        direction = "out"
+                else:
+                    direction = "in"
+
+                unstakes.append(
+                    {
+                        "hash": txn_hash.hex(),
+                        "epoch": epoch,
+                        "timestamp": calculate_timestamp_from_epoch(epoch),
+                        "direction": direction,
+                        "validator": validator,
+                        "withdrawer": withdrawer,
+                        "fee": fee,
+                        "unstake_value": unstake_value,
+                        "confirmed": confirmed,
+                    }
+                )
+
+        return unstakes
 
     def get_last_epoch_processed(self):
         sql = """

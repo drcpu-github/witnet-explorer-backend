@@ -3,12 +3,12 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from api.connect import send_address_caching_request
 from blockchain.objects.address import Address
 from schemas.address.mint_view_schema import MintView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import send_address_caching_request
 
 address_mints_blueprint = Blueprint(
     "address mints",
@@ -45,7 +45,6 @@ class AddressMints(MethodView):
     def get(self, args, pagination_parameters):
         address_caching_server = current_app.extensions["address_caching_server"]
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
@@ -62,7 +61,7 @@ class AddressMints(MethodView):
         # Try to fetch the result from the cache
         cached_mints = cache.get(f"{arg_address}_mints")
         # Return cached version if found (fast)
-        if cached_mints:
+        if cached_mints is not None:
             logger.info(
                 f"Found {len(cached_mints)} mint transactions for {arg_address} in cache"
             )
@@ -75,7 +74,6 @@ class AddressMints(MethodView):
             )
             address = Address(
                 arg_address,
-                config,
                 database=database,
                 witnet_node=witnet_node,
                 logger=logger,

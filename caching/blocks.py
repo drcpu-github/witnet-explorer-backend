@@ -6,28 +6,29 @@ import toml
 
 from marshmallow import ValidationError
 
-from caching.client import Client
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
+from blockchain.objects.wip import WIP
 from blockchain.objects.block import Block
+from caching.client import Client
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 from util.memcached import calculate_timeout
 from util.common_sql import sql_last_block
 
 class Blocks(Client):
-    def __init__(self, config):
+    def __init__(self):
+        b_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["blocks"]
+
         # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["blocks"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["blocks"]["level_file"]
-        self.logger = configure_logger("block", log_filename, log_level)
+        self.logger = configure_logger("block", b_cfg["log_file"], b_cfg["level_file"])
 
-        super().__init__(config)
-
-        self.node_config = config["node-pool"]
+        super().__init__(BlockchainConfig.config)
 
         # Fetch configured timeout for block cache expiry
-        self.memcached_timeout = config["api"]["caching"]["scripts"]["blocks"]["timeout"]
+        self.memcached_timeout = b_cfg["timeout"]
         # Calculate how many epochs in the past this script has to cache blocks
-        self.lookback_epochs = int(config["api"]["caching"]["scripts"]["blocks"]["timeout"] / self.consensus_constants.checkpoints_period)
+        self.lookback_epochs = int(b_cfg["timeout"] / self.consensus_constants.checkpoints_period)
 
         self.superblock_period = self.consensus_constants.superblock_period
 
@@ -130,7 +131,7 @@ class Blocks(Client):
 
     def build_block(self, block_hash, epoch):
         # Build block
-        block = Block(self.consensus_constants, block_hash=block_hash, logger=self.logger, database=self.database, database_config=self.config["database"], node_config=self.node_config)
+        block = Block(block_hash=block_hash, logger=self.logger, database=self.database)
         json_block = block.process_block("api")
         if "error" in json_block:
             self.logger.warning(f"Could not fetch block {block_hash} for epoch {epoch}")
@@ -166,10 +167,12 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.consensus_constants = ConsensusConstants()
+    BlockchainConfig.wip = WIP()
 
     # Create block cache
-    blocks = Blocks(config)
+    blocks = Blocks()
     blocks.process(options.force_update)
 
 if __name__ == "__main__":

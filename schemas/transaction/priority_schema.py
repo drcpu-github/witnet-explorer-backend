@@ -9,24 +9,28 @@ class TransactionPriorityArgs(Schema):
                 "all",
                 "drt",
                 "vtt",
+                "st",
+                "ut",
             ]
         ),
     )
 
 
+class PriorityTime(Schema):
+    priority = fields.Float(validate=validate.Range(min=0), required=True)
+    time_to_block = fields.Int(validate=validate.Range(min=0), required=True)
+
+
 class TransactionPriority(Schema):
-    priority = fields.Float(required=True, validate=validate.Range(min=0))
-    time_to_block = fields.Int(required=True, validate=validate.Range(min=0))
+    stinky = fields.Nested(PriorityTime, required=True)
+    low = fields.Nested(PriorityTime, required=True)
+    medium = fields.Nested(PriorityTime, required=True)
+    high = fields.Nested(PriorityTime, required=True)
+    opulent = fields.Nested(PriorityTime, required=True)
 
 
 class TransactionPriorityResponse(Schema):
-    drt_stinky = fields.Nested(TransactionPriority)
-    drt_low = fields.Nested(TransactionPriority)
-    drt_medium = fields.Nested(TransactionPriority)
-    drt_high = fields.Nested(TransactionPriority)
-    drt_opulent = fields.Nested(TransactionPriority)
-    vtt_stinky = fields.Nested(TransactionPriority)
-    vtt_low = fields.Nested(TransactionPriority)
-    vtt_medium = fields.Nested(TransactionPriority)
-    vtt_high = fields.Nested(TransactionPriority)
-    vtt_opulent = fields.Nested(TransactionPriority)
+    drt = fields.Nested(TransactionPriority)
+    vtt = fields.Nested(TransactionPriority)
+    st = fields.Nested(TransactionPriority)
+    ut = fields.Nested(TransactionPriority)

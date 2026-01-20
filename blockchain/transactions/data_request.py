@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 
 import cbor2
 
@@ -8,7 +9,7 @@ from schemas.component.data_request_schema import (
     DataRequestTransactionForBlock,
     DataRequestTransactionForExplorer,
 )
-from util.common_functions import calculate_priority
+from util.blockchain_functions import calculate_priority, calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
@@ -19,29 +20,19 @@ class DataRequest(Transaction):
             self.json_txn = self.json_txn["transaction"]["DataRequest"]
         self.data_request = self.json_txn["body"]["dr_output"]["data_request"]
 
-        # Calculate transaction addresses
-        self.txn_details["input_addresses"] = self.calculate_addresses(
-            self.json_txn["signatures"]
-        )
-
-        # Collect input / output details
+        # Collect output details
         input_utxos, input_values = self.get_inputs(self.json_txn["body"]["inputs"])
         output_addresses, output_values, _ = self.get_outputs(
             self.json_txn["body"]["outputs"]
         )
 
-        self.txn_details["witnesses"] = self.json_txn["body"]["dr_output"]["witnesses"]
-        self.txn_details["witness_reward"] = self.json_txn["body"]["dr_output"][
-            "witness_reward"
-        ]
-        self.txn_details["commit_and_reveal_fee"] = self.json_txn["body"]["dr_output"][
-            "commit_and_reveal_fee"
-        ]
-        self.txn_details["consensus_percentage"] = self.json_txn["body"]["dr_output"][
-            "min_consensus_percentage"
-        ]
+        # Get the parameters for the data request
+        dr_output = self.json_txn["body"]["dr_output"]
+        self.txn_details["witnesses"] = dr_output["witnesses"]
+        self.txn_details["witness_reward"] = dr_output["witness_reward"]
+        self.txn_details["consensus_percentage"] = dr_output["min_consensus_percentage"]
         self.txn_details["collateral"] = max(
-            self.collateral_minimum, self.json_txn["body"]["dr_output"]["collateral"]
+            self.collateral_minimum, dr_output["collateral"]
         )
 
         # Calculate fees (payed to witnesses and mining nodes)
@@ -50,41 +41,54 @@ class DataRequest(Transaction):
         if len(output_values) == 1:
             output_value = output_values[0]
         dro_fee, miner_fee = self.calculate_fees(
-            self.txn_details["witnesses"],
-            self.txn_details["witness_reward"],
-            self.txn_details["commit_and_reveal_fee"],
+            dr_output["witnesses"],
+            dr_output["witness_reward"],
+            dr_output["commit_and_reveal_fee"],
             input_values,
             output_value,
         )
-        self.txn_details["dro_fee"] = dro_fee
         self.txn_details["miner_fee"] = miner_fee
 
-        # Get the aggregate and tally reducer
-        if isinstance(self.data_request["aggregate"]["reducer"], int):
-            self.txn_details["aggregate_reducer"] = [
-                self.data_request["aggregate"]["reducer"]
-            ]
-        else:
-            self.txn_details["aggregate_reducer"] = self.data_request["aggregate"][
-                "reducer"
-            ]
+        if call_from == "api":
+            # Select the address with the most input UTXO's as the requester
+            self.txn_details["requester"] = Counter(
+                self.calculate_addresses(self.json_txn["signatures"])
+            ).most_common(1)[0][0]
 
-        if isinstance(self.data_request["tally"]["reducer"], int):
-            self.txn_details["tally_reducer"] = [self.data_request["tally"]["reducer"]]
-        else:
-            self.txn_details["tally_reducer"] = self.data_request["tally"]["reducer"]
+            del self.txn_details["weight"]
 
-        RAD_bytes_hash, DRO_bytes_hash = self.get_bytecode_hashes()
-        self.txn_details["RAD_bytes_hash"] = RAD_bytes_hash
-        self.txn_details["DRO_bytes_hash"] = DRO_bytes_hash
-
-        self.txn_details["kinds"] = []
-        self.txn_details["urls"] = []
-        self.txn_details["headers"] = []
-        self.txn_details["bodies"] = []
-        self.txn_details["scripts"] = []
+            return DataRequestTransactionForBlock().load(self.txn_details)
 
         if call_from == "explorer":
+            # Calculate addresses which provided the UTXOs for the data request
+            self.txn_details["input_addresses"] = self.calculate_addresses(
+                self.json_txn["signatures"]
+            )
+
+            self.txn_details["commit_and_reveal_fee"] = dr_output[
+                "commit_and_reveal_fee"
+            ]
+
+            self.txn_details["dro_fee"] = dro_fee
+
+            # Get the aggregate and tally reducer
+            reducer = self.data_request["aggregate"]["reducer"]
+            if isinstance(reducer, int):
+                self.txn_details["aggregate_reducer"] = [reducer]
+            else:
+                self.txn_details["aggregate_reducer"] = reducer
+
+            reducer = self.data_request["tally"]["reducer"]
+            if isinstance(reducer, int):
+                self.txn_details["tally_reducer"] = [reducer]
+            else:
+                self.txn_details["tally_reducer"] = reducer
+
+            # Get bytecode hashes
+            RAD_bytes_hash, DRO_bytes_hash = self.get_bytecode_hashes()
+            self.txn_details["RAD_bytes_hash"] = RAD_bytes_hash
+            self.txn_details["DRO_bytes_hash"] = DRO_bytes_hash
+
             self.txn_details["input_utxos"] = input_utxos
             self.txn_details["input_values"] = input_values
 
@@ -102,6 +106,11 @@ class DataRequest(Transaction):
                 self.txn_details["output_value"] = None
 
             # Process RAD sources and scripts
+            self.txn_details["kinds"] = []
+            self.txn_details["urls"] = []
+            self.txn_details["headers"] = []
+            self.txn_details["bodies"] = []
+            self.txn_details["scripts"] = []
             for retrieve in self.data_request["retrieve"]:
                 self.txn_details["kinds"].append(retrieve["kind"])
 
@@ -143,71 +152,6 @@ class DataRequest(Transaction):
                 self.txn_details["tally_filters"] = []
 
             return DataRequestTransactionForExplorer().load(self.txn_details)
-
-        if call_from == "api":
-            # Only keep a list of unique input addresses
-            self.txn_details["input_addresses"] = list(
-                set(self.txn_details["input_addresses"])
-            )
-
-            # Process RAD sources and scripts
-            for retrieve in self.data_request["retrieve"]:
-                self.txn_details["kinds"].append(retrieve["kind"])
-
-                if retrieve["kind"] in ("HTTP-GET", "HTTP-POST"):
-                    self.txn_details["urls"].append(retrieve["url"])
-                else:
-                    self.txn_details["urls"].append(None)
-
-                if "headers" in retrieve:
-                    self.txn_details["headers"].append(
-                        [f"{header[0]}: {header[1]}" for header in retrieve["headers"]]
-                    )
-                else:
-                    self.txn_details["headers"].append([""])
-
-                if retrieve["kind"] == "HTTP-POST":
-                    self.txn_details["bodies"].append(
-                        "".join([chr(c) for c in retrieve["body"]])
-                    )
-                else:
-                    self.txn_details["bodies"].append("")
-
-                self.txn_details["scripts"].append(translate_script(retrieve["script"]))
-
-            # Collect aggregation stage details
-            if len(self.data_request["aggregate"]["filters"]) > 0:
-                self.txn_details["aggregate_filters"] = translate_filters(
-                    [
-                        (aggregate_filter["op"], aggregate_filter["args"])
-                        for aggregate_filter in self.data_request["aggregate"][
-                            "filters"
-                        ]
-                    ]
-                )
-            else:
-                self.txn_details["aggregate_filters"] = ""
-
-            # Collect tally stage details
-            if len(self.data_request["tally"]["filters"]) > 0:
-                self.txn_details["tally_filters"] = translate_filters(
-                    [
-                        (tally_filter["op"], tally_filter["args"])
-                        for tally_filter in self.data_request["tally"]["filters"]
-                    ]
-                )
-            else:
-                self.txn_details["tally_filters"] = ""
-
-            # Translate reducers
-            self.txn_details["aggregate_reducer"] = translate_reducer(
-                self.txn_details["aggregate_reducer"]
-            )
-            self.txn_details["tally_reducer"] = translate_reducer(
-                self.txn_details["tally_reducer"]
-            )
-
-            return DataRequestTransactionForBlock().load(self.txn_details)
 
     def get_bytecode_hashes(self):
         RAD_bytes_hash, _ = self.protobuf_encoder.get_RAD_bytecode(
@@ -328,8 +272,6 @@ class DataRequest(Transaction):
                 txn_tally += "."
             txn_tally += translate_reducer(tally_reducer)
 
-            txn_time = self.start_time + (block_epoch + 1) * self.epoch_period
-
             return DataRequestTransactionForApi().load(
                 {
                     "hash": data_request_hash,
@@ -351,7 +293,7 @@ class DataRequest(Transaction):
                     "aggregate": txn_aggregate,
                     "tally": txn_tally,
                     "epoch": block_epoch,
-                    "timestamp": txn_time,
+                    "timestamp": calculate_timestamp_from_epoch(block_epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -367,15 +309,73 @@ class DataRequest(Transaction):
         input_values,
         output_value,
     ):
-        # DRO fee = number of witnesses multiplied by their reward + total number of commits and reveals multiplied by its fee + tally fee (1)
+        # DRO fee = number of witnesses multiplied by their reward + total number of commits and reveals multiplied by its fee
         # The commit fees, reveal fees and tally fee go to the miners including the transactions
         # The witness reward goes to the witnesses solving a data request
-        dro_fee = witnesses * (witness_reward + 2 * commit_and_reveal_fee) + 1
+        dro_fee = witnesses * (witness_reward + 2 * commit_and_reveal_fee)
         # Miner fee = the sum of input values minus the sum of output values minus the DRO fee
         # This fee goes to the miner who picks the data request from the memory pool and includes it in a block
         # This fee is divided by the transaction weight and determines the priority for being executed (included in a block)
         miner_fee = sum(input_values) - (output_value or 0) - dro_fee
         return dro_fee, miner_fee
+
+
+def get_commit_and_reveal_fee_for_data_request(
+    database,
+    data_request_hash,
+    transaction_batch=None,
+):
+    if transaction_batch is not None and data_request_hash in transaction_batch:
+        data_request_txn = transaction_batch[data_request_hash]
+        return {"fee": data_request_txn["commit_and_reveal_fee"]}
+    else:
+        sql = """
+            SELECT
+                data_request_txns.commit_and_reveal_fee
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"fee": result[0]}
+        else:
+            return {"error": "transaction not found"}
+
+
+def get_collateral_for_data_request(
+    database,
+    data_request_hash,
+    transaction_batch=None,
+):
+    if transaction_batch is not None and data_request_hash in transaction_batch:
+        data_request_txn = transaction_batch[data_request_hash]
+        return {"collateral": data_request_txn["collateral"]}
+    else:
+        sql = """
+            SELECT
+                data_request_txns.collateral
+            FROM
+                data_request_txns
+            WHERE
+                data_request_txns.txn_hash=%s
+            LIMIT 1
+        """
+        result = database.sql_return_one(
+            sql,
+            parameters=[bytearray.fromhex(data_request_hash)],
+        )
+
+        if result:
+            return {"collateral": result[0]}
+        else:
+            return {"error": "transaction not found"}
 
 
 def build_retrieval(kinds, urls, all_headers, bodies, scripts):

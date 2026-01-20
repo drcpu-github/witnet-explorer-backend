@@ -8,6 +8,7 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 from PIL import Image
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.tapi_schema import NetworkTapiArgs, NetworkTapiResponse
@@ -46,9 +47,10 @@ class NetworkTapi(MethodView):
     )
     def get(self, args):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
+
+        config = BlockchainConfig.config
 
         logger.info(f"network_tapi({args['return_all']})")
 

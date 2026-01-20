@@ -4,8 +4,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from blockchain.objects.block import Block
-from node.consensus_constants import ConsensusConstants
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.search.epoch_schema import SearchEpochArgs, SearchEpochResponse
@@ -44,10 +44,11 @@ class SearchEpoch(MethodView):
     )
     def get(self, args):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         epoch = args["value"]
         logger.info(f"search_epoch({epoch})")
@@ -61,17 +62,10 @@ class SearchEpoch(MethodView):
                 logger.info(
                     f"Found block {epoch} with hash {cached_block_hash} in memcached cache"
                 )
-                return cached_block, 200, {"X-Version": "1.0.0"}
-
-        # Create consensus constants
-        consensus_constants = ConsensusConstants(
-            database=database,
-            witnet_node=witnet_node,
-        )
+                return cached_block, 200, {"X-Version": "2.0.0"}
 
         # Fetch block from a node
         block = Block(
-            consensus_constants,
             block_epoch=epoch,
             logger=logger,
             database=database,
@@ -85,7 +79,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
         if "error" in block_json:
@@ -93,7 +87,7 @@ class SearchEpoch(MethodView):
             abort(
                 404,
                 message=f"Block for epoch {epoch} not found.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
 
         # Attempt to cache the block
@@ -121,7 +115,7 @@ class SearchEpoch(MethodView):
                     abort(
                         404,
                         message=f"Incorrect message format for block {epoch}.",
-                        headers={"X-Version": "1.0.0"},
+                        headers={"X-Version": "2.0.0"},
                     )
                 # Second, cache the block hash with the block epoch as key
                 cache.set(
@@ -150,12 +144,12 @@ class SearchEpoch(MethodView):
                     }
                 ),
                 200,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )
         except ValidationError as err_info:
             logger.error(f"Incorrect message format for block {epoch}: {err_info}")
             abort(
                 404,
                 message=f"Incorrect message format for block {epoch}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )

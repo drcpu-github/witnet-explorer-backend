@@ -3,18 +3,18 @@ import sys
 
 import toml
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.block import Block
+from blockchain.objects.wip import WIP
 from blockchain.witnet_database import WitnetDatabase
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
 from util.database_manager import DatabaseManager
 
 
 def add_block(
-    config,
     db_mngr,
     witnet_node,
-    consensus_constants,
     block_epoch=None,
     block_hash=None,
 ):
@@ -34,7 +34,6 @@ def add_block(
 
     if block_epoch:
         block = Block(
-            consensus_constants,
             block_epoch=block_epoch,
             database=db_mngr,
             witnet_node=witnet_node,
@@ -42,7 +41,6 @@ def add_block(
         )
     else:
         block = Block(
-            consensus_constants,
             block_hash=block_hash,
             database=db_mngr,
             witnet_node=witnet_node,
@@ -55,7 +53,7 @@ def add_block(
     epoch = block_json["details"]["epoch"]
     print(f"Adding block {block_json['details']['hash']} for epoch {epoch}")
 
-    witnet_database = WitnetDatabase(config["database"])
+    witnet_database = WitnetDatabase()
     witnet_database.insert_block(block_json)
     witnet_database.insert_mint_txn(block_json["transactions"]["mint"], epoch)
     for txn_details in block_json["transactions"]["value_transfer"]:
@@ -87,10 +85,13 @@ def main():
     )
     options, args = parser.parse_args()
 
-    config = toml.load(options.config_file)
-    db_mngr = DatabaseManager(config["database"])
-    witnet_node = WitnetNode(config["node-pool"], timeout=300)
-    consensus_constants = ConsensusConstants(database=db_mngr, witnet_node=witnet_node)
+    # Create blockchain configuration object
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.wip = WIP()
+    BlockchainConfig.consensus_constants = ConsensusConstants()
+
+    db_mngr = DatabaseManager()
+    witnet_node = WitnetNode()
 
     if options.epochs is not None:
         epochs_to_add = [int(epoch) for epoch in options.epochs.split(",")]
@@ -108,19 +109,15 @@ def main():
     if epochs_to_add:
         for block_epoch in epochs_to_add:
             add_block(
-                config,
                 db_mngr,
                 witnet_node,
-                consensus_constants,
                 block_epoch=block_epoch,
             )
     else:
         for block_hash in hashes_to_add:
             add_block(
-                config,
                 db_mngr,
                 witnet_node,
-                consensus_constants,
                 block_hash=block_hash,
             )
 

@@ -15,22 +15,29 @@ from queue import Empty
 
 import toml
 
+from blockchain.config import BlockchainConfig
+from blockchain.consensus_constants import ConsensusConstants
 from blockchain.objects.block import Block
+from blockchain.objects.wip import WIP
 from blockchain.transactions.data_request import DataRequest
 from blockchain.transactions.value_transfer import ValueTransfer
 from blockchain.witnet_database import WitnetDatabase
-from node.consensus_constants import ConsensusConstants
 from node.witnet_node import WitnetNode
-from util.common_functions import calculate_current_epoch
+from util.blockchain_functions import (
+    calculate_current_epoch,
+    get_activatation_epoch_wit2,
+)
 from util.common_sql import sql_last_confirmed_block
 from util.socket_manager import SocketManager
 
 
 class BlockExplorer(object):
-    def __init__(self, config, log_queue):
-        error_retry = config["explorer"]["error_retry"]
-
-        self.mempool_interval = config["explorer"]["mempool_interval"]
+    def __init__(self, log_queue):
+        # Get some configuration parameters
+        self.config = BlockchainConfig.config
+        self.poll_interval = self.config["explorer"]["poll_interval"]
+        self.batch_size = self.config["explorer"]["batch_size"]
+        self.addresses_config = self.config["api"]["caching"]["scripts"]["addresses"]
 
         # Set up logger
         self.configure_logging_process(log_queue, "explorer")
@@ -39,50 +46,39 @@ class BlockExplorer(object):
         # Set up logging queue for logging from different processes
         self.log_queue = log_queue
 
-        # Get configuration to connect to the node pool
-        self.node_config = config["node-pool"]
-
         # Create nodes to connect to the node pool
         self.insert_blocks_node = WitnetNode(
-            self.node_config,
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-insert",
         )
         self.confirm_blocks_node = WitnetNode(
-            self.node_config,
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-confirm",
         )
         self.insert_pending_node = WitnetNode(
-            self.node_config,
             timeout=30,
             log_queue=self.log_queue,
             log_label="node-pending",
         )
 
-        # Get consensus constants
-        self.consensus_constants = ConsensusConstants(
-            config=config, error_retry=error_retry
-        )
-
-        # Get configuration to connect to the database
-        self.database_config = config["database"]
-
         # Create database objects
         self.insert_blocks_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-insert"
+            log_queue=self.log_queue,
+            log_label="db-insert",
         )
         self.confirm_blocks_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-confirm"
+            log_queue=self.log_queue,
+            log_label="db-confirm",
         )
         self.mempool_database = WitnetDatabase(
-            self.database_config, log_queue=self.log_queue, log_label="db-pending"
+            log_queue=self.log_queue,
+            log_label="db-pending",
         )
 
-        # Get configuration to connect to the address caching server
-        self.addresses_config = config["api"]["caching"]["scripts"]["addresses"]
+        # Track data requests which are almost finished
+        self.data_request_reveal_addresses = {}
 
     def configure_logging_process(self, queue, label):
         handler = logging.handlers.QueueHandler(queue)
@@ -99,13 +95,12 @@ class BlockExplorer(object):
     def insert_block(self, database, block_hash_hex_str, block, epoch, tapi_periods):
         # Create block object and parse it to a JSON object
         block = Block(
-            self.consensus_constants,
+            block=block,
             block_hash=block_hash_hex_str,
             log_queue=self.log_queue,
-            database_config=self.database_config,
-            block=block,
+            database=self.insert_blocks_database,
             tapi_periods=tapi_periods,
-            node_config=self.node_config,
+            witnet_node=self.insert_blocks_node,
         )
         block_json = block.process_block("explorer")
 
@@ -123,6 +118,52 @@ class BlockExplorer(object):
 
         return block_json
 
+    def batch_insert_blocks(self, database, block_hashes, blocks, epochs, tapi_periods):
+        addresses = {}
+        batched_transactions = {}
+        for block_hash, block, epoch in zip(block_hashes, blocks, epochs):
+            # Create block object and parse it to a JSON object
+            block = Block(
+                block=block,
+                block_hash=block_hash,
+                log_queue=self.log_queue,
+                database=self.insert_blocks_database,
+                tapi_periods=tapi_periods,
+                witnet_node=self.insert_blocks_node,
+                transaction_batch=batched_transactions,
+            )
+            block_json = block.process_block("explorer")
+
+            # Insert block
+            database.insert_block(block_json)
+
+            # Insert transactions
+            transactions = self.insert_transactions(database, block_json, epoch)
+            batched_transactions.update(transactions)
+
+            # Insert address data
+            block_addresses = block.process_addresses(as_dict=True)
+            for address, data in block_addresses.items():
+                if address not in addresses:
+                    addresses[address] = [address, epoch] + data
+                else:
+                    addresses[address][1] = epoch
+                    addresses[address][2] += data[0]
+                    addresses[address][3] += data[1]
+                    addresses[address][4] += data[2]
+                    addresses[address][5] += data[3]
+                    addresses[address][6] += data[4]
+                    addresses[address][7] += data[5]
+                    addresses[address][8] += data[6]
+                    addresses[address][9] += data[7]
+                    addresses[address][10] += data[8]
+
+        # Insert all address data
+        database.insert_addresses(list(addresses.values()))
+
+        # Finalize insertions and updates on every block
+        database.finalize(epochs)
+
     def update_cached_views(self, block_json, logger, caching_server):
         epoch = block_json["details"]["epoch"]
 
@@ -138,15 +179,16 @@ class BlockExplorer(object):
         self.try_send_request(logger, caching_server, request)
 
         # Update the mint transaction cached view for the addresses which received (part of) the mint transaction using the caching server
-        mint_addresses = block_json["transactions"]["mint"]["output_addresses"]
-        request = {
-            "method": "update",
-            "epoch": epoch,
-            "function": "mints",
-            "addresses": mint_addresses,
-            "id": 2,
-        }
-        self.try_send_request(logger, caching_server, request)
+        if epoch < get_activatation_epoch_wit2():
+            mint_addresses = block_json["transactions"]["mint"]["output_addresses"]
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "mints",
+                "addresses": mint_addresses,
+                "id": 2,
+            }
+            self.try_send_request(logger, caching_server, request)
 
         # Update all value transfer cached views for all addresses involved in value transfers
         value_transfer_addresses = set()
@@ -163,12 +205,33 @@ class BlockExplorer(object):
             }
             self.try_send_request(logger, caching_server, request)
 
+        # Update the data requests solved cached view for all addresses involved in a reveal transaction
+        # at the moment that the associated tally transaction is found.
+        # This is a necessary addition because since wit/2, there are no tally outputs for honest solvers
+        # anymore which results in their views not being updated.
+        # Note that validators which do not reveal their committed value will not be included here, but
+        # they will be part of the liar_addresses array in the associated tally transaction later on.
+        for reveal in block_json["transactions"]["reveal"]:
+            data_request_txn = reveal["data_request"]
+            if data_request_txn not in self.data_request_reveal_addresses:
+                self.data_request_reveal_addresses[data_request_txn] = []
+            self.data_request_reveal_addresses[data_request_txn].append(
+                reveal["address"]
+            )
+
         # Update the data requests solved cached view for all addresses in all tallies
         tally_addresses = set()
         for tally in block_json["transactions"]["tally"]:
             tally_addresses.update(tally["output_addresses"])
             tally_addresses.update(tally["error_addresses"])
             tally_addresses.update(tally["liar_addresses"])
+            # Update the tally addresses set with honest validators since wit/2 tally transactions do not
+            # contain an output for those validators anymore.
+            if tally["data_request"] in self.data_request_reveal_addresses:
+                tally_addresses.update(
+                    self.data_request_reveal_addresses[tally["data_request"]]
+                )
+                del self.data_request_reveal_addresses[tally["data_request"]]
         if len(tally_addresses) > 0:
             request = {
                 "method": "update",
@@ -193,6 +256,37 @@ class BlockExplorer(object):
             }
             self.try_send_request(logger, caching_server, request)
 
+        # Update the stakes cached view for all addresses in all stakes
+        stake_addresses = set()
+        for stake in block_json["transactions"]["stake"]:
+            stake_addresses.update(set(stake["input_addresses"]))
+            stake_addresses.add(stake["validator"])
+            stake_addresses.add(stake["withdrawer"])
+        if len(stake_addresses) > 0:
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "stakes",
+                "addresses": list(stake_addresses),
+                "id": 6,
+            }
+            self.try_send_request(logger, caching_server, request)
+
+        # Update the unstakes cached view for all addresses in all unstakes
+        unstake_addresses = set()
+        for unstake in block_json["transactions"]["unstake"]:
+            unstake_addresses.add(unstake["validator"])
+            unstake_addresses.add(unstake["withdrawer"])
+        if len(unstake_addresses) > 0:
+            request = {
+                "method": "update",
+                "epoch": epoch,
+                "function": "unstakes",
+                "addresses": list(unstake_addresses),
+                "id": 7,
+            }
+            self.try_send_request(logger, caching_server, request)
+
         # Update the utxos for all addresses which were involved in a UTXO consuming / generating transaction
         utxo_addresses = set()
         utxo_addresses.update(
@@ -203,47 +297,67 @@ class BlockExplorer(object):
         for commit in block_json["transactions"]["commit"]:
             utxo_addresses.add(commit["address"])
         utxo_addresses.update(tally_addresses)
+        utxo_addresses.update(stake_addresses)
+        utxo_addresses.update(unstake_addresses)
         if len(utxo_addresses) > 0:
             request = {
                 "method": "update",
                 "epoch": epoch,
                 "function": "utxos",
                 "addresses": list(utxo_addresses),
-                "id": 6,
+                "id": 8,
             }
             self.try_send_request(logger, caching_server, request)
 
     def insert_transactions(self, database, block_json, epoch):
+        transactions = {}
+
         # Insert mint transaction
-        database.insert_mint_txn(block_json["transactions"]["mint"], epoch)
+        mint_txn = block_json["transactions"]["mint"]
+        database.insert_mint_txn(mint_txn, epoch)
+        transactions[mint_txn["hash"]] = mint_txn
 
         # Insert value transfer transactions
         for txn_details in block_json["transactions"]["value_transfer"]:
             database.insert_value_transfer_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert data request transactions
         for txn_details in block_json["transactions"]["data_request"]:
             database.insert_data_request_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert commit transactions
         for txn_details in block_json["transactions"]["commit"]:
             database.insert_commit_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert reveal transactions
         for txn_details in block_json["transactions"]["reveal"]:
             database.insert_reveal_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
 
         # Insert tally transactions
         for txn_details in block_json["transactions"]["tally"]:
             database.insert_tally_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
+
+        # Insert tally transactions
+        for txn_details in block_json["transactions"]["stake"]:
+            database.insert_stake_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
+
+        # Insert tally transactions
+        for txn_details in block_json["transactions"]["unstake"]:
+            database.insert_unstake_txn(txn_details, epoch)
+            transactions[txn_details["hash"]] = txn_details
+
+        return transactions
 
     def insert_blocks_and_transactions(self, log_queue, unconfirmed_blocks_queue):
         # Set up logger
         self.configure_logging_process(log_queue, "explorer-insert")
         logger = logging.getLogger("explorer-insert")
-
-        # Get some consensus constants
-        checkpoints_period = self.consensus_constants.checkpoints_period
 
         # Connect to the addresses caching server
         caching_server = SocketManager(
@@ -266,12 +380,12 @@ class BlockExplorer(object):
             )
         # If we are adding the first block, initialize last_block_hash with the bootstrap_hash
         if last_block_hash == "":
-            last_block_hash = self.consensus_constants.bootstrap_hash
+            last_block_hash = BlockchainConfig.consensus_constants.bootstrap_hash
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / checkpoints_period) + 1
-        ) * checkpoints_period + 1
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval + 1
         sleep_for = max(0, next_poll_interval - time.time())
         logger.info(f"Waiting {int(sleep_for)}s until the start of the next epoch")
         time.sleep(sleep_for)
@@ -279,8 +393,8 @@ class BlockExplorer(object):
         # Infinite loop
         while True:
             next_poll_interval = (
-                int(time.time() / checkpoints_period) + 1
-            ) * checkpoints_period + 1
+                int(time.time() / self.poll_interval) + 1
+            ) * self.poll_interval + 1
 
             # Get TAPI periods
             tapi_periods = self.get_tapi_periods(self.insert_blocks_database)
@@ -293,8 +407,9 @@ class BlockExplorer(object):
             else:
                 blockchain = blockchain["result"]
 
+            block_hashes, blocks, epochs = [], [], []
             for epoch, block_hash_hex_str in blockchain:
-                logger.info(f"Inserting data for epoch {epoch}")
+                logger.info(f"Fetching data for epoch {epoch}")
 
                 block = self.insert_blocks_node.get_block(block_hash_hex_str)
                 # The database entries related to this block have not been modified yet
@@ -307,16 +422,33 @@ class BlockExplorer(object):
                 block = block["result"]
 
                 # Insert block
-                block_json = self.insert_block(
-                    self.insert_blocks_database,
-                    block_hash_hex_str,
-                    block,
-                    epoch,
-                    tapi_periods,
-                )
+                if len(blockchain) < self.batch_size:
+                    block_json = self.insert_block(
+                        self.insert_blocks_database,
+                        block_hash_hex_str,
+                        block,
+                        epoch,
+                        tapi_periods,
+                    )
 
-                # Update all cached views
-                self.update_cached_views(block_json, logger, caching_server)
+                    # Update all cached views
+                    self.update_cached_views(block_json, logger, caching_server)
+                # Batch insert block if they older than the batch size
+                else:
+                    block_hashes.append(block_hash_hex_str)
+                    blocks.append(block)
+                    epochs.append(epoch)
+                    if len(block_hashes) == self.batch_size:
+                        self.batch_insert_blocks(
+                            self.insert_blocks_database,
+                            block_hashes,
+                            blocks,
+                            epochs,
+                            tapi_periods,
+                        )
+                        block_hashes = []
+                        blocks = []
+                        epochs = []
 
                 # Check if the block is confirmed and if it isn't track the hash
                 confirmed = block["confirmed"]
@@ -337,8 +469,7 @@ class BlockExplorer(object):
         logger = logging.getLogger("explorer-confirm")
 
         # Calculate superepoch period from consensus constants
-        superblock_period = self.consensus_constants.superblock_period
-        checkpoints_period = self.consensus_constants.checkpoints_period
+        superblock_period = BlockchainConfig.consensus_constants.superblock_period
 
         # Connect to the addresses caching server
         caching_server = SocketManager(
@@ -349,16 +480,16 @@ class BlockExplorer(object):
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / checkpoints_period) + 1
-        ) * checkpoints_period + 5
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval + 5
         sleep_for = max(0, next_poll_interval - time.time())
         time.sleep(sleep_for)
 
         unconfirmed_blocks = {}
         while True:
             next_poll_interval = (
-                int(time.time() / checkpoints_period) + 1
-            ) * checkpoints_period + 5
+                int(time.time() / self.poll_interval) + 1
+            ) * self.poll_interval + 5
 
             # Get TAPI epochs
             tapi_periods = self.get_tapi_periods(self.confirm_blocks_database)
@@ -516,8 +647,8 @@ class BlockExplorer(object):
 
         # sleep until the next poll interval
         next_poll_interval = (
-            int(time.time() / self.mempool_interval) + 1
-        ) * self.mempool_interval
+            int(time.time() / self.poll_interval) + 1
+        ) * self.poll_interval
         sleep_for = max(0, next_poll_interval - time.time())
         time.sleep(sleep_for)
 
@@ -526,19 +657,14 @@ class BlockExplorer(object):
 
         while True:
             current_time = time.time()
-            timestamp = (
-                int(current_time / self.mempool_interval) * self.mempool_interval
-            )
+            timestamp = int(current_time / self.poll_interval) * self.poll_interval
             next_poll_interval = (
-                int(current_time / self.mempool_interval) + 1
-            ) * self.mempool_interval
+                int(current_time / self.poll_interval) + 1
+            ) * self.poll_interval
 
             current_epoch = self.insert_pending_node.get_current_epoch()
             if current_epoch == 0:
-                current_epoch = calculate_current_epoch(
-                    self.consensus_constants.checkpoint_zero_timestamp,
-                    self.consensus_constants.checkpoints_period,
-                )
+                current_epoch = calculate_current_epoch()
 
             transactions_pool = self.insert_pending_node.get_mempool()
             # If all nodes are busy retry in short bursts to get the request through
@@ -570,10 +696,8 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             data_request = DataRequest(
-                self.consensus_constants,
+                database=self.mempool_database,
                 logger=logger,
-                database_config=self.database_config,
-                node_config=self.node_config,
             )
             for transaction in transactions_pool["data_request"]:
                 if transaction in mapped_data_requests:
@@ -613,10 +737,8 @@ class BlockExplorer(object):
 
             mapped_transactions, queried_transactions = 0, 0
             value_transfer = ValueTransfer(
-                self.consensus_constants,
+                database=self.mempool_database,
                 logger=logger,
-                database_config=self.database_config,
-                node_config=self.node_config,
             )
             for transaction in transactions_pool["value_transfer"]:
                 if transaction in mapped_value_transfers:
@@ -733,7 +855,8 @@ def select_logging_level(level):
         return logging.CRITICAL
 
 
-def configure_logging_listener(config):
+def configure_logging_listener():
+    config = BlockchainConfig.config
     root = logging.getLogger()
 
     logging.Formatter.converter = time.gmtime
@@ -782,8 +905,8 @@ def configure_logging_listener(config):
     root.addHandler(console_handler)
 
 
-def logging_listener(config, queue):
-    configure_logging_listener(config)
+def logging_listener(queue):
+    configure_logging_listener()
 
     while True:
         try:
@@ -805,16 +928,18 @@ def main():
     )
     options, args = parser.parse_args()
 
-    # Load config file
-    config = toml.load(options.config_file)
+    # Create blockchain configuration object
+    BlockchainConfig.config = toml.load(options.config_file)
+    BlockchainConfig.wip = WIP()
+    BlockchainConfig.consensus_constants = ConsensusConstants()
 
     # Start logging process
     log_queue = Queue()
-    listener_process = Process(target=logging_listener, args=(config, log_queue))
+    listener_process = Process(target=logging_listener, args=(log_queue,))
     listener_process.start()
 
     # Create explorer
-    explorer = BlockExplorer(config, log_queue)
+    explorer = BlockExplorer(log_queue)
 
     # Create queue to pass data about unconfirmed blocks
     unconfirmed_blocks_queue = Queue()

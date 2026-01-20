@@ -4,6 +4,7 @@ import pytest
 from marshmallow import ValidationError
 
 from schemas.include.input_utxo_schema import InputUtxo, InputUtxoList, InputUtxoPointer
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -19,17 +20,10 @@ def test_input_utxo_success(input_utxo):
 
 
 def test_input_utxo_failure_address(input_utxo):
-    input_utxo["address"] = "xit100000000000000000000000000000000r0v4g"
-    with pytest.raises(ValidationError) as err_info:
-        InputUtxo().load(input_utxo)
-    assert len(err_info.value.messages["address"]) == 2
-    assert (
-        err_info.value.messages["address"][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["address"][1]
-        == "Address does not start with wit1 string."
+    generic_address_test(
+        input_utxo,
+        ("address",),
+        InputUtxo,
     )
 
 

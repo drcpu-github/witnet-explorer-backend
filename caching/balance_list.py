@@ -4,24 +4,25 @@ import sys
 import time
 import toml
 
+from blockchain.config import BlockchainConfig
 from caching.client import Client
 from schemas.network.balances_schema import NetworkBalancesResponse
 from util.data_transformer import re_sql
 from util.logger import configure_logger
 
 class BalanceList(Client):
-    def __init__(self, config):
+    def __init__(self):
+        bl_cfg = BlockchainConfig.config["api"]["caching"]["scripts"]["balance_list"]
+
         # Setup logger
-        log_filename = config["api"]["caching"]["scripts"]["balance_list"]["log_file"]
-        log_level = config["api"]["caching"]["scripts"]["balance_list"]["level_file"]
-        self.logger = configure_logger("balance-list", log_filename, log_level)
+        self.logger = configure_logger("balance-list", bl_cfg["log_file"], bl_cfg["level_file"])
 
         # Read some Witnet node parameters
-        self.node_retries = config["api"]["caching"]["node_retries"]
-        self.timeout = config["api"]["caching"]["scripts"]["balance_list"]["timeout"]
-        self.node_timeout = config["api"]["caching"]["scripts"]["balance_list"]["node_timeout"]
+        self.node_retries = BlockchainConfig.config["api"]["caching"]["node_retries"]
+        self.timeout = bl_cfg["timeout"]
+        self.node_timeout = bl_cfg["node_timeout"]
 
-        super().__init__(config, node_timeout=self.node_timeout)
+        super().__init__(BlockchainConfig.config, node_timeout=self.node_timeout)
 
     def build(self):
         start = time.perf_counter()
@@ -157,10 +158,10 @@ def main():
         sys.exit(1)
 
     # Load config file
-    config = toml.load(options.config_file)
+    BlockchainConfig.config = toml.load(options.config_file)
 
     # Create BalanceList cache
-    balance_list = BalanceList(config)
+    balance_list = BalanceList()
     # Save BalanceList in memcached instance on success
     if balance_list.build():
         balance_list.save()

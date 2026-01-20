@@ -7,13 +7,17 @@ import os
 import socket
 import sys
 
+from blockchain.config import BlockchainConfig
 from util.data_transformer import hex2bytes
 from util.socket_manager import SocketManager
 
 class WitnetNode(object):
     request_id = 1
 
-    def __init__(self, node_config, timeout=0, logger=None, log_queue=None, log_label=""):
+    def __init__(self, timeout=0, logger=None, log_queue=None, log_label=""):
+        # Get the node pool configuration
+        node_config = BlockchainConfig.config["node-pool"]
+
         # If a timeout is specified, save it here so it can be propagated into the request
         self.request_timeout = timeout if timeout != node_config["default_timeout"] else 0
 
@@ -79,6 +83,18 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getBalance", "params": ["all", True], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
+    def get_balance_2(self, node_address):
+        if self.logger:
+            self.logger.info(f"get_balance({node_address}, {simple})")
+        request = {"jsonrpc": "2.0", "method": "getBalance2", "params": {"pkh": node_address}, "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
+    def get_balance_2_all(self, min_balance=0, max_balance=None):
+        if self.logger:
+            self.logger.info("get_balance_all()")
+        request = {"jsonrpc": "2.0", "method": "getBalance2", "params": {"all": {"minBalance": min_balance, "maxBalance": max_balance}}, "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def get_reputation(self, node_address):
         if self.logger:
             self.logger.info(f"get_reputation({node_address})")
@@ -121,22 +137,47 @@ class WitnetNode(object):
         request = {"jsonrpc": "2.0", "method": "getSupplyInfo", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
+    def get_supply_info_2(self):
+        if self.logger:
+            self.logger.info("get_supply_info_2()")
+        request = {"jsonrpc": "2.0", "method": "getSupplyInfo2", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
     def get_utxos(self, address):
         if self.logger:
             self.logger.info(f"get_utxos({address})")
         request = {"jsonrpc": "2.0", "method": "getUtxoInfo", "params": [address], "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         if self.logger:
-            self.logger.info(f"send_vtt({vtt})")
-        request = {"jsonrpc": "2.0", "method": "inventory", "params": vtt, "id": str(WitnetNode.request_id)}
+            self.logger.info(f"send_transaction({transaction})")
+        request = {"jsonrpc": "2.0", "method": "inventory", "params": transaction, "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_priority(self):
         if self.logger:
             self.logger.info("get_priority()")
         request = {"jsonrpc": "2.0", "method": "priority", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
+    def get_protocol_info(self):
+        if self.logger:
+            self.logger.info("get_protocol_info()")
+        request = {"jsonrpc": "2.0", "method": "protocol", "id": str(WitnetNode.request_id)}
+        return self.execute_request(request)
+
+    def get_stakes(self, validator, withdrawer):
+        if self.logger:
+            self.logger.info(f"get_stakes({validator}, {withdrawer})")
+        if validator and withdrawer:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"validator": validator, "withdrawer": withdrawer}}, "id": str(WitnetNode.request_id)}
+        elif validator:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"validator": validator}}, "id": str(WitnetNode.request_id)}
+        elif withdrawer:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "params": {"filter": {"withdrawer": withdrawer}}, "id": str(WitnetNode.request_id)}
+        else:
+            request = {"jsonrpc": "2.0", "method": "queryStakes", "id": str(WitnetNode.request_id)}
         return self.execute_request(request)
 
     def get_current_epoch(self):

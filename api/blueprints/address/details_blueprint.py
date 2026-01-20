@@ -3,12 +3,12 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from api.connect import send_address_caching_request
 from blockchain.objects.address import Address
 from schemas.address.details_view_schema import DetailsView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import send_address_caching_request
 
 address_details_blueprint = Blueprint(
     "address details",
@@ -23,7 +23,7 @@ class AddressDetails(MethodView):
     @address_details_blueprint.response(
         200,
         DetailsView,
-        description="Returns the balance, reputation and label of an address.",
+        description="Returns the balance, stake info and label of an address.",
         headers={
             "X-Version": {
                 "description": "Version of this API endpoint.",
@@ -43,7 +43,6 @@ class AddressDetails(MethodView):
     )
     def get(self, args):
         address_caching_server = current_app.extensions["address_caching_server"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
@@ -56,7 +55,6 @@ class AddressDetails(MethodView):
 
         address = Address(
             arg_address,
-            config,
             database=database,
             witnet_node=witnet_node,
             logger=logger,
@@ -71,6 +69,6 @@ class AddressDetails(MethodView):
             abort(
                 404,
                 message=f"Incorrect message format for details data for {arg_address}.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
-        return details, 200, {"X-Version": "1.0.0"}
+        return details, 200, {"X-Version": "2.0.0"}

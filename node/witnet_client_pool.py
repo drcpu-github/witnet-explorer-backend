@@ -1,14 +1,15 @@
 from contextlib import contextmanager
 from queue import Queue
 
+from blockchain.config import BlockchainConfig
 from node.witnet_node import WitnetNode
 
 class WitnetClientPool(Queue):
-    def __init__(self, config):
-        clients = config["nodes"]["number"]
+    def __init__(self):
+        clients = BlockchainConfig.config["node-pool"]["nodes"]["number"]
         Queue.__init__(self, clients)
         for i in range(clients):
-            self.put(WitnetNode(config))
+            self.put(WitnetNode())
 
     def init_app(self, app):
         app.extensions = getattr(app, "extensions", {})
@@ -82,13 +83,21 @@ class WitnetClientPool(Queue):
         with self.reserve() as witnet_node:
             return witnet_node.get_utxos(address)
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         with self.reserve() as witnet_node:
-            return witnet_node.send_vtt(vtt)
+            return witnet_node.send_transaction(transaction)
 
     def get_priority(self):
         with self.reserve() as witnet_node:
             return witnet_node.get_priority()
+
+    def get_stakes(self, validator, withdrawer):
+        with self.reserve() as witnet_node:
+            return witnet_node.get_stakes(validator, withdrawer)
+
+    def get_protocol_info(self):
+        with self.reserve() as witnet_node:
+            return witnet_node.get_protocol_info()
 
     def get_current_epoch(self):
         with self.reserve() as witnet_node:

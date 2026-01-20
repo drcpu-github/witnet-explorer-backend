@@ -1,16 +1,25 @@
 import optparse
-import psycopg
 import subprocess
 import sys
+
+import psycopg
 import toml
+from psycopg.sql import SQL, Literal
+
 
 def execute_command(command):
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
     stdout, stderr = p.communicate()
     if len(stderr) > 0:
         sys.stderr.write(stderr + "\n")
         sys.exit(1)
     return stdout
+
 
 def check_version():
     stdout = execute_command("psql --version")
@@ -19,24 +28,31 @@ def check_version():
         sys.stderr.write("Minimum required version of PostgreSQL is 15")
         sys.exit(1)
 
+
 def create_user(user, password):
     # Check if user exists
-    stdout = execute_command(f"sudo -u postgres psql -c \"SELECT 1 FROM pg_roles WHERE rolname='{user}'\"")
+    stdout = execute_command(
+        f"sudo -u postgres psql -c \"SELECT 1 FROM pg_roles WHERE rolname='{user}'\""
+    )
     # Does the user exist?
-    if stdout == b' ?column? \n----------\n(0 rows)\n\n':
+    if stdout == b" ?column? \n----------\n(0 rows)\n\n":
         # Create user
         if password == "":
-            execute_command(f"sudo -u postgres psql -c \"CREATE USER {user}\"")
+            execute_command(f'sudo -u postgres psql -c "CREATE USER {user}"')
         else:
-            execute_command(f"sudo -u postgres psql -c \"CREATE USER {user} PASSWORD '{password}'\"")
+            execute_command(
+                f"sudo -u postgres psql -c \"CREATE USER {user} PASSWORD '{password}'\""
+            )
         # Allow user to create databases
-        execute_command(f"sudo -u postgres psql -c \"ALTER USER {user} CREATEDB\"")
+        execute_command(f'sudo -u postgres psql -c "ALTER USER {user} CREATEDB"')
         print(f"Ceated user '{user}'")
     else:
         print(f"User '{user}' already exists")
 
+
 def create_database(name, user):
     connection, cursor = connect_to_database("postgres")
+    connection.autocommit = True
     cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname='{name}'")
     result = cursor.fetchone()
     if not result:
@@ -44,6 +60,9 @@ def create_database(name, user):
         print(f"Created database '{name}'")
     else:
         print(f"Database '{name}' already exists")
+    cursor.close()
+    connection.close()
+
 
 def connect_to_database(name, user="", password=""):
     try:
@@ -64,12 +83,14 @@ def connect_to_database(name, user="", password=""):
         sys.exit(2)
     return connection, cursor
 
+
 def execute_create_statement(connection, cursor, sql):
     try:
         cursor.execute(sql)
     except Exception as e:
         sys.stderr.write(f"Could not execute SQL statement '{sql}', error: {e}\n")
     connection.commit()
+
 
 def create_enums(connection, cursor):
     enums = [
@@ -85,19 +106,21 @@ def create_enums(connection, cursor):
                         'DRO_bytes_hash',
                         'commit_txn',
                         'reveal_txn',
-                        'tally_txn'
+                        'tally_txn',
+                        'stake_txn',
+                        'unstake_txn'
                     );
                 END IF;
             END
         $$;
         COMMIT;""",
-
         """DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'retrieve_kind') THEN
                     CREATE TYPE retrieve_kind AS ENUM (
                         'Unknown',
                         'HTTP-GET',
+                        'HTTP-HEAD',
                         'HTTP-POST',
                         'RNG'
                     );
@@ -105,7 +128,6 @@ def create_enums(connection, cursor):
             END
         $$;
         COMMIT;""",
-
         """DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'network_stat') THEN
@@ -131,6 +153,7 @@ def create_enums(connection, cursor):
 
     print("Created all enums")
 
+
 def create_types(connection, cursor):
     types = [
         """DO $$
@@ -144,7 +167,6 @@ def create_types(connection, cursor):
             END
         $$;
         COMMIT;""",
-
         """DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'filter') THEN
@@ -163,11 +185,12 @@ def create_types(connection, cursor):
 
     print("Created all types")
 
-def create_tables(connection, cursor):
+
+def create_tables(config, connection, cursor):
     tables = [
         """CREATE TABLE IF NOT EXISTS addresses (
             id INT GENERATED ALWAYS AS IDENTITY,
-            address CHAR(42) PRIMARY KEY,
+            address CHAR({length}) PRIMARY KEY,
             label VARCHAR(64),
             active INT,
             block INT,
@@ -176,15 +199,15 @@ def create_tables(connection, cursor):
             data_request INT,
             commit INT,
             reveal INT,
-            tally INT
+            tally INT,
+            stake INT,
+            unstake INT
         );""",
-
         """CREATE TABLE IF NOT EXISTS hashes (
             hash BYTEA PRIMARY KEY,
             type hash_type NOT NULL,
             epoch INT
         );""",
-
         """CREATE TABLE IF NOT EXISTS blocks (
             block_hash BYTEA PRIMARY KEY,
             value_transfer SMALLINT NOT NULL,
@@ -192,41 +215,43 @@ def create_tables(connection, cursor):
             commit SMALLINT NOT NULL,
             reveal SMALLINT NOT NULL,
             tally SMALLINT NOT NULL,
+            stake SMALLINT NOT NULL,
+            unstake SMALLINT NOT NULL,
             dr_weight INT NOT NULL,
             vt_weight INT NOT NULL,
+            st_weight INT NOT NULL,
+            ut_weight INT NOT NULL,
             block_weight INT NOT NULL,
+            txns_fees BIGINT NOT NULL,
             epoch INT NOT NULL,
             tapi_signals INT,
             confirmed BOOLEAN NOT NULL,
             reverted BOOLEAN DEFAULT false
         );""",
-
         """CREATE TABLE IF NOT EXISTS mint_txns (
             txn_hash BYTEA PRIMARY KEY,
-            miner CHAR(42) NOT NULL,
-            output_addresses CHAR(42) ARRAY NOT NULL,
+            miner CHAR({length}) NOT NULL,
+            output_addresses CHAR({length}) ARRAY NOT NULL,
             output_values BIGINT ARRAY NOT NULL,
             epoch INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS value_transfer_txns (
             txn_hash BYTEA PRIMARY KEY,
-            input_addresses CHAR(42) ARRAY NOT NULL,
+            input_addresses CHAR({length}) ARRAY NOT NULL,
             input_values BIGINT ARRAY NOT NULL,
             input_utxos utxo ARRAY NOT NULL,
-            output_addresses CHAR(42) ARRAY NOT NULL,
+            output_addresses CHAR({length}) ARRAY NOT NULL,
             output_values BIGINT ARRAY NOT NULL,
             timelocks BIGINT ARRAY NOT NULL,
             weight INT NOT NULL,
             epoch INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS data_request_txns (
             txn_hash BYTEA PRIMARY KEY,
-            input_addresses CHAR(42) ARRAY NOT NULL,
+            input_addresses CHAR({length}) ARRAY NOT NULL,
             input_values BIGINT ARRAY NOT NULL,
             input_utxos utxo ARRAY NOT NULL,
-            output_address CHAR(42),
+            output_address CHAR({length}),
             output_value BIGINT,
             witnesses SMALLINT NOT NULL,
             witness_reward BIGINT NOT NULL,
@@ -247,50 +272,67 @@ def create_tables(connection, cursor):
             DRO_bytes_hash BYTEA NOT NULL,
             epoch INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS commit_txns (
             txn_hash BYTEA PRIMARY KEY,
-            txn_address CHAR(42) NOT NULL,
+            txn_address CHAR({length}) NOT NULL,
             input_values BIGINT ARRAY NOT NULL,
             input_utxos utxo ARRAY NOT NULL,
             output_value BIGINT,
             data_request BYTEA NOT NULL,
             epoch INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS reveal_txns (
             txn_hash BYTEA PRIMARY KEY,
-            txn_address CHAR(42) NOT NULL,
+            txn_address CHAR({length}) NOT NULL,
             data_request BYTEA NOT NULL,
             result BYTEA NOT NULL,
             success BOOL NOT NULL,
             epoch INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS tally_txns (
             txn_hash BYTEA PRIMARY KEY,
-            output_addresses CHAR(42) ARRAY NOT NULL,
+            output_addresses CHAR({length}) ARRAY NOT NULL,
             output_values BIGINT ARRAY NOT NULL,
             data_request BYTEA NOT NULL,
-            error_addresses CHAR(42) ARRAY NOT NULL,
-            liar_addresses CHAR(42) ARRAY NOT NULL,
+            error_addresses CHAR({length}) ARRAY NOT NULL,
+            liar_addresses CHAR({length}) ARRAY NOT NULL,
             result BYTEA NOT NULL,
             success BOOL NOT NULL,
             epoch INT NOT NULL
         );""",
-
+        """CREATE TABLE IF NOT EXISTS stake_txns (
+            txn_hash BYTEA PRIMARY KEY,
+            input_addresses CHAR({length}) ARRAY NOT NULL,
+            input_values BIGINT ARRAY NOT NULL,
+            input_utxos utxo ARRAY NOT NULL,
+            change_address CHAR({length}),
+            change_value BIGINT,
+            weight INT NOT NULL,
+            validator CHAR({length}) NOT NULL,
+            withdrawer CHAR({length}) NOT NULL,
+            stake_value BIGINT NOT NULL,
+            epoch INT NOT NULL
+        );""",
+        """CREATE TABLE IF NOT EXISTS unstake_txns (
+            txn_hash BYTEA PRIMARY KEY,
+            validator CHAR({length}) NOT NULL,
+            withdrawer CHAR({length}) NOT NULL,
+            unstake_value BIGINT NOT NULL,
+            fee BIGINT NOT NULL,
+            nonce BIGINT NOT NULL,
+            weight INT NOT NULL,
+            epoch INT NOT NULL
+        );""",
         """CREATE TABLE IF NOT EXISTS data_request_mempool (
             timestamp INT NOT NULL,
             fee BIGINT ARRAY NOT NULL,
             weight INT ARRAY NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS value_transfer_mempool (
             timestamp INT NOT NULL,
             fee BIGINT ARRAY NOT NULL,
             weight INT ARRAY NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS wips (
             id SMALLINT GENERATED ALWAYS AS IDENTITY,
             title VARCHAR NOT NULL,
@@ -302,7 +344,6 @@ def create_tables(connection, cursor):
             tapi_bit SMALLINT,
             tapi_json JSONB
         );""",
-
         """CREATE TABLE IF NOT EXISTS network_stats (
             stat network_stat NOT NULL,
             from_epoch INT,
@@ -310,17 +351,14 @@ def create_tables(connection, cursor):
             data JSONB NOT NULL,
             UNIQUE NULLS NOT DISTINCT (stat, from_epoch, to_epoch)
         );""",
-
         """CREATE TABLE IF NOT EXISTS data_request_reports (
             data_request_hash BYTEA PRIMARY KEY,
             report JSONB NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS cron_data (
             key VARCHAR PRIMARY KEY,
             data INT NOT NULL
         );""",
-
         """CREATE TABLE IF NOT EXISTS consensus_constants (
             key VARCHAR PRIMARY KEY,
             int_val BIGINT,
@@ -329,9 +367,24 @@ def create_tables(connection, cursor):
     ]
 
     for table in tables:
-        execute_create_statement(connection, cursor, table)
+        if config["environment"]["network"] == "mainnet":
+            execute_create_statement(
+                connection,
+                cursor,
+                SQL(table).format(length=Literal(42)),
+            )
+        elif config["environment"]["network"] == "testnet":
+            execute_create_statement(
+                connection,
+                cursor,
+                SQL(table).format(length=Literal(43)),
+            )
+        else:
+            sys.stderr.write("Network type needs to be either mainnet or testnet")
+            sys.exit(1)
 
     print("Created all tables")
+
 
 def create_indexes(connection, cursor):
     indexes = [
@@ -348,6 +401,12 @@ def create_indexes(connection, cursor):
         "CREATE INDEX IF NOT EXISTS idx_reveal_txn_epoch ON reveal_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_tally_txn_epoch ON tally_txns (epoch);",
         "CREATE INDEX IF NOT EXISTS idx_value_transfer_txn_epoch ON value_transfer_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_epoch ON stake_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_validator ON stake_txns USING HASH (validator);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_withdrawer ON stake_txns USING HASH (withdrawer);",
+        "CREATE INDEX IF NOT EXISTS idx_unstake_txn_epoch ON unstake_txns (epoch);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_validator ON unstake_txns USING HASH (validator);",
+        "CREATE INDEX IF NOT EXISTS idx_stake_txn_withdrawer ON unstake_txns USING HASH (withdrawer);",
     ]
 
     for index in indexes:
@@ -355,27 +414,42 @@ def create_indexes(connection, cursor):
 
     print("Created all indexes")
 
+
 def main():
     parser = optparse.OptionParser()
-    parser.add_option("--config-file", type="string", default="explorer.toml", dest="config_file")
+    parser.add_option(
+        "--config-file",
+        type="string",
+        default="explorer.toml",
+        dest="config_file",
+    )
     options, args = parser.parse_args()
 
     config = toml.load(options.config_file)
 
     check_version()
 
-    create_user(config["database"]["user"], config["database"]["password"])
+    database_name = f"{config['database']['name']}_{config['environment']['network']}"
+    database_user = config["database"]["user"]
+    database_password = config["database"]["password"]
 
-    create_database(config["database"]["name"], config["database"]["user"])
-    connection, cursor = connect_to_database(config["database"]["name"], config["database"]["user"], config["database"]["password"])
+    create_user(database_user, database_password)
+
+    create_database(database_name, database_user)
+    connection, cursor = connect_to_database(
+        database_name,
+        database_user,
+        database_password,
+    )
 
     create_enums(connection, cursor)
 
     create_types(connection, cursor)
 
-    create_tables(connection, cursor)
+    create_tables(config, connection, cursor)
 
     create_indexes(connection, cursor)
+
 
 if __name__ == "__main__":
     main()

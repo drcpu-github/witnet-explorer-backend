@@ -1,42 +1,174 @@
 {
-    "drt_high": {
-        "priority": 1000,
-        "time_to_block": 300
+    "api": {
+        "drt": {
+            "stinky": {
+                "priority": 1,
+                "time_to_block": 21600
+            },
+            "low": {
+                "priority": 3,
+                "time_to_block": 3600
+            },
+            "medium": {
+                "priority": 5,
+                "time_to_block": 900
+            },
+            "high": {
+                "priority": 10,
+                "time_to_block": 300
+            },
+            "opulent": {
+                "priority": 20,
+                "time_to_block": 60
+            }
+        },
+        "vtt": {
+            "stinky": {
+                "priority": 2,
+                "time_to_block": 21600
+            },
+            "low": {
+                "priority": 6,
+                "time_to_block": 3600
+            },
+            "medium": {
+                "priority": 10,
+                "time_to_block": 900
+            },
+            "high": {
+                "priority": 20,
+                "time_to_block": 300
+            },
+            "opulent": {
+                "priority": 40,
+                "time_to_block": 60
+            }
+        },
+        "st": {
+            "stinky": {
+                "priority": 4,
+                "time_to_block": 21600
+            },
+            "low": {
+                "priority": 12,
+                "time_to_block": 3600
+            },
+            "medium": {
+                "priority": 20,
+                "time_to_block": 900
+            },
+            "high": {
+                "priority": 40,
+                "time_to_block": 300
+            },
+            "opulent": {
+                "priority": 80,
+                "time_to_block": 60
+            }
+        },
+        "ut": {
+            "stinky": {
+                "priority": 8,
+                "time_to_block": 21600
+            },
+            "low": {
+                "priority": 24,
+                "time_to_block": 3600
+            },
+            "medium": {
+                "priority": 40,
+                "time_to_block": 900
+            },
+            "high": {
+                "priority": 80,
+                "time_to_block": 300
+            },
+            "opulent": {
+                "priority": 160,
+                "time_to_block": 60
+            }
+        }
     },
-    "drt_low": {
-        "priority": 500,
-        "time_to_block": 3600
-    },
-    "drt_medium": {
-        "priority": 500,
-        "time_to_block": 900
-    },
-    "drt_opulent": {
-        "priority": 1000,
-        "time_to_block": 60
-    },
-    "drt_stinky": {
-        "priority": 1,
-        "time_to_block": 21600
-    },
-    "vtt_high": {
-        "priority": 10,
-        "time_to_block": 300
-    },
-    "vtt_low": {
-        "priority": 3,
-        "time_to_block": 3600
-    },
-    "vtt_medium": {
-        "priority": 5,
-        "time_to_block": 900
-    },
-    "vtt_opulent": {
-        "priority": 20,
-        "time_to_block": 60
-    },
-    "vtt_stinky": {
-        "priority": 1,
-        "time_to_block": 21600
+    "rpc": {
+        "drt_stinky": {
+            "priority": 1,
+            "time_to_block": 21600
+        },
+        "drt_low": {
+            "priority": 3,
+            "time_to_block": 3600
+        },
+        "drt_medium": {
+            "priority": 5,
+            "time_to_block": 900
+        },
+        "drt_high": {
+            "priority": 10,
+            "time_to_block": 300
+        },
+        "drt_opulent": {
+            "priority": 20,
+            "time_to_block": 60
+        },
+        "vtt_stinky": {
+            "priority": 2,
+            "time_to_block": 21600
+        },
+        "vtt_low": {
+            "priority": 6,
+            "time_to_block": 3600
+        },
+        "vtt_medium": {
+            "priority": 10,
+            "time_to_block": 900
+        },
+        "vtt_high": {
+            "priority": 20,
+            "time_to_block": 300
+        },
+        "vtt_opulent": {
+            "priority": 40,
+            "time_to_block": 60
+        },
+        "st_stinky": {
+            "priority": 4,
+            "time_to_block": 21600
+        },
+        "st_low": {
+            "priority": 12,
+            "time_to_block": 3600
+        },
+        "st_medium": {
+            "priority": 20,
+            "time_to_block": 900
+        },
+        "st_high": {
+            "priority": 40,
+            "time_to_block": 300
+        },
+        "st_opulent": {
+            "priority": 80,
+            "time_to_block": 60
+        },
+        "ut_stinky": {
+            "priority": 8,
+            "time_to_block": 21600
+        },
+        "ut_low": {
+            "priority": 24,
+            "time_to_block": 3600
+        },
+        "ut_medium": {
+            "priority": 40,
+            "time_to_block": 900
+        },
+        "ut_high": {
+            "priority": 80,
+            "time_to_block": 300
+        },
+        "ut_opulent": {
+            "priority": 160,
+            "time_to_block": 60
+        }
     }
 }

@@ -7,11 +7,11 @@ from schemas.address.labels_schema import AddressLabelResponse
 def test_address_label_response_success():
     data = [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+            "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
             "label": "The best address",
         },
         {
-            "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
+            "address": "twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh",
             "label": "The second best address",
         },
     ]
@@ -21,7 +21,7 @@ def test_address_label_response_success():
 def test_address_label_response_failure_missing():
     data = [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+            "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
         },
         {
             "label": "The second best address",

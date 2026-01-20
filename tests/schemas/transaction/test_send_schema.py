@@ -1,27 +1,27 @@
 import pytest
 from marshmallow import ValidationError
 
-from schemas.transaction.send_schema import ValueTransferArgs, ValueTransferResponse
+from schemas.transaction.send_schema import SendArgs, SendResponse
 
 
-def test_value_transfer_args_success(value_transfer):
+def test_send_args_success():
     data = {}
-    value_transfer_args = ValueTransferArgs().load(data)
-    assert not value_transfer_args["test"]
+    send_args = SendArgs().load(data)
+    assert not send_args["test"]
 
     data = {"test": True}
-    value_transfer_args = ValueTransferArgs().load(data)
-    assert value_transfer_args["test"]
+    send_args = SendArgs().load(data)
+    assert send_args["test"]
 
 
-def test_value_transfer_response_success(value_transfer):
+def test_send_response_success():
     data = {"result": "Succesfully sent value transfer."}
-    ValueTransferResponse().load(data)
+    SendResponse().load(data)
 
 
-def test_value_transfer_response_failure_missing(value_transfer):
+def test_send_response_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
-        ValueTransferResponse().load(data)
+        SendResponse().load(data)
     assert len(err_info.value.messages) == 1
     assert err_info.value.messages["result"][0] == "Missing data for required field."

@@ -1,4 +1,4 @@
-from marshmallow import Schema, ValidationError, fields, validate, validates_schema
+from marshmallow import Schema, fields, validate
 
 from schemas.component.commit_schema import (
     CommitTransactionForBlock,
@@ -16,9 +16,17 @@ from schemas.component.reveal_schema import (
     RevealTransactionForBlock,
     RevealTransactionForExplorer,
 )
+from schemas.component.stake_schema import (
+    StakeTransactionForBlock,
+    StakeTransactionForExplorer,
+)
 from schemas.component.tally_schema import (
     TallyTransactionForBlock,
     TallyTransactionForExplorer,
+)
+from schemas.component.unstake_schema import (
+    UnstakeTransactionForBlock,
+    UnstakeTransactionForExplorer,
 )
 from schemas.component.value_transfer_schema import (
     ValueTransferTransactionForBlock,
@@ -40,7 +48,10 @@ class BlockDetails(TimestampComponent):
         validate=validate.Range(min=0),
         required=True,
     )
+    stake_weight = fields.Integer(validate=validate.Range(min=0), required=True)
+    unstake_weight = fields.Integer(validate=validate.Range(min=0), required=True)
     weight = fields.Integer(validate=validate.Range(min=0), required=True)
+    txns_fees = fields.Integer(validate=validate.Range(min=0), required=True)
     confirmed = fields.Boolean(required=True)
     reverted = fields.Boolean(required=True)
 
@@ -58,21 +69,14 @@ class BlockTransactionsForExplorer(Schema):
     commit = fields.List(fields.Nested(CommitTransactionForExplorer), required=True)
     reveal = fields.List(fields.Nested(RevealTransactionForExplorer), required=True)
     tally = fields.List(fields.Nested(TallyTransactionForExplorer), required=True)
+    stake = fields.List(fields.Nested(StakeTransactionForExplorer), required=True)
+    unstake = fields.List(fields.Nested(UnstakeTransactionForExplorer), required=True)
 
 
 class BlockForExplorer(Schema):
     details = fields.Nested(BlockDetails, required=True)
     transactions = fields.Nested(BlockTransactionsForExplorer, required=True)
-    tapi = fields.List(
-        fields.Int(validate=validate.Range(min=0, max=1)),
-        allow_none=True,
-        required=True,
-    )
-
-    @validates_schema
-    def validate_tapi(self, args, **kwargs):
-        if args["tapi"] is not None and len(args["tapi"]) < 32:
-            raise ValidationError("TAPI signal vector does not have a length of 32.")
+    tapi = fields.Int(validate=validate.Range(min=0), allow_none=True, required=True)
 
 
 class BlockTransactionsForApi(Schema):
@@ -96,6 +100,8 @@ class BlockTransactionsForApi(Schema):
         required=True,
     )
     tally = fields.List(fields.Nested(TallyTransactionForBlock), required=True)
+    stake = fields.List(fields.Nested(StakeTransactionForBlock), required=True)
+    unstake = fields.List(fields.Nested(UnstakeTransactionForBlock), required=True)
     number_of_commits = fields.Int(validate=validate.Range(min=0), required=True)
     number_of_reveals = fields.Int(validate=validate.Range(min=0), required=True)
 

@@ -6,19 +6,19 @@ from schemas.address.info_schema import AddressInfoArgs, AddressInfoResponse
 
 def test_address_info_failure_malformed_address():
     data = {
-        "addresses": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfs,xit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6"
+        "addresses": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4c,xit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh"
     }
     with pytest.raises(ValidationError) as err_info:
         AddressInfoArgs().load(data)
     assert (
         err_info.value.messages["addresses"][0]
-        == "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfs: Address does not contain 42 characters, xit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6: Address does not start with wit1 string."
+        == "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4c: Testnet address does not contain 43 characters, xit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh: Address does not start with wit1 / twit1 string."
     )
 
 
 def test_address_info_failure_too_many():
     data = {
-        "addresses": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq,wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq"
+        "addresses": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp,twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp"
     }
     with pytest.raises(ValidationError) as err_info:
         AddressInfoArgs().load(data)
@@ -31,7 +31,7 @@ def test_address_info_failure_too_many():
 def test_address_info_response_success():
     data = [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+            "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
             "label": "",
             "active": 0,
             "block": 0,
@@ -43,7 +43,7 @@ def test_address_info_response_success():
             "tally": 0,
         },
         {
-            "address": "wit1drcpu2gf386tm29mh62cce0seun76rrvk5nca6",
+            "address": "twit19kzspg5tdgh0yqry6czn50fxj52mrxjnmytzqh",
             "label": "",
             "active": 0,
             "block": 0,
@@ -61,7 +61,7 @@ def test_address_info_response_success():
 def test_address_info_response_failure_missing():
     data = [
         {
-            "address": "wit1drcpu0xc2akfcqn8r69vw70pj8fzjhjypdcfsq",
+            "address": "twit1mseplfttj5vvm8r7d5pn5je9dd02el4hw4w4cp",
             "label": "",
             "active": 0,
             "block": 0,

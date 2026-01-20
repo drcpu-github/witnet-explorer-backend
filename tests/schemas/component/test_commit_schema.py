@@ -14,7 +14,7 @@ def commit_transaction_for_api():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -62,6 +62,7 @@ def commit_transaction_for_block():
         "address": "wit100000000000000000000000000000000r0v4g2",
         "collateral": 1e10,
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
+        "fee": 1,
     }
 
 
@@ -84,7 +85,7 @@ def test_commit_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         CommitTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 5
+    assert len(err_info.value.messages) == 6
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["address"][0] == "Missing data for required field."
@@ -94,6 +95,7 @@ def test_commit_transaction_for_block_failure_missing():
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
 
 
 @pytest.fixture
@@ -101,7 +103,7 @@ def commit_transaction_for_data_request():
     return {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "address": "wit100000000000000000000000000000000r0v4g2",
         "confirmed": True,
@@ -180,11 +182,27 @@ def test_commit_transaction_for_explorer_failure_inputs(
     )
 
 
+def test_commit_transaction_for_explorer_failure_wit2_epoch(
+    commit_transaction_for_explorer,
+):
+    commit_transaction_for_explorer["epoch"] = 280
+    commit_transaction_for_explorer["input_values"] = []
+    commit_transaction_for_explorer["input_utxos"] = []
+    with pytest.raises(ValidationError) as err_info:
+        # Inputs are required before wit/2 is activated
+        CommitTransactionForExplorer().load(commit_transaction_for_explorer)
+    assert err_info.value.messages["input_values"] == "Need at least one input value."
+
+    # No inputs are needed anymore after wit/2 is activated
+    commit_transaction_for_explorer["epoch"] = 300
+    CommitTransactionForExplorer().load(commit_transaction_for_explorer)
+
+
 def test_commit_transaction_for_explorer_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         CommitTransactionForExplorer().load(data)
-    assert len(err_info.value.messages) == 8
+    assert len(err_info.value.messages) == 9
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert err_info.value.messages["address"][0] == "Missing data for required field."
@@ -194,6 +212,7 @@ def test_commit_transaction_for_explorer_failure_missing():
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
     )
+    assert err_info.value.messages["fee"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["input_utxos"][0] == "Missing data for required field."
     )

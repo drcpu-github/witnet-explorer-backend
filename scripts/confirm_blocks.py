@@ -3,6 +3,7 @@ import sys
 
 import toml
 
+from blockchain.config import BlockchainConfig
 from util.database_manager import DatabaseManager
 
 
@@ -26,8 +27,9 @@ def main():
     )
     options, args = parser.parse_args()
 
-    config = toml.load(options.config_file)
-    db_mngr = DatabaseManager(config["database"])
+    # Create blockchain configuration object
+    BlockchainConfig.config = toml.load(options.config_file)
+    db_mngr = DatabaseManager()
 
     if options.epochs is not None:
         epochs_to_confirm = [int(epoch) for epoch in options.epochs.split(",")]

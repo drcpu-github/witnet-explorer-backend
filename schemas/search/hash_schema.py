@@ -12,7 +12,9 @@ from schemas.component.commit_schema import CommitTransactionForApi
 from schemas.component.data_request_schema import DataRequestTransactionForApi
 from schemas.component.mint_schema import MintTransactionForApi
 from schemas.component.reveal_schema import RevealTransactionForApi
+from schemas.component.stake_schema import StakeTransactionForApi
 from schemas.component.tally_schema import TallyTransactionForApi
+from schemas.component.unstake_schema import UnstakeTransactionForApi
 from schemas.component.value_transfer_schema import ValueTransferTransactionForApi
 from schemas.include.validation_functions import is_valid_hash
 from schemas.search.data_request_history_schema import DataRequestHistory
@@ -42,6 +44,8 @@ class SearchHashResponse(Schema):
                 "commit",
                 "reveal",
                 "tally",
+                "stake",
+                "unstake",
                 "data_request_report",
                 "data_request_history",
             ]
@@ -55,6 +59,8 @@ class SearchHashResponse(Schema):
     commit = fields.Nested(CommitTransactionForApi)
     reveal = fields.Nested(RevealTransactionForApi)
     tally = fields.Nested(TallyTransactionForApi)
+    stake = fields.Nested(StakeTransactionForApi)
+    unstake = fields.Nested(UnstakeTransactionForApi)
     data_request_report = fields.Nested(DataRequestReport)
     data_request_history = fields.Nested(DataRequestHistory)
     pending = fields.Str()

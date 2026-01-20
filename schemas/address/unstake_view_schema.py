@@ -1,0 +1,16 @@
+from marshmallow import fields, validate
+
+from schemas.include.base_transaction_schema import BaseTransaction, TimestampComponent
+from schemas.include.validation_functions import is_valid_address
+
+
+class UnstakeView(BaseTransaction, TimestampComponent):
+    direction = fields.Str(
+        validate=validate.OneOf(["in", "out", "self"]),
+        required=True,
+    )
+    validator = fields.Str(validate=is_valid_address, required=True)
+    withdrawer = fields.Str(validate=is_valid_address, required=True)
+    fee = fields.Int(validate=validate.Range(min=0), required=True)
+    unstake_value = fields.Int(validate=validate.Range(min=0), required=True)
+    confirmed = fields.Boolean(required=True)

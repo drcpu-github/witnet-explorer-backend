@@ -7,14 +7,11 @@ from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 from psycopg.sql import SQL, Identifier
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
 from schemas.network.mempool_schema import NetworkMempoolArgs, NetworkMempoolResponse
-from util.common_functions import (
-    calculate_priority,
-    calculate_timestamp_from_epoch,
-    get_network_times,
-)
+from util.blockchain_functions import calculate_priority, calculate_timestamp_from_epoch
 from util.data_transformer import re_sql
 
 network_mempool_blueprint = Blueprint(
@@ -53,7 +50,7 @@ class NetworkMempool(MethodView):
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
 
-        config = current_app.config["explorer"]
+        config = BlockchainConfig.config
 
         # Use the last 24h
         if "start_epoch" not in args or "stop_epoch" not in args:
@@ -61,16 +58,11 @@ class NetworkMempool(MethodView):
             timestamp_start = timestamp_stop - 24 * 60 * 60
         # Calculate timestamps from epochs
         else:
-            start_time, epoch_period = get_network_times(database)
-            timestamp_start = calculate_timestamp_from_epoch(
-                start_time, epoch_period, args["start_epoch"]
-            )
-            timestamp_stop = calculate_timestamp_from_epoch(
-                start_time, epoch_period, args["stop_epoch"]
-            )
+            timestamp_start = calculate_timestamp_from_epoch(args["start_epoch"])
+            timestamp_stop = calculate_timestamp_from_epoch(args["stop_epoch"])
 
         granularity = args["granularity"]
-        sample_rate = int(granularity / config["explorer"]["mempool_interval"])
+        sample_rate = int(granularity / config["explorer"]["poll_interval"])
 
         transaction_type = args["transaction_type"]
         logger.info(
@@ -97,7 +89,7 @@ class NetworkMempool(MethodView):
                 abort(
                     404,
                     message="Incorrect format for mempool statistics.",
-                    headers={"X-Version": "1.0.0"},
+                    headers={"X-Version": "2.0.0"},
                 )
 
             try:
@@ -110,7 +102,7 @@ class NetworkMempool(MethodView):
         else:
             logger.info(f"Found {key} in memcached cache")
 
-        return mempool, 200, {"X-Version": "1.0.0"}
+        return mempool, 200, {"X-Version": "2.0.0"}
 
 
 def get_historical_mempool(
@@ -125,6 +117,8 @@ def get_historical_mempool(
     table_mapping = {
         "data_requests": "data_request_mempool",
         "value_transfers": "value_transfer_mempool",
+        "stakes": "stake_mempool",
+        "unstakes": "unstake_mempool",
     }
 
     # Get lists between the required timestamps

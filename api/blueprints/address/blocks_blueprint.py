@@ -3,12 +3,12 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from api.connect import send_address_caching_request
 from blockchain.objects.address import Address
 from schemas.address.block_view_schema import BlockView
 from schemas.include.address_schema import AddressSchema
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import send_address_caching_request
 
 address_blocks_blueprint = Blueprint(
     "address blocks",
@@ -45,7 +45,6 @@ class AddressBlocks(MethodView):
     def get(self, args, pagination_parameters):
         address_caching_server = current_app.extensions["address_caching_server"]
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
@@ -62,7 +61,7 @@ class AddressBlocks(MethodView):
         # Try to fetch the result from the cache
         cached_blocks = cache.get(f"{arg_address}_blocks")
         # Return cached version if found (fast)
-        if cached_blocks:
+        if cached_blocks is not None:
             logger.info(f"Found {len(cached_blocks)} blocks for {arg_address} in cache")
             pagination_parameters.item_count = len(cached_blocks)
             return cached_blocks[start:stop], 200, {"X-Version": "1.0.0"}
@@ -73,7 +72,6 @@ class AddressBlocks(MethodView):
             )
             address = Address(
                 arg_address,
-                config,
                 database=database,
                 witnet_node=witnet_node,
                 logger=logger,

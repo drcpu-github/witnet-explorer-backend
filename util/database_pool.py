@@ -4,13 +4,17 @@ import psycopg
 import psycopg_pool
 from psycopg.types.composite import CompositeInfo, register_composite
 
+from blockchain.config import BlockchainConfig
+
 class DatabasePool(object):
-    def __init__(self, config, logger=None):
-        self.user = config["user"]
-        self.database = config["name"]
-        self.password = config["password"]
-        self.fetch_rows = config["fetch_rows"]
-        self.min_connections = config["min_connections"]
+    def __init__(self, logger=None):
+        config = BlockchainConfig.config
+
+        self.user = config["database"]["user"]
+        self.database = f"{config['database']['name']}_{config['environment']['network']}"
+        self.password = config["database"]["password"]
+        self.fetch_rows = config["database"]["fetch_rows"]
+        self.min_connections = config["database"]["min_connections"]
 
         self.logger = logger
 
@@ -30,6 +34,7 @@ class DatabasePool(object):
                 conninfo=self.connection_str,
                 min_size=self.min_connections,
                 open=True,
+                kwargs={"prepare_threshold": None},
             )
         except psycopg.OperationalError as e:
             if self.logger:

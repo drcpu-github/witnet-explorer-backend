@@ -34,8 +34,7 @@ def main():
     if len(cron_lines) > 0:
         cron_lines.append("")
 
-    explorer = config["explorer"]["path"]
-    backend = f"{explorer}/backend"
+    path_to_explorer = config["explorer"]["path"]
 
     # Cron jobs for all processes caching data
     for cache_process, cron in cron_config.items():
@@ -44,7 +43,7 @@ def main():
             f"# Execute the {cache_process} caching process {time_indication}. Use flock to prevent concurrent execution."
         )
         cron_lines.append(
-            f"{cron} cd {backend} && flock -n {backend}/caching/.{cache_process}.lock {explorer}/env/bin/python3 -m caching.{cache_process} --config-file {backend}/explorer.toml\n"
+            f"{cron} cd {path_to_explorer} && flock -n caching/.{cache_process}.lock ./env/bin/python3 -m caching.{cache_process} --config-file {options.config_file}\n"
         )
 
     f = open("crontabs.txt", "w+")

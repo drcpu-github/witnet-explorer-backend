@@ -3,6 +3,7 @@ import sys
 
 import toml
 
+from blockchain.config import BlockchainConfig
 from util.database_manager import DatabaseManager
 
 
@@ -23,9 +24,7 @@ def delete_block(db_mngr, epoch):
     result = db_mngr.sql_update_table(sql_statement, parameters=[epoch])
     print(f"Deleted {result} value transfer transaction(s) for epoch {epoch}")
 
-    sql_statement = "DELETE FROM data_request_txns WHERE data_request_txns.epoch=%s" % (
-        epoch,
-    )
+    sql_statement = "DELETE FROM data_request_txns WHERE data_request_txns.epoch=%s"
     result = db_mngr.sql_update_table(sql_statement, parameters=[epoch])
     print(f"Deleted {result} data request transaction(s) for epoch {epoch}")
 
@@ -124,8 +123,9 @@ def main():
     )
     options, args = parser.parse_args()
 
-    config = toml.load(options.config_file)
-    db_mngr = DatabaseManager(config["database"])
+    # Create blockchain configuration object
+    BlockchainConfig.config = toml.load(options.config_file)
+    db_mngr = DatabaseManager()
 
     if options.epochs is not None:
         epochs_to_confirm = [int(epoch) for epoch in options.epochs.split(",")]

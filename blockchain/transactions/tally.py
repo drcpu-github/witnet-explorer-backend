@@ -8,15 +8,15 @@ from schemas.component.tally_schema import (
     TallyTransactionForBlock,
     TallyTransactionForExplorer,
 )
+from util.blockchain_functions import calculate_timestamp_from_epoch
 from util.radon_translator import RadonTranslator
 
 
 class Tally(Transaction):
     def process_transaction(self, call_from):
-        # Collect output details
-        output_addresses, output_values, _ = self.get_outputs(self.json_txn["outputs"])
-        self.txn_details["output_addresses"] = output_addresses
-        self.txn_details["output_values"] = output_values
+        # If we create a Tally from the transaction RPC, we still have to get the sub-dictionary
+        if "transaction" in self.json_txn:
+            self.json_txn = self.json_txn["transaction"]["Tally"]
 
         self.txn_details["data_request"] = self.json_txn["dr_pointer"]
 
@@ -28,6 +28,14 @@ class Tally(Transaction):
 
         # Get error_addresses and liar_addresses
         if call_from == "explorer":
+            # Collect output details
+            output_addresses, output_values, _ = self.get_outputs(
+                self.json_txn["outputs"]
+            )
+            self.txn_details["output_addresses"] = output_addresses
+            self.txn_details["output_values"] = output_values
+
+            # Calculate the error and liar addresses
             self.txn_details["error_addresses"] = self.json_txn["error_committers"]
             self.txn_details["liar_addresses"] = list(
                 set(self.json_txn["out_of_consensus"])
@@ -129,8 +137,6 @@ class Tally(Transaction):
 
                 success, tally_result = translate_tally(txn_hash.hex(), tally_result)
 
-                timestamp = self.start_time + (epoch + 1) * self.epoch_period
-
                 tally = {
                     "hash": txn_hash.hex(),
                     "block": block_hash.hex(),
@@ -141,7 +147,7 @@ class Tally(Transaction):
                     "tally": tally_result,
                     "success": success,
                     "epoch": epoch,
-                    "timestamp": timestamp,
+                    "timestamp": calculate_timestamp_from_epoch(epoch),
                     "confirmed": block_confirmed,
                     "reverted": block_reverted,
                 }
@@ -193,7 +199,7 @@ class Tally(Transaction):
             success, tally_result = translate_tally(txn_hash, result)
 
             txn_epoch = epoch
-            txn_time = self.start_time + (epoch + 1) * self.epoch_period
+            txn_time = calculate_timestamp_from_epoch(epoch)
 
             return TallyTransactionForApi().load(
                 {

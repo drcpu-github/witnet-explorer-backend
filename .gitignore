@@ -9,7 +9,8 @@ venv
 
 analysis/*
 
-explorer.toml
+explorer.mainnet.toml
+explorer.testnet.toml
 
 **/*.lock
 

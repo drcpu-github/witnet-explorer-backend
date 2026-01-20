@@ -29,7 +29,7 @@ def test_base_transaction_failure_required():
 def timestamp():
     return {
         "epoch": 1,
-        "timestamp": 1_602_666_090,
+        "timestamp": 1_738_180_845,
     }
 
 
@@ -38,10 +38,13 @@ def test_time_component_success(timestamp):
 
 
 def test_time_component_failure_timestamp(timestamp):
-    timestamp["timestamp"] = 1_602_666_045
+    timestamp["timestamp"] = 1_738_180_800
     with pytest.raises(ValidationError) as err_info:
         TimestampComponent().load(timestamp)
-    assert err_info.value.messages["_schema"][0] == "Incorrect transaction timestamp."
+    assert (
+        err_info.value.messages["_schema"][0]
+        == "Incorrect transaction timestamp: got 1738180800, excepted 1738180845."
+    )
 
 
 def test_time_component_failure_required():
@@ -57,7 +60,7 @@ def test_base_api_transaction_success():
     data = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1_602_666_090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -82,11 +85,14 @@ def test_base_api_transaction_failure_timestamp():
     data = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1_602_666_045,
+        "timestamp": 1_738_180_800,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
     }
     with pytest.raises(ValidationError) as err_info:
         BaseApiTransaction().load(data)
-    assert err_info.value.messages["_schema"][0] == "Incorrect transaction timestamp."
+    assert (
+        err_info.value.messages["_schema"][0]
+        == "Incorrect transaction timestamp: got 1738180800, excepted 1738180845."
+    )

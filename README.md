@@ -44,30 +44,7 @@ After installing memcached (see Dependencies), the memcached daemon will now hav
 sudo vim /etc/memcached.conf
 ```
 
-Increase the amount of memory in MB memcached can use by editing the value after the `-m` flag and at the bottom of the file add `-S` to enable SASL authentication. All other parameters can be kept at their default values.
-
-Create the SASL configuration:
-```
-sudo mkdir /etc/sasl2
-sudo vim /etc/sasl2/memcached.conf
-```
-
-Add below lines to the configuration file and save it:
-```
-mech_list: plain
-log_level: 5
-sasldb_path: /etc/sasl2/memcached-sasldb2
-```
-
-Create a user for memcached and enter your password twice:
-```
-sudo saslpasswd2 -a memcached -c -f /etc/sasl2/memcached-sasldb2 <username>
-```
-
-Change the ownership of the SASL database so the memcache user can access it. Note that if you changed the memcache user in the `memcached.conf` file, you also need to modify it in below command:
-```
-sudo chown memcache:memcache /etc/sasl2/memcached-sasldb2
-```
+Increase the amount of memory in MB memcached can use by editing the value after the `-m` flag. All other parameters can be kept at their default values.
 
 Restart the memcached daemon with the following command:
 ```
@@ -86,7 +63,7 @@ sudo journalctl -u memcached
 
 You can fetch memcached statistics using below command.
 ```
-memcstat --servers="127.0.0.1" --username <username> --password <password>
+memcstat --servers="127.0.0.1"
 ```
 
 ## Creating the database

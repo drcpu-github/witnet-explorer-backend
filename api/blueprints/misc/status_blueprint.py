@@ -3,10 +3,11 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import ValidationError
 
+from blockchain.config import BlockchainConfig
 from schemas.misc.abort_schema import AbortSchema
 from schemas.misc.status_schema import StatusResponse
 from schemas.misc.version_schema import VersionSchema
-from util.common_functions import calculate_current_epoch, get_network_times
+from util.blockchain_functions import calculate_current_epoch
 from util.common_sql import sql_last_block, sql_last_confirmed_block
 
 status_blueprint = Blueprint(
@@ -41,10 +42,11 @@ class Status(MethodView):
     )
     def get(self):
         cache = current_app.extensions["cache"]
-        config = current_app.config["explorer"]
         database = current_app.extensions["database"]
         logger = current_app.extensions["logger"]
         witnet_node = current_app.extensions["witnet_node"]
+
+        config = BlockchainConfig.config
 
         logger.info("status()")
 
@@ -55,8 +57,7 @@ class Status(MethodView):
             all_healthy = True
 
             # Calculate what the expected epoch should be
-            start_time, epoch_period = get_network_times(database)
-            expected_epoch = calculate_current_epoch(start_time, epoch_period)
+            expected_epoch = calculate_current_epoch()
 
             # Fetch the node pool status
             node_pool_status = witnet_node.get_sync_status()

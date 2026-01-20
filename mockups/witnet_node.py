@@ -50,6 +50,12 @@ class MockWitnetNode(object):
         tallies = json.load(open("mockups/data/tallies.json"))
         transactions.update(tallies)
 
+        stake = json.load(open("mockups/data/stakes.json"))
+        transactions.update(stake)
+
+        unstake = json.load(open("mockups/data/unstakes.json"))
+        transactions.update(unstake)
+
         return transactions[txn_hash]["rpc"]
 
     def get_sync_status(self):
@@ -64,12 +70,50 @@ class MockWitnetNode(object):
         address_data = json.load(open("mockups/data/address_data.json"))
         return {"result": {"utxos": address_data[address]["utxos"]}}
 
-    def send_vtt(self, vtt):
+    def send_transaction(self, transaction):
         return {"result": 1}
 
     def get_priority(self):
-        priority = json.load(open("mockups/data/priority.json"))
+        priority = json.load(open("mockups/data/priority.json"))["rpc"]
         return {"result": priority}
+
+    def get_stakes(self, validator, withdrawer):
+        stakes = json.load(open("mockups/data/query_stakes.json"))["rpc"]
+        if validator and withdrawer:
+            for stake in stakes:
+                if (
+                    stake["key"]["validator"] == validator
+                    and stake["key"]["withdrawer"] == withdrawer
+                ):
+                    return {"result": stake}
+        elif validator:
+            selected_stakes = []
+            for stake in stakes:
+                if stake["key"]["validator"] == validator:
+                    selected_stakes.append(stake)
+            if len(selected_stakes) > 0:
+                return {"result": selected_stakes}
+            else:
+                return {
+                    "reason": f"Tried to query for a stake entry by validator ({validator}) that is not registered in Stakes"
+                }
+        elif withdrawer:
+            selected_stakes = []
+            for stake in stakes:
+                if stake["key"]["withdrawer"] == withdrawer:
+                    selected_stakes.append(stake)
+            if len(selected_stakes) > 0:
+                return {"result": selected_stakes}
+            else:
+                return {
+                    "reason": f"Tried to query for a stake entry by withdrawer ({withdrawer}) that is not registered in Stakes"
+                }
+        else:
+            return {"result": stakes}
+
+    def get_protocol_info(self):
+        versions = json.load(open("mockups/data/network_versions.json"))
+        return {"result": versions["rpc"]}
 
     def get_current_epoch(self):
         blockchain = self.get_blockchain(-1, -1)

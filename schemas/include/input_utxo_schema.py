@@ -65,5 +65,6 @@ class InputUtxoList(Schema):
 
     @validates_schema
     def validate_inputs(self, args, **kwargs):
-        if len(args["input_utxos"]) < 1:
+        # Epoch is not defined here yet, but will be in the inheriting classes
+        if ("epoch" not in args or args["epoch"] > 0) and len(args["input_utxos"]) < 1:
             raise ValidationError({"input_utxos": "Need at least one input UTXO."})

@@ -5,7 +5,7 @@ def test_home_cached(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == home
 
 
@@ -13,7 +13,7 @@ def test_home_cached_network_stats(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home?key=network_stats")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == {"network_stats": home["network_stats"]}
 
 
@@ -21,7 +21,7 @@ def test_home_cached_supply_info(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home?key=supply_info")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == {"supply_info": home["supply_info"]}
 
 
@@ -29,7 +29,7 @@ def test_home_cached_blocks(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home?key=blocks")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == {"latest_blocks": home["latest_blocks"]}
 
 
@@ -37,7 +37,7 @@ def test_home_cached_data_requests(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home?key=data_requests")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == {
         "latest_data_requests": home["latest_data_requests"]
     }
@@ -47,10 +47,34 @@ def test_home_cached_value_transfers(client, home):
     assert client.application.extensions["cache"].get("home") is not None
     response = client.get("/api/home?key=value_transfers")
     assert response.status_code == 200
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert json.loads(response.data) == {
         "latest_value_transfers": home["latest_value_transfers"]
     }
+
+
+def test_home_cached_stakes(client, home):
+    assert client.application.extensions["cache"].get("home") is not None
+    response = client.get("/api/home?key=stakes")
+    assert response.status_code == 200
+    assert response.headers["x-version"] == "2.0.0"
+    assert json.loads(response.data) == {"latest_stakes": home["latest_stakes"]}
+
+
+def test_home_cached_unstakes(client, home):
+    assert client.application.extensions["cache"].get("home") is not None
+    response = client.get("/api/home?key=unstakes")
+    assert response.status_code == 200
+    assert response.headers["x-version"] == "2.0.0"
+    assert json.loads(response.data) == {"latest_unstakes": home["latest_unstakes"]}
+
+
+def test_home_cached_total_staked(client, home):
+    assert client.application.extensions["cache"].get("home") is not None
+    response = client.get("/api/home?key=total_staked")
+    assert response.status_code == 200
+    assert response.headers["x-version"] == "2.0.0"
+    assert json.loads(response.data) == {"total_staked": home["total_staked"]}
 
 
 def test_home_not_cached(client):
@@ -58,7 +82,7 @@ def test_home_not_cached(client):
     assert client.application.extensions["cache"].get("home") is None
     response = client.get("/api/home")
     assert response.status_code == 404
-    assert response.headers["x-version"] == "1.0.0"
+    assert response.headers["x-version"] == "2.0.0"
     assert (
         json.loads(response.data)["message"]
         == "Could not find homepage data in the cache."

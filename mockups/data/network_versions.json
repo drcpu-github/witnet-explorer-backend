@@ -1,0 +1,35 @@
+{
+    "api": {
+        "current_version": "V2_0",
+        "current_epoch": 100000,
+        "versions": [
+            {
+                "version": "V1_8",
+                "epoch": 101,
+                "period": 45
+            },
+            {
+                "version": "V2_0",
+                "epoch": 281,
+                "period": 20
+            }
+        ]
+    },
+    "rpc": {
+        "all_checkpoints_periods": {
+            "V1_8": 45,
+            "V2_0": 20
+        },
+        "all_versions": {
+            "efv": {
+                "V1_8": 101,
+                "V2_0": 281
+            },
+            "vfe": {
+                "101": "V1_8",
+                "281": "V2_0"
+            }
+        },
+        "current_version": "V2_0"
+    }
+}

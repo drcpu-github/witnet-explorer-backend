@@ -10,6 +10,7 @@ from schemas.component.tally_schema import (
     TallyTransactionForDataRequest,
     TallyTransactionForExplorer,
 )
+from tests.schemas.include.test_address_schema import generic_address_test
 
 
 @pytest.fixture
@@ -75,17 +76,10 @@ def test_tally_addresses_success(tally_addresses):
 
 
 def test_tally_addresses_failure_address(tally_addresses):
-    tally_addresses["error_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    tally_addresses["liar_addresses"] = ["wit100000000000000000000000000000000r0v4g"]
-    with pytest.raises(ValidationError) as err_info:
-        TallyAddresses().load(tally_addresses)
-    assert (
-        err_info.value.messages["error_addresses"][0][0]
-        == "Address does not contain 42 characters."
-    )
-    assert (
-        err_info.value.messages["liar_addresses"][0][0]
-        == "Address does not contain 42 characters."
+    generic_address_test(
+        tally_addresses,
+        (("error_addresses",), ("liar_addresses",)),
+        TallyAddresses,
     )
 
 
@@ -140,7 +134,7 @@ def tally_transaction_for_api(tally_output, tally_addresses, tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,
@@ -153,6 +147,25 @@ def tally_transaction_for_api(tally_output, tally_addresses, tally_summary):
 
 
 def test_tally_transaction_for_api_success(tally_transaction_for_api):
+    TallyTransactionForApi().load(tally_transaction_for_api)
+
+
+def test_tally_transaction_for_api_failure_wit2_epoch(tally_transaction_for_api):
+    tally_transaction_for_api["epoch"] = 280
+    tally_transaction_for_api["timestamp"] = 1_738_193_400
+    tally_transaction_for_api["output_addresses"] = []
+    tally_transaction_for_api["output_values"] = []
+    with pytest.raises(ValidationError) as err_info:
+        # Outputs are required before wit/2 is activated
+        TallyTransactionForApi().load(tally_transaction_for_api)
+    assert (
+        err_info.value.messages["output_addresses"]
+        == "Need at least one output address."
+    )
+
+    # No outputs are needed anymore after wit/2 is activated
+    tally_transaction_for_api["epoch"] = 300
+    tally_transaction_for_api["timestamp"] = 1_738_193_825
     TallyTransactionForApi().load(tally_transaction_for_api)
 
 
@@ -199,13 +212,12 @@ def test_tally_transaction_for_api_failure_missing():
 
 
 @pytest.fixture
-def tally_transaction_for_block(tally_output, tally_summary):
+def tally_transaction_for_block(tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
         "data_request": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
     }
-    transaction.update(tally_output)
     transaction.update(tally_summary)
     return transaction
 
@@ -229,19 +241,11 @@ def test_tally_transaction_for_block_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         TallyTransactionForBlock().load(data)
-    assert len(err_info.value.messages) == 9
+    assert len(err_info.value.messages) == 7
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
     assert err_info.value.messages["epoch"][0] == "Missing data for required field."
     assert (
         err_info.value.messages["data_request"][0] == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["output_addresses"][0]
-        == "Missing data for required field."
-    )
-    assert (
-        err_info.value.messages["output_values"][0]
-        == "Missing data for required field."
     )
     assert (
         err_info.value.messages["num_error_addresses"][0]
@@ -260,7 +264,7 @@ def tally_transaction_for_data_request(tally_addresses, tally_summary):
     transaction = {
         "hash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "epoch": 1,
-        "timestamp": 1602666090,
+        "timestamp": 1_738_180_845,
         "block": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0123456789",
         "confirmed": True,
         "reverted": False,

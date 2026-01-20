@@ -24,7 +24,6 @@ def test_hash_failure_missing():
     data = {}
     with pytest.raises(ValidationError) as err_info:
         HashSchema().load(data)
-    print(err_info.value.messages)
     assert err_info.value.messages["hash"][0] == "Missing data for required field."
 
 

@@ -2,11 +2,9 @@ import time
 import pylibmc
 
 class MemcachedPool(object):
-    def __init__(self, servers, username, password, threads, blocking):
+    def __init__(self, servers, threads, blocking):
         self.memcached_client = pylibmc.Client(
             servers,
-            username=username,
-            password=password,
             binary=True,
             behaviors={
                 "tcp_nodelay": True,  # Faster IO

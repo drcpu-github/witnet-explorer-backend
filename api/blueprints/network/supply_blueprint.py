@@ -49,7 +49,7 @@ class SupplyInfo(MethodView):
             abort(
                 404,
                 message="Could not find supply info data in the cache.",
-                headers={"X-Version": "1.0.0"},
+                headers={"X-Version": "2.0.0"},
             )
         else:
             logger.info("Found supply_info in memcached cache")
@@ -61,10 +61,10 @@ class SupplyInfo(MethodView):
             "epoch",
             "in_flight_requests",
         ):
-            return str(int(home["supply_info"][key])), 200, {"X-Version": "1.0.0"}
+            return str(int(home["supply_info"][key])), 200, {"X-Version": "2.0.0"}
         else:
             return (
                 str(int(home["supply_info"][key] / 1e9)),
                 200,
-                {"X-Version": "1.0.0"},
+                {"X-Version": "2.0.0"},
             )

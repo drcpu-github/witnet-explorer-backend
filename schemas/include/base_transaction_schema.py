@@ -2,16 +2,20 @@ from marshmallow import Schema, ValidationError, fields, validate, validates_sch
 
 from schemas.include.hash_schema import HashSchema
 from schemas.include.validation_functions import is_valid_hash
+from util.blockchain_functions import calculate_timestamp_from_epoch
 
 
 class TimestampComponent(Schema):
     epoch = fields.Int(validate=validate.Range(min=0), required=True)
-    timestamp = fields.Int(validate=validate.Range(min=1_602_666_000), required=True)
+    timestamp = fields.Int(validate=validate.Range(min=0), required=True)
 
     @validates_schema
     def validate_timestamp(self, args, **kwargs):
-        if args["timestamp"] != 1_602_666_000 + (args["epoch"] + 1) * 45:
-            raise ValidationError("Incorrect transaction timestamp.")
+        expected_timestamp = calculate_timestamp_from_epoch(args["epoch"])
+        if args["timestamp"] != expected_timestamp:
+            raise ValidationError(
+                f"Incorrect transaction timestamp: got {args['timestamp']}, excepted {expected_timestamp}."
+            )
 
 
 class BaseTransaction(HashSchema):

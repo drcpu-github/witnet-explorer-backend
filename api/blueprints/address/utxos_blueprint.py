@@ -66,7 +66,7 @@ class Reputation(MethodView):
 
             # Fetch UTXOs from cache
             utxos = cache.get(f"{address}_utxos")
-            if utxos:
+            if utxos is not None:
                 address_utxos.append(
                     {
                         "address": address,

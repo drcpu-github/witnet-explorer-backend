@@ -118,6 +118,7 @@ class RadonTranslator(object):
             ("InsufficientConsensus", 0x51),
             ("InsufficientCommits", 0x52),
             ("TallyExecution", 0x53),
+            ("TooManyWitnesses", 0x54),
             ("MalformedReveal", 0x60),
             ("UnhandledIntercept", 0xFF),
         )

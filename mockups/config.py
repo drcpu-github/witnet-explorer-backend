@@ -1,4 +1,7 @@
 mock_config = {
+    "environment": {
+        "network": "pytest",
+    },
     "api": {
         "caching": {
             "views": {
@@ -20,6 +23,12 @@ mock_config = {
                 "hash": {
                     "timeout": 10,
                 },
+                "version": {
+                    "timeout": 10,
+                },
+                "stakes": {
+                    "timeout": 10,
+                },
             },
             "scripts": {
                 "network_stats": {
@@ -31,6 +40,9 @@ mock_config = {
                 "data_request_reports": {
                     "timeout": 10,
                 },
+                "stakes": {
+                    "timeout": 10,
+                },
             },
             "plot_directory": "mockups/data",
         },
@@ -40,6 +52,6 @@ mock_config = {
         "error_retry": 10,
     },
     "explorer": {
-        "mempool_interval": 15,
+        "poll_interval": 15,
     },
 }
